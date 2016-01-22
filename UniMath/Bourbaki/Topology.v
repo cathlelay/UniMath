@@ -174,8 +174,10 @@ Definition pr1TopologicatSet : TopologicalSet -> hSet := pr1.
 Coercion pr1TopologicatSet : TopologicalSet >-> hSet.
 
 Definition isOpen {T : TopologicalSet} : (T -> hProp) -> hProp := pr1 (pr2 T).
-Definition Open (T : TopologicalSet) :=
+Definition Open {T : TopologicalSet} :=
   Σ O : T -> hProp, isOpen O.
+Definition pr1Open {T : TopologicalSet} : Open -> (T -> hProp) := pr1.
+Coercion pr1Open : Open >-> Funclass.
 
 Section Topology_pty.
 
@@ -276,3 +278,136 @@ Proof.
 Qed.
 
 End Topology_pty.
+
+(** ** Neighboroud *)
+
+Section Locally.
+
+Context {T : TopologicalSet}.
+
+Definition locally (x : T) : (T -> hProp) -> hProp :=
+  λ P : T -> hProp, ∃ O : Open, O x × (∀ y : T, O y -> P y).
+
+Lemma locally_isOpen (P : T -> hProp) :
+  (∀ x, P x -> locally x P) <-> isOpen P.
+Proof.
+  split.
+  - intros Hp.
+    assert (H : ∀ A : T -> hProp, isaprop (∀ y : T, A y -> P y)).
+    { intros A.
+      apply impred_isaprop.
+      intro y.
+      apply isapropimpl.
+      apply propproperty. }
+    set (Q := λ A : T -> hProp, isOpen A ∧ (hProppair (∀ y : T, A y -> P y) (H A))).
+    assert (P = (infinite_union T Q)).
+    { apply funextfun.
+      intros x.
+      apply uahp.
+      - intros Px.
+        generalize (Hp _ Px).
+        apply hinhfun.
+        intros (A,(Ax,Ha)).
+        exists A ; split.
+        split.
+        apply (pr2 A).
+        exact Ha.
+        exact Ax.
+      - apply hinhuniv.
+        intros (A,((Ha,Hx),Ax)).
+        apply Hx.
+        exact Ax. }
+    rewrite X.
+    apply isOpen_infinite_union.
+    intros A Ha.
+    apply (pr1 Ha).
+  - intros Hp x Px.
+    apply hinhpr.
+    exists (P,,Hp).
+    split.
+    exact Px.
+    intros y Py.
+    exact Py.
+Qed.
+
+Lemma locally_impl :
+  ∀ (x : T) (P Q : T -> hProp),
+    (∀ y : T, P y -> Q y) -> locally x P -> locally x Q.
+Proof.
+  intros x P Q H.
+  apply hinhfun.
+  intros O.
+  exists (pr1 O).
+  split.
+  - apply (pr1 (pr2 O)).
+  - intros y Hy.
+    apply H.
+    apply (pr2 (pr2 O)).
+    exact Hy.
+Qed.
+Lemma locally_forall :
+  ∀ (x : T) (P : T -> hProp),
+    (∀ y, P y) -> locally x P.
+Proof.
+  intros x P H.
+  apply hinhpr.
+  exists ((λ _ : T, htrue),,isOpen_htrue).
+  split.
+  easy.
+  intros y _.
+  now apply H.
+Qed.
+Lemma locally_and :
+  ∀ (x : T) (A B : T -> hProp),
+    locally x A -> locally x B -> locally x (λ y, A y ∧ B y).
+Proof.
+  intros x A B.
+  apply hinhfun2.
+  intros Oa Ob.
+  exists ((λ x, pr1 Oa x ∧ pr1 Ob x) ,, isOpen_and _ _ (pr2 (pr1 Oa)) (pr2 (pr1 Ob))).
+  simpl.
+  split.
+  - split.
+    + apply (pr1 (pr2 Oa)).
+    + apply (pr1 (pr2 Ob)).
+  - intros y Hy.
+    split.
+    + apply (pr2 (pr2 Oa)).
+      apply (pr1 Hy).
+    + apply (pr2 (pr2 Ob)).
+      apply (pr2 Hy).
+Qed.
+Lemma locally_point :
+  ∀ (x : T) (P : T -> hProp),
+    locally x P -> P x.
+Proof.
+  intros x P.
+  apply hinhuniv.
+  intros O.
+  apply (pr2 (pr2 O)).
+  apply (pr1 (pr2 O)).
+Qed.
+
+Lemma locally_locally :
+  ∀ (x : T) (P : T -> hProp),
+    locally x P
+    -> ∃ Q : T -> hProp, locally x Q
+                        × ∀ y : T, Q y -> locally y P.
+Proof.
+  intros x P.
+  apply hinhfun.
+  intros Q.
+  exists (pr1 Q).
+  split.
+  - apply (pr2 (locally_isOpen _)).
+    apply (pr2 (pr1 Q)).
+    apply (pr1 (pr2 Q)).
+  - intros y Qy.
+    apply hinhpr.
+    exists (pr1 Q).
+    split.
+    + exact Qy.
+    + exact (pr2 (pr2 Q)).
+Qed.
+
+End Locally.
