@@ -279,17 +279,61 @@ Qed.
 
 End Topology_pty.
 
-(** ** Neighboroud *)
+(** ** Topologie induite *)
+(* todo : traduire *)
 
-Section Locally.
+Definition generated_topology {X : hSet} (O : (X -> hProp) -> hProp) : TopologicalSet.
+Proof.
+  exists X.
+  assert (Ho : ∀ P : X -> hProp, isaprop (∀ T : isTopologicalSet X, (∀ Q : X -> hProp, O Q -> (pr1 T) Q) -> (pr1 T P))).
+  { intros.
+    apply impred_isaprop ; intro T.
+    apply isapropimpl.
+    now apply pr2. }
+  exists (λ P : X -> hProp, hProppair (∀ T : isTopologicalSet X, (∀ Q : X -> hProp, O Q -> (pr1 T) Q) -> (pr1 T P)) (Ho P)).
+  split.
+  - intros P Hp T Ht.
+    apply (pr1 (pr2 T)).
+    intros A Pa.
+    apply Hp.
+    exact Pa.
+    exact Ht.
+  - intros n P Hp T Ht.
+    apply (pr2 (pr2 T)).
+    intros m.
+    apply Hp.
+    exact Ht.
+Defined.
+
+Lemma generated_topology_smallest {X : hSet} :
+  ∀ (O : (X -> hProp) -> hProp) (T : isTopologicalSet X),
+    (∀ P : X -> hProp, O P -> pr1 T P)
+    -> ∀ P : X -> hProp, isOpen (T := generated_topology O) P -> pr1 T P.
+Proof.
+  intros O T Ht P Hp.
+  apply Hp.
+  exact Ht.
+Qed.
+Lemma generated_topology_included {X : hSet} :
+  ∀ (O : (X -> hProp) -> hProp) (P : X -> hProp),
+    O P -> isOpen (T := generated_topology O) P.
+Proof.
+  intros O P Op T Ht.
+  apply Ht.
+  exact Op.
+Qed.
+
+(** ** Neighborhood *)
+
+Section Neighborhood.
 
 Context {T : TopologicalSet}.
 
-Definition locally (x : T) : (T -> hProp) -> hProp :=
+Definition neighborhood (x : T) : (T -> hProp) -> hProp :=
   λ P : T -> hProp, ∃ O : Open, O x × (∀ y : T, O y -> P y).
 
-Lemma locally_isOpen (P : T -> hProp) :
-  (∀ x, P x -> locally x P) <-> isOpen P.
+Lemma neighborhood_isOpen (P : T -> hProp) :
+  (∀ x, P x -> neighborhood x P) <-> isOpen P.
 Proof.
   split.
   - intros Hp.
@@ -330,9 +374,9 @@ Proof.
     exact Py.
 Qed.
 
-Lemma locally_impl :
+Lemma neighborhood_impl :
   ∀ (x : T) (P Q : T -> hProp),
-    (∀ y : T, P y -> Q y) -> locally x P -> locally x Q.
+    (∀ y : T, P y -> Q y) -> neighborhood x P -> neighborhood x Q.
 Proof.
   intros x P Q H.
   apply hinhfun.
@@ -345,9 +389,9 @@ Proof.
     apply (pr2 (pr2 O)).
     exact Hy.
 Qed.
-Lemma locally_forall :
+Lemma neighborhood_forall :
   ∀ (x : T) (P : T -> hProp),
-    (∀ y, P y) -> locally x P.
+    (∀ y, P y) -> neighborhood x P.
 Proof.
   intros x P H.
   apply hinhpr.
@@ -357,9 +401,9 @@ Proof.
   intros y _.
   now apply H.
 Qed.
-Lemma locally_and :
+Lemma neighborhood_and :
   ∀ (x : T) (A B : T -> hProp),
-    locally x A -> locally x B -> locally x (λ y, A y ∧ B y).
+    neighborhood x A -> neighborhood x B -> neighborhood x (λ y, A y ∧ B y).
 Proof.
   intros x A B.
   apply hinhfun2.
@@ -377,9 +421,9 @@ Proof.
     + apply (pr2 (pr2 Ob)).
       apply (pr2 Hy).
 Qed.
-Lemma locally_point :
+Lemma neighborhood_point :
   ∀ (x : T) (P : T -> hProp),
-    locally x P -> P x.
+    neighborhood x P -> P x.
 Proof.
   intros x P.
   apply hinhuniv.
@@ -388,18 +432,18 @@ Proof.
   apply (pr1 (pr2 O)).
 Qed.
 
-Lemma locally_locally :
+Lemma neighborhood_neighborhood :
   ∀ (x : T) (P : T -> hProp),
-    locally x P
-    -> ∃ Q : T -> hProp, locally x Q
-                        × ∀ y : T, Q y -> locally y P.
+    neighborhood x P
+    -> ∃ Q : T -> hProp, neighborhood x Q
+                        × ∀ y : T, Q y -> neighborhood y P.
 Proof.
   intros x P.
   apply hinhfun.
   intros Q.
   exists (pr1 Q).
   split.
-  - apply (pr2 (locally_isOpen _)).
+  - apply (pr2 (neighborhood_isOpen _)).
     apply (pr2 (pr1 Q)).
     apply (pr1 (pr2 Q)).
   - intros y Qy.
@@ -408,6 +452,41 @@ Proof.
     split.
     + exact Qy.
     + exact (pr2 (pr2 Q)).
+Qed.
+
+End Neighborhood.
+
+(** ** Locally *)
+
+Definition base_of_neighborhood {T : TopologicalSet} (x : T) (B : (T -> hProp) -> hProp) :=
+  (∀ P : T -> hProp, B P -> neighborhood x P)
+    × (∀ P : T -> hProp, neighborhood x P -> ∃ Q : Open, B Q × (∀ t : T, Q t -> P t)).
+
+Section Locally.
+
+Context {T : TopologicalSet}.
+Context (x : T) (B : (T -> hProp) -> hProp).
+Context (base : base_of_neighborhood x B).
+
+Definition locally : (T -> hProp) -> hProp :=
+  λ P : T -> hProp, ∃ O : T -> hProp, B O × (∀ t : T, O t -> P t).
+
+Lemma locally_neighborhood :
+  ∀ P, locally P <-> neighborhood x P.
+Proof.
+  intros P.
+  split.
+  - apply hinhuniv.
+    intros O.
+    generalize ((pr1 base) (pr1 O) (pr1 (pr2 O))).
+    apply neighborhood_impl.
+    exact (pr2 (pr2 O)).
+  - intros Hp.
+    generalize (pr2 base P Hp).
+    apply hinhfun.
+    intros O.
+    exists (pr1 O).
+    exact (pr2 O).
 Qed.
 
 End Locally.
