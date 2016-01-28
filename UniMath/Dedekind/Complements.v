@@ -225,80 +225,53 @@ Proof.
   exact Hlt.
 Qed.
 
-(* Lemma Snattohz_neq0 :
-  ∀ n, nattohz (S n) != 0%hz.
+(** ** hq is archimedean *)
+
+Lemma nattorig_nattohz :
+  ∀ n : nat, nattorig (X := hz) n = nattohz n.
 Proof.
-  intro n.
-  apply nattohzandneq.
-  easy.
+  induction n.
+  - simpl.
+    reflexivity.
+  - rewrite nattorigS, IHn.
+    apply pathsinv0, nattohzandS.
 Qed.
-Definition Snattohz (n : nat) : intdomnonzerosubmonoid hzintdom.
+
+Lemma isarchhq :
+  isarchfld hq hqgth.
 Proof.
-  intro.
-  exists (nattohz (S n)).
-  now apply Snattohz_neq0.
-Defined.
-Definition hznattohq (n : hz) (d : nat) : hq.
-Proof.
-  intros n d.
-  apply hzhztohq.
-  - exact n.
-  - exact (Snattohz d).
-Defined.
-Lemma hqtohznat : ∀ (x : hq),
-  ∃ (n : hz) (d : nat), x = hznattohq n d.
-Proof.
-  intros X.
-  generalize (pr1 (pr2 X)).
-  apply hinhfun.
-  intros x.
-  destruct (hzneqchoice _ _ (pr2 (pr2 (pr1 x)))).
-  - exists (pr1 (pr1 x)), (Nat.pred (hzabsval (pr1 (pr2 (pr1 x))))).
-    eapply pathscomp0.
-    eapply pathsinv0.
-    exact (setquotl0 _ X x).
-    apply iscompsetquotpr.
+  simple refine (isarchfldfrac hzintdom _ _ _ _ _ _ _).
+  - intros n m.
+    apply hzgthtogeh.
+  - intros n m Hm.
     apply hinhpr.
-    simpl pr1 ; simpl pr2.
-    exists one_intdomnonzerosubmonoid.
-    apply (maponpaths (λ x, op x _)).
-    apply maponpaths.
-    eapply pathscomp0.
-    2: apply (hzabsvalgth0 h).
-    apply maponpaths.
-    apply hzgthtoneq in h.
-    apply hzabsvalneq0 in h.
-    revert h.
-    set (hzabsval (pr1 (pr2 (pr1 x)))).
-    change (n ≠ 0 -> S (pred n) = n).
-    destruct n ; intro.
-    apply fromempty.
-    now apply X0.
-    reflexivity.
-  - exists (- pr1 (pr1 x))%hz, (Nat.pred (hzabsval (pr1 (pr2 (pr1 x))))).
-    eapply pathscomp0.
-    eapply pathsinv0.
-    exact (setquotl0 _ X x).
-    apply iscompsetquotpr.
-    apply hinhpr.
-    simpl pr1 ; simpl pr2.
-    exists one_intdomnonzerosubmonoid.
-    apply (maponpaths (λ x, op x _)).
-    change ((pr1 (pr1 x) * nattohz (S (Nat.pred (hzabsval (pr1 (pr2 (pr1 x)))))))%rng =
-            ((- pr1 (pr1 x)) * pr1 (pr2 (pr1 x)))%rng).
-    rewrite rnglmultminus, <- rngrmultminus.
-    apply maponpaths.
-    eapply pathscomp0.
-    2: apply (hzabsvallth0 h).
-    apply maponpaths.
-    apply hzlthtoneq in h.
-    apply hzabsvalneq0 in h.
-    revert h.
-    destruct (hzabsval (pr1 (pr2 (pr1 x)))) ; intro.
-    apply fromempty.
-    now apply h.
-    reflexivity.
-Qed.*)
+    exists (S (hzabsval n / hzabsval m)).
+    rewrite <- nattorig_natmult, nattorig_nattohz.
+    change (hzgth (nattohz (S (hzabsval n / hzabsval m)) * m)%hz n).
+    pattern m at 2 ;
+    rewrite <- (hzabsvalgth0 Hm).
+    apply hzgthgehtrans with (nattohz (hzabsval n)).
+    rewrite <- nattohzandmult.
+    apply nattohzandgth.
+    rewrite multsnm.
+    apply natgthandplusrinv with (hzabsval n /+ hzabsval m)%nat.
+    rewrite natplusassoc, (natpluscomm _ (_ /+ _)).
+    rewrite <- natdivremrule, natpluscomm.
+    apply natlthandplusl.
+    apply lthnatrem.
+    apply hzabsvalneq0, hzgthtoneq, Hm.
+    apply hzabsvalneq0, hzgthtoneq, Hm.
+    destruct (hzgthorleh n 0%hz).
+    rewrite hzabsvalgth0.
+    now apply isreflhzgeh.
+    exact h.
+    eapply istranshzgeh, h.
+    now apply nattohzandgeh.
+Qed.
+
+(*
+
+(** ** intpart is correct *)
 
 Lemma weqfldfracgt_f_b :
   ∀ (X : intdom) (is : isdeceq X) (R : hrel X)
@@ -857,6 +830,31 @@ Proof.
     rewrite hqopp_opp.
     exact H.
 Qed.
+
+Lemma intpart_id :
+  ∀ n : hz, intpart (hztohq n) = n.
+Proof.
+  intros n.
+  apply isantisymmhzleh.
+  - apply hztohqandleh'.
+    apply intpart_carac.
+  - apply hzlthsntoleh.
+    apply hztohqandlth'.
+    rewrite hztohqandplus, hztohqand1.
+    apply (pr2 (intpart_carac _)).
+Qed.
+Lemma intpart_le :
+  ∀ n m : hq, (n <= m)%hq -> (hzleh (intpart n) (intpart m)).
+Proof.
+  intros n m Hle.
+  apply hzlthsntoleh.
+  apply hztohqandlth'.
+  rewrite hztohqandplus, hztohqand1.
+  eapply hqlehlthtrans, (pr2 (intpart_carac _)).
+  eapply istranshqleh, Hle.
+  now apply intpart_carac.
+Qed.
+ *)
 
 Close Scope hq_scope.
 
