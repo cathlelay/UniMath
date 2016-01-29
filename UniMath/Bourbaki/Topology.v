@@ -7,17 +7,122 @@ Require Export UniMath.Foundations.NumberSystems.NaturalNumbers.
 
 (** ** Topological structures *)
 
-Section OpenSet.
-
-Context (X : UU).
-Context (isOpen : (X -> hProp) -> hProp).
-
-Definition infinite_union (P : (X -> hProp) -> hProp) : X -> hProp :=
+Definition infinite_union {X : UU} (P : (X -> hProp) -> hProp) : X -> hProp :=
   λ x : X, ∃ A : X -> hProp, P A × A x.
-Definition finite_intersection (n : nat) (P : (Σ m : nat, m < n) -> (X -> hProp)) : X -> hProp :=
+Definition finite_intersection {X : UU} (n : nat) (P : (Σ m : nat, m < n) -> (X -> hProp)) : X -> hProp :=
   λ (x : X),
   hProppair (∀ m : Σ m : nat, m < n, P m x)
             (impred_isaprop _ (λ _, propproperty _)).
+
+Lemma infinite_union_hfalse {X : UU} :
+  infinite_union (λ _ : X -> hProp, hfalse) = (λ _ : X, hfalse).
+Proof.
+  apply funextfun ; intros x.
+  apply uahp.
+  - apply hinhuniv.
+    intros A.
+    apply (pr1 (pr2 A)).
+  - apply fromempty.
+Qed.
+
+Lemma infinite_union_or {X : UU} :
+  ∀ A B : X -> hProp,
+    infinite_union (λ C : X -> hProp, C = A ∨ C = B)
+    = (λ x : X, A x ∨ B x).
+Proof.
+  intros A B.
+  apply funextfun ; intro x.
+  apply uahp.
+  - apply hinhuniv.
+    intros C.
+    generalize (pr1 (pr2 C)).
+    apply hinhfun.
+    intros [<- | <-].
+    + left.
+      apply (pr2 (pr2 C)).
+    + right.
+      apply (pr2 (pr2 C)).
+  - apply hinhfun ; intros [Ax | Bx].
+    + exists A.
+      split.
+      apply hinhpr.
+      now left.
+      exact Ax.
+    + exists B.
+      split.
+      apply hinhpr.
+      now right.
+      exact Bx.
+Qed.
+
+Lemma finite_intersection_htrue {X : UU} :
+  ∀ L : (Σ m : nat, m < 0) -> X -> hProp,
+  finite_intersection 0 L = (λ _ : X, htrue).
+Proof.
+  intro A.
+  apply funextfun ; intros x.
+  apply uahp.
+  - intros _.
+    apply tt.
+  - intros _ (m,Hm).
+    apply fromempty.
+    revert Hm.
+    apply negnatlthn0.
+Qed.
+
+Lemma finite_intersection_and {X : UU} :
+  ∀ C A B : X -> hProp,
+    finite_intersection 2 (λ m x , match (pr1 m) with
+                                     | O => A x
+                                     | 1 => B x
+                                     | _ => C x
+                                   end)
+    = (λ x : X, A x ∧ B x).
+Proof.
+  intros C A B.
+  apply funextfun ; intro x.
+  apply uahp.
+  - intros H.
+    split.
+    simple refine (H (0,,_)).
+    reflexivity.
+    simple refine (H (1,,_)).
+    reflexivity.
+  - intros H (m,Hm) ; simpl.
+    destruct m.
+    apply (pr1 H).
+    destruct m.
+    apply (pr2 H).
+    easy.
+Qed.
+Lemma finite_intersection_S {X : UU} :
+  ∀ (n : nat) (L : (Σ m : nat, m < S n) -> X -> hProp),
+    let A := L (0,,paths_refl _) in
+    let B := λ m : Σ m, m < n, L (S (pr1 m) ,, (pr2 m)) in
+finite_intersection (X := X) (S n) L
+= (λ x : X, A x ∧ finite_intersection n B x).
+Proof.
+  intros n L A B.
+  apply funextfun ; intros x.
+  apply uahp.
+  - intros Hx.
+    split.
+    apply Hx.
+    intros m.
+    apply Hx.
+  - intros Hx (m,Hm).
+    destruct m.
+    assert (Hm = idpath (natgtb (S n) 0)).
+    { apply (pr2 (0 < S n)). }
+    rewrite X0.
+    apply (pr1 Hx).
+    apply (pr2 Hx (m,,Hm)).
+Qed.
+
+Section OpenSet.
+
+Context {X : UU}.
+Context (isOpen : (X -> hProp) -> hProp).
 
 Definition isOpenSet_infinite_union : hProp :=
   hProppair
@@ -35,16 +140,7 @@ Lemma isOpenSet_hfalse :
   -> isOpen (λ _ : X, hfalse).
 Proof.
   intros H0.
-  assert (H : (λ _ : X, hfalse)
-              = infinite_union (λ _, hfalse)).
-  { apply funextfun.
-    intros x.
-    apply uahp.
-    - apply fromempty.
-    - apply hinhuniv.
-      intros (_,(H,_)).
-      exact H. }
-  rewrite H.
+  rewrite <- infinite_union_hfalse.
   apply H0.
   intro.
   apply fromempty.
@@ -54,15 +150,8 @@ Lemma isOpenSet_finite_intersection_htrue :
   isOpenSet_finite_intersection
   -> isOpen (λ _, htrue).
 Proof.
-  assert (H : (λ _ : X, htrue) = (finite_intersection O (λ _ _, hfalse))).
-  { apply funextfun.
-    intros x.
-    apply uahp.
-    - intros _ (m).
-      apply negnatlthn0.
-    - easy. }
-  rewrite H.
   intro H0.
+  rewrite <- (finite_intersection_htrue (λ _ _, htrue)).
   apply H0.
   intros (m,Hm).
   apply fromempty.
@@ -74,31 +163,14 @@ Lemma isOpenSet_finite_intersection_and :
   -> ∀ A B, isOpen A -> isOpen B -> isOpen (λ x, A x ∧ B x).
 Proof.
   intros H0 A B Ha Hb.
-  assert (H : (λ x : X, A x ∧ B x) = (finite_intersection 2 (λ m x, match (pr1 m) with | O => A x | S O => B x | _ => hfalse end))).
-  { apply funextfun.
-    intros x.
-    apply uahp.
-    - intros Hx (m,Hm) ; simpl.
-      destruct m.
-      exact (pr1 Hx).
-      destruct m.
-      exact (pr2 Hx).
-      simpl in Hm.
-      easy.
-    - intros Hx.
-      split.
-      + assert (O < 2) by easy.
-        apply (Hx (O,,X0)).
-      + assert (1 < 2) by easy.
-        apply (Hx (1,,X0)). }
-  rewrite H.
+  rewrite <- (finite_intersection_and (λ _, hfalse)).
   apply H0.
   intros (m,Hm) ; simpl.
   destruct m.
   apply Ha.
   destruct m.
   apply Hb.
-  simpl in Hm ; easy.
+  easy.
 Qed.
 Lemma isOpenSet_finite_intersection_carac :
   isOpen (λ _, htrue)
@@ -108,38 +180,10 @@ Proof.
   intros Htrue Hpair n.
   induction n.
   - intros P HP.
-    assert ((finite_intersection 0 P) = (λ _ : X, htrue)).
-    { apply funextfun.
-      intros x.
-      apply uahp.
-      - easy.
-      - intros _ (m,Hm).
-        apply fromempty.
-        revert Hm.
-        apply negnatlthn0. }
-    rewrite X0.
+    rewrite finite_intersection_htrue.
     apply Htrue.
   - intros P Hp.
-    assert (H0 : O < S n) by easy.
-    set (A := P (O,,H0)).
-    set (B := λ m : (Σ m : nat, m < n), P (S (pr1 m) ,, pr2 m)).
-    assert ((finite_intersection (S n) P) = (λ x : X, A x ∧ finite_intersection n B x)).
-    { apply funextfun.
-      intros x.
-      apply uahp.
-      - intros Hx.
-        split.
-        apply Hx.
-        intros m.
-        apply Hx.
-      - intros Hx (m,Hm).
-        destruct m.
-        assert (Hm = H0).
-        { apply (pr2 (0 < S n)). }
-        rewrite X0.
-        apply (pr1 Hx).
-        apply (pr2 Hx (m,,Hm)). }
-    rewrite X0.
+    rewrite finite_intersection_S.
     apply Hpair.
     apply Hp.
     apply IHn.
@@ -153,14 +197,14 @@ Definition isOpenSet :=
 End OpenSet.
 
 Definition isTopologicalSet :=
-  λ X : hSet, Σ isOpen : (X -> hProp) -> hProp, isOpenSet X isOpen.
+  λ X : hSet, Σ isOpen : (X -> hProp) -> hProp, isOpenSet isOpen.
 Definition TopologicalSet := Σ X : hSet, isTopologicalSet X.
 
 Definition mkTopologicalSet (X : hSet) (isOpen : (X -> hProp) -> hProp)
-(is : isOpenSet_infinite_union X isOpen)
-(is0 : isOpenSet_finite_intersection X isOpen) : TopologicalSet := (X,,isOpen,,is,,is0).
+(is : isOpenSet_infinite_union isOpen)
+(is0 : isOpenSet_finite_intersection isOpen) : TopologicalSet := (X,,isOpen,,is,,is0).
 Definition mkTopologicalSet' (X : hSet) (isOpen : (X -> hProp) -> hProp)
-(is : isOpenSet_infinite_union X isOpen)
+(is : isOpenSet_infinite_union isOpen)
 (is0 : isOpen (λ _, htrue)) (is1 : ∀ A B, isOpen A -> isOpen B -> isOpen (λ x, A x ∧ B x)) : TopologicalSet.
 Proof.
   apply (mkTopologicalSet X isOpen).
@@ -186,14 +230,14 @@ Context {T : TopologicalSet}.
 Lemma isOpen_infinite_union :
   ∀ P : (T -> hProp) -> hProp,
     (∀ A : T -> hProp, P A -> isOpen A)
-    -> isOpen (infinite_union T P).
+    -> isOpen (infinite_union P).
 Proof.
   apply (pr1 (pr2 (pr2 T))).
 Qed.
 Lemma isOpen_finite_intersection :
   ∀ (n : nat) (P : (Σ m : nat, m < n) -> T -> hProp),
     (∀ m : Σ m : nat, m < n, isOpen (P m))
-    -> isOpen (finite_intersection T n P).
+    -> isOpen (finite_intersection n P).
 Proof.
   apply (pr2 (pr2 (pr2 T))).
 Qed.
@@ -201,16 +245,7 @@ Qed.
 Lemma isOpen_hfalse :
   isOpen (λ _ : T, hfalse).
 Proof.
-  assert (H : (λ _ : T, hfalse)
-              = infinite_union T (λ _, hfalse)).
-  { apply funextfun.
-    intros x.
-    apply uahp.
-    - apply fromempty.
-    - apply hinhuniv.
-      intros (_,(H,_)).
-      exact H. }
-  rewrite H.
+  rewrite <- infinite_union_hfalse.
   apply isOpen_infinite_union.
   intro.
   apply fromempty.
@@ -218,14 +253,7 @@ Qed.
 Lemma isOpen_htrue :
   isOpen (λ _ : T, htrue).
 Proof.
-  assert (H : (λ _ : T, htrue) = (finite_intersection T O (λ _ _, hfalse))).
-  { apply funextfun.
-    intros x.
-    apply uahp.
-    - intros _ (m).
-      apply negnatlthn0.
-    - easy. }
-  rewrite H.
+  rewrite <- (finite_intersection_htrue (λ _ _, hfalse)).
   apply isOpen_finite_intersection.
   intros _.
   apply isOpen_hfalse.
@@ -244,31 +272,7 @@ Lemma isOpen_or :
     isOpen A -> isOpen B -> isOpen (λ x : T, A x ∨ B x).
 Proof.
   intros A B Ha Hb.
-  set (P := λ C, C = A ∨ C = B).
-  assert ((λ x : T, A x ∨ B x) = infinite_union T P).
-  { apply funextfun.
-    intro x.
-    apply uahp.
-    - apply hinhfun.
-      intros [Hx | Hx].
-      + exists A.
-        split.
-        * apply hinhpr.
-          now left.
-        * exact Hx.
-      + exists B.
-        split.
-        * apply hinhpr.
-          now right.
-        * exact Hx.
-    - apply hinhuniv.
-      intros (C,(Hc,Hx)).
-      revert Hc.
-      apply hinhfun.
-      intros [-> | ->].
-      + now left.
-      + now right. }
-  rewrite X.
+  rewrite <- infinite_union_or.
   apply isOpen_infinite_union.
   intros C.
   apply hinhuniv.
@@ -344,7 +348,7 @@ Proof.
       apply isapropimpl.
       apply propproperty. }
     set (Q := λ A : T -> hProp, isOpen A ∧ (hProppair (∀ y : T, A y -> P y) (H A))).
-    assert (P = (infinite_union T Q)).
+    assert (P = (infinite_union Q)).
     { apply funextfun.
       intros x.
       apply uahp.
