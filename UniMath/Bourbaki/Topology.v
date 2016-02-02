@@ -3,16 +3,18 @@
 (** Based on Bourbaky *)
 
 Require Export UniMath.Foundations.Basics.Sets.
-Require Export UniMath.Foundations.NumberSystems.NaturalNumbers.
+Require Export UniMath.Foundations.Combinatorics.FiniteSequences.
 
-(** ** Topological structures *)
+(** ** More about Sequence *)
+
+Definition singletonSequence {X} (A : X) : Sequence X := (1 ,, λ _, A).
+Definition pairSequence {X} (A B : X) : Sequence X := (2 ,, λ m, match (pr1 m) with | O => A | _ => B end).
+
+(** ** More about sets *)
+(** union *)
 
 Definition infinite_union {X : UU} (P : (X -> hProp) -> hProp) : X -> hProp :=
   λ x : X, ∃ A : X -> hProp, P A × A x.
-Definition finite_intersection {X : UU} (n : nat) (P : (Σ m : nat, m < n) -> (X -> hProp)) : X -> hProp :=
-  λ (x : X),
-  hProppair (∀ m : Σ m : nat, m < n, P m x)
-            (impred_isaprop _ (λ _, propproperty _)).
 
 Lemma infinite_union_hfalse {X : UU} :
   infinite_union (λ _ : X -> hProp, hfalse) = (λ _ : X, hfalse).
@@ -55,11 +57,19 @@ Proof.
       exact Bx.
 Qed.
 
-Lemma finite_intersection_htrue {X : UU} :
-  ∀ L : (Σ m : nat, m < 0) -> X -> hProp,
-  finite_intersection 0 L = (λ _ : X, htrue).
+(** finite intersection *)
+
+Definition finite_intersection {X : UU} (P : Sequence (X -> hProp)) : X -> hProp.
 Proof.
-  intro A.
+  intros x.
+  simple refine (hProppair _ _).
+  apply (∀ n, P n x).
+  apply (impred_isaprop _ (λ _, propproperty _)).
+Defined.
+
+Lemma finite_intersection_htrue {X : UU} :
+  finite_intersection nil = (λ _ : X, htrue).
+Proof.
   apply funextfun ; intros x.
   apply uahp.
   - intros _.
@@ -70,16 +80,29 @@ Proof.
     apply negnatlthn0.
 Qed.
 
+Lemma finite_intersection_1 {X : UU} :
+  ∀ (A : X -> hProp),
+    finite_intersection (singletonSequence A) = A.
+Proof.
+  intros A.
+  apply funextfun ; intros x.
+  apply uahp.
+  - intros H.
+    apply H.
+    now exists 0.
+  - intros Lx (m,Hm).
+    destruct m.
+    exact Lx.
+    apply fromempty.
+    easy.
+Qed.
+
 Lemma finite_intersection_and {X : UU} :
-  ∀ C A B : X -> hProp,
-    finite_intersection 2 (λ m x , match (pr1 m) with
-                                     | O => A x
-                                     | 1 => B x
-                                     | _ => C x
-                                   end)
+  ∀ A B : X -> hProp,
+    finite_intersection (pairSequence A B)
     = (λ x : X, A x ∧ B x).
 Proof.
-  intros C A B.
+  intros A B.
   apply funextfun ; intro x.
   apply uahp.
   - intros H.
@@ -95,28 +118,57 @@ Proof.
     apply (pr2 H).
     easy.
 Qed.
-Lemma finite_intersection_S {X : UU} :
-  ∀ (n : nat) (L : (Σ m : nat, m < S n) -> X -> hProp),
-    let A := L (0,,paths_refl _) in
-    let B := λ m : Σ m, m < n, L (S (pr1 m) ,, (pr2 m)) in
-finite_intersection (X := X) (S n) L
-= (λ x : X, A x ∧ finite_intersection n B x).
+
+Lemma finite_intersection_case {X : UU} :
+  ∀ (L : Sequence (X -> hProp)),
+    finite_intersection L = match disassembleSequence L with
+                            | ii1 _ => λ _, htrue
+                            | ii2 (A,,B) => (λ x : X, A x ∧ finite_intersection B x)
+                            end.
 Proof.
-  intros n L A B.
+  intros L.
   apply funextfun ; intros x.
   apply uahp.
   - intros Hx.
-    split.
-    apply Hx.
-    intros m.
-    apply Hx.
-  - intros Hx (m,Hm).
-    destruct m.
-    assert (Hm = idpath (natgtb (S n) 0)).
-    { apply (pr2 (0 < S n)). }
-    rewrite X0.
-    apply (pr1 Hx).
-    apply (pr2 Hx (m,,Hm)).
+    destruct L as [n L].
+    destruct n ; simpl.
+    + apply tt.
+    + split.
+      apply Hx.
+      intros m.
+      apply Hx.
+  - destruct L as [n L].
+    destruct n ; simpl.
+    + intros _ (n,Hn).
+      now apply fromempty.
+    + intros Hx (m,Hm).
+      destruct (natlehchoice _ _ (natlthsntoleh _ _ Hm)) as [Hm' | ->].
+      generalize (pr2 Hx (m,,Hm')).
+      unfold funcomp, dni_lastelement ; simpl.
+      assert (H : Hm = natlthtolths m n Hm' ).
+      { apply (pr2 (natlth m (S n))). }
+      now rewrite H.
+      assert (H : (lastelement n) = (n,, Hm)).
+      { now apply subtypeEquality_prop. }
+      rewrite <- H.
+      exact (pr1 Hx).
+Qed.
+Lemma finite_intersection_append {X : UU} :
+  ∀ (A : X -> hProp) (L : Sequence (X -> hProp)),
+    finite_intersection (append L A) = (λ x : X, A x ∧ finite_intersection L x).
+Proof.
+  intros.
+  rewrite finite_intersection_case.
+  simpl.
+  rewrite append_fun_compute_2.
+  apply funextfun ; intro x.
+  apply maponpaths.
+  apply map_on_two_paths.
+  destruct L ; simpl.
+  apply maponpaths.
+  apply funextfun ; intro n.
+  apply append_fun_compute_1.
+  reflexivity.
 Qed.
 
 Section OpenSet.
@@ -131,9 +183,8 @@ Definition isOpenSet_infinite_union : hProp :=
     (impred_isaprop _ (λ _, isapropimpl _ _ (propproperty _))).
 Definition isOpenSet_finite_intersection : hProp :=
   hProppair
-    (∀ (n : nat) (P : (Σ m : nat, m < n) -> X -> hProp),
-       (∀ m : Σ m : nat, m < n, isOpen (P m)) -> isOpen (finite_intersection n P))
-    (impred_isaprop _ (λ _, impred_isaprop _ (λ _, isapropimpl _ _ (propproperty _)))).
+    (∀ (P : Sequence (X -> hProp)), (∀ m, isOpen (P m)) -> isOpen (finite_intersection P))
+    (impred_isaprop _ (λ _, isapropimpl _ _ (propproperty _))).
 
 Lemma isOpenSet_hfalse :
   isOpenSet_infinite_union
@@ -151,7 +202,7 @@ Lemma isOpenSet_finite_intersection_htrue :
   -> isOpen (λ _, htrue).
 Proof.
   intro H0.
-  rewrite <- (finite_intersection_htrue (λ _ _, htrue)).
+  rewrite <- finite_intersection_htrue.
   apply H0.
   intros (m,Hm).
   apply fromempty.
@@ -163,32 +214,35 @@ Lemma isOpenSet_finite_intersection_and :
   -> ∀ A B, isOpen A -> isOpen B -> isOpen (λ x, A x ∧ B x).
 Proof.
   intros H0 A B Ha Hb.
-  rewrite <- (finite_intersection_and (λ _, hfalse)).
+  rewrite <- finite_intersection_and.
   apply H0.
   intros (m,Hm) ; simpl.
   destruct m.
   apply Ha.
-  destruct m.
   apply Hb.
-  easy.
 Qed.
 Lemma isOpenSet_finite_intersection_carac :
   isOpen (λ _, htrue)
   -> (∀ A B, isOpen A -> isOpen B -> isOpen (λ x, A x ∧ B x))
   -> isOpenSet_finite_intersection.
 Proof.
-  intros Htrue Hpair n.
-  induction n.
-  - intros P HP.
+  intros Htrue Hpair L.
+  apply (Sequence_rect (P := λ P : Sequence (X -> hProp),
+                                   (∀ m : stn (length P), isOpen (P m)) -> isOpen (finite_intersection P))) ; clear L.
+  - intros _.
     rewrite finite_intersection_htrue.
     apply Htrue.
-  - intros P Hp.
-    rewrite finite_intersection_S.
+  - intros L A IH H.
+    rewrite finite_intersection_append.
     apply Hpair.
-    apply Hp.
-    apply IHn.
+    generalize (H (lastelement (length L))).
+    simpl.
+    now rewrite append_fun_compute_2.
+    apply IH.
     intros m.
-    apply Hp.
+    generalize (H (dni_lastelement m)).
+    simpl.
+    now rewrite append_fun_compute_1.
 Qed.
 
 Definition isOpenSet :=
@@ -201,7 +255,9 @@ Definition isTopologicalSet :=
 Definition TopologicalSet := Σ X : hSet, isTopologicalSet X.
 
 Definition mkTopologicalSet (X : hSet) (isOpen : (X -> hProp) -> hProp)
-(is : isOpenSet_infinite_union isOpen)
+
+           (is : isOpenSet_infinite_union isOpen)
+
 (is0 : isOpenSet_finite_intersection isOpen) : TopologicalSet := (X,,isOpen,,is,,is0).
 Definition mkTopologicalSet' (X : hSet) (isOpen : (X -> hProp) -> hProp)
 (is : isOpenSet_infinite_union isOpen)
@@ -235,9 +291,9 @@ Proof.
   apply (pr1 (pr2 (pr2 T))).
 Qed.
 Lemma isOpen_finite_intersection :
-  ∀ (n : nat) (P : (Σ m : nat, m < n) -> T -> hProp),
-    (∀ m : Σ m : nat, m < n, isOpen (P m))
-    -> isOpen (finite_intersection n P).
+  ∀ (P : Sequence (T -> hProp)),
+    (∀ m , isOpen (P m))
+    -> isOpen (finite_intersection P).
 Proof.
   apply (pr2 (pr2 (pr2 T))).
 Qed.
@@ -253,17 +309,17 @@ Qed.
 Lemma isOpen_htrue :
   isOpen (λ _ : T, htrue).
 Proof.
-  rewrite <- (finite_intersection_htrue (λ _ _, hfalse)).
+  rewrite <- finite_intersection_htrue.
   apply isOpen_finite_intersection.
-  intros _.
-  apply isOpen_hfalse.
+  intros (m,Hm).
+  now apply fromempty.
 Qed.
 Lemma isOpen_and :
   ∀ A B : T -> hProp,
     isOpen A -> isOpen B -> isOpen (λ x : T, A x ∧ B x).
 Proof.
   apply isOpenSet_finite_intersection_and.
-  intros n P Hp.
+  intros P Hp.
   apply isOpen_finite_intersection.
   apply Hp.
 Qed.
@@ -302,7 +358,7 @@ Proof.
     apply Hp.
     exact Pa.
     exact Ht.
-  - intros n P Hp T Ht.
+  - intros P Hp T Ht.
     apply (pr2 (pr2 T)).
     intros m.
     apply Hp.
