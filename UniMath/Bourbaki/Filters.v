@@ -2,8 +2,7 @@
 (** Author: Catherine LELAY. Jan 2016 - *)
 (** Based on Bourbaky *)
 
-Require Export UniMath.Bourbaki.Topology.
-Require Export UniMath.Foundations.Combinatorics.FiniteSequences.
+Require Export UniMath.Bourbaki.Complements.
 
 (** ** Definition of a Filter *)
 
@@ -53,6 +52,7 @@ Proof.
   revert Hm.
   now apply negnatlthn0.
 Qed.
+
 Lemma isfilter_finite_intersection_and :
   isfilter_finite_intersection -> ∀ A B : X -> hProp, F A -> F B -> F (λ x : X, A x ∧ B x).
 Proof.
@@ -64,6 +64,7 @@ Proof.
   exact Fa.
   exact Fb.
 Qed.
+
 Lemma isfilter_finite_intersection_carac :
   F (λ _, htrue) -> (∀ A B : X -> hProp, F A -> F B -> F (λ x : X, A x ∧ B x))
   -> isfilter_finite_intersection.
@@ -162,16 +163,201 @@ Qed.
 
 End Filter_pty.
 
-Definition filter_le {X : UU} (F G : Filter (X := X)) : hProp.
+(** *** Order on filters *)
+
+Definition filter_le {X : UU} (F G : Filter (X := X)) :=
+  ∀ A : X -> hProp, F A -> G A.
+
+(** *** Image of a filter *)
+
+Definition filtermap {X Y : UU} (f : X -> Y) (F : Filter (X := X)) : Filter (X := Y).
 Proof.
-  simple refine (hProppair _ _).
-  apply (∀ A : X -> hProp, F A -> G A).
-  apply impred_isaprop ; intros A.
-  apply isapropimpl.
-  apply propproperty.
+  simple refine (mkFilter' _ _ _ _ _).
+  - intros A.
+    apply (pr1 F).
+    intros x.
+    apply (A (f x)).
+  - intros A B Himp.
+    apply filter_imply.
+    intros x.
+    apply Himp.
+  - apply filter_htrue.
+  - intros A B.
+    apply filter_and.
+  - apply filter_notempty.
 Defined.
 
-(** ** Some filters *)
+(** *** Limit: filter version *)
+
+Definition filterlim {X Y : UU} (f : X -> Y) (F : Filter (X := X)) (G : Filter (X := Y)) :=
+  filter_le (filtermap f F) G.
+
+(** ** Some usefull filters *)
+
+(** *** Filter on a domain *)
+
+Definition filter_dom {X : UU} (F : Filter (X := X)) (dom : X -> hProp) (Hdom : ¬ (∀ x : X, ¬ dom x)) :
+  Filter (X := X).
+Proof.
+  simple refine (mkFilter' _ _ _ _ _).
+  - intros A.
+    simple refine (hProppair _ _).
+    + apply (∀ x, dom x -> A x).
+    + apply impred_isaprop ; intros x.
+      apply isapropimpl.
+      now apply propproperty.
+  - simpl ; intros A B Himpl Ha x Hx.
+    apply Himpl, Ha, Hx.
+  - intros x Hx.
+    exact tt.
+  - simpl ; intros A B Ha Hb x Hx.
+    split.
+    + apply Ha, Hx.
+    + apply Hb, Hx.
+  - simpl.
+    apply Hdom.
+Defined.
+
+Definition filter_subtypes {X : UU} (F : Filter (X := X)) (dom : X -> hProp) (Hdom : ¬ (∀ x : X, ¬ dom x)) :
+  Filter (X := Σ x : X, dom x).
+Proof.
+  simple refine (mkFilter' _ _ _ _ _).
+  - intros A.
+    simple refine (hProppair _ _).
+    + apply (∀ x (Hx : dom x), A (x,,Hx)).
+    + apply impred_isaprop ; intros x.
+      apply impred_isaprop ; intros Hx.
+      now apply propproperty.
+  - simpl ; intros A B Himpl Ha x Hx.
+    apply Himpl, Ha.
+  - intros x Hx.
+    exact tt.
+  - simpl ; intros A B Ha Hb x Hx.
+    split.
+    + apply Ha.
+    + apply Hb.
+  - simpl.
+    apply Hdom.
+Defined.
+
+(** *** Product of filters *)
+
+Definition filter_prod {X Y : UU} (Fx : Filter (X := X)) (Fy : Filter (X := Y)) : Filter (X := X × Y).
+Proof.
+  simple refine (mkFilter' _ _ _ _ _).
+  - intros A.
+    apply (∃ (Ax : X -> hProp) (Ay : Y -> hProp), Fx Ax × Fy Ay × (∀ (x : X) (y : Y), Ax x -> Ay y -> A (x,,y))).
+  - intros A B Himpl.
+    apply hinhfun.
+    intros (Ax,(Ay,(Fax,(Fay,Ha)))).
+    exists Ax, Ay.
+    repeat split.
+    + exact Fax.
+    + exact Fay.
+    + intros x y Hx Hy.
+      now apply Himpl, Ha.
+  - apply hinhpr.
+    exists (λ _:X, htrue), (λ _:Y, htrue).
+    repeat split.
+    + apply filter_htrue.
+    + apply filter_htrue.
+  - intros A B.
+    apply hinhfun2.
+    intros (Ax,(Ay,(Fax,(Fay,Ha)))) (Bx,(By,(Fbx,(Fby,Hb)))).
+    exists (λ x : X, Ax x ∧ Bx x), (λ y : Y, Ay y ∧ By y).
+    repeat split.
+    + now apply filter_and.
+    + now apply filter_and.
+    + apply Ha.
+      apply (pr1 X0).
+      apply (pr1 X1).
+    + apply Hb.
+      apply (pr2 X0).
+      apply (pr2 X1).
+  - simpl ; unfold neg ; apply (hinhuniv (P := hProppair _ isapropempty)).
+    intros (Ax,(Ay,(Fax,(Fay,Ha)))).
+    apply (filter_notempty Fx).
+    revert Fax.
+    apply filter_imply ; intros x Hx.
+    apply (filter_notempty Fy).
+    revert Fay.
+    apply filter_imply ; intros y Hy.
+    now apply (Ha x y).
+Defined.
+
+Definition filter_pr1 {X Y : UU} (F : Filter (X := X × Y)) : Filter (X := X).
+Proof.
+  simple refine (mkFilter' _ _ _ _ _).
+  - intros A.
+    apply (F (λ x : X × Y, A (pr1 x))).
+  - intros A B H.
+    apply filter_imply.
+    intros x.
+    now apply H.
+  - simpl.
+    now apply filter_htrue.
+  - intros A B.
+    apply filter_and.
+  - apply filter_notempty.
+Defined.
+
+Definition filter_pr2 {X Y : UU} (F : Filter (X := X × Y)) : Filter (X := Y).
+Proof.
+  simple refine (mkFilter' _ _ _ _ _).
+  - intros A.
+    apply (F (λ x : X × Y, A (pr2 x))).
+  - intros A B H.
+    apply filter_imply.
+    intros x.
+    now apply H.
+  - simpl.
+    now apply filter_htrue.
+  - intros A B.
+    apply filter_and.
+  - apply filter_notempty.
+Defined.
+
+Goal ∀ {X Y : UU} (F : Filter (X := X × Y)),
+    filter_le (filter_prod (filter_pr1 F) (filter_pr2 F)) F.
+Proof.
+  intros X Y F.
+  intros A.
+  apply hinhuniv.
+  intros (Ax,(Ay,(Fax,(Fay,Ha)))).
+  simpl in * |-.
+  generalize (filter_and _ _ _ Fax Fay).
+  apply filter_imply.
+  intros (x,y) (Fx,Fy).
+  now apply Ha.
+Qed.
+
+Goal ∀ {X Y : UU} (F : Filter (X := X)) (G : Filter (X := Y)),
+    filter_le F (filter_pr1 (filter_prod F G)).
+Proof.
+  intros X Y F G.
+  intros A Fa.
+  apply hinhpr.
+  exists A, (λ _, htrue).
+  repeat split.
+  - exact Fa.
+  - now apply filter_htrue.
+  - easy.
+Qed.
+Goal ∀ {X Y : UU} (F : Filter (X := X)) (G : Filter (X := Y)),
+    filter_le G (filter_pr2 (filter_prod F G)).
+Proof.
+  intros X Y F G.
+  intros A Fa.
+  apply hinhpr.
+  exists (λ _, htrue), A.
+  repeat split.
+  - now apply filter_htrue.
+  - exact Fa.
+  - easy.
+Qed.
+
+
+(** ** Other filters *)
 
 (** *** The smallest filter *)
 
@@ -245,7 +431,7 @@ Proof.
     apply Fa.
 Qed.
 
-(** ** Filter generated by a set of subsets *)
+(** *** Filter generated by a set of subsets *)
 
 Definition generated_filter {X : UU} (L : (X -> hProp) -> hProp) (Hl : ∀ (L' : Sequence (X -> hProp)), (∀ m, L (L' m)) -> ¬ ∀ x : X, ¬ finite_intersection L' x) : Filter (X := X).
 Proof.
@@ -508,47 +694,3 @@ Proof.
     rewrite X0 ; clear X0.
     apply (pr1 (pr2 A)).
 Defined.
-
-(** *** Image of a filter *)
-
-Definition filtermap {X Y : UU} (f : X -> Y) (F : Filter (X := X)) : Filter (X := Y).
-Proof.
-  simple refine (mkFilter' _ _ _ _ _).
-  - intros A.
-    apply (pr1 F).
-    intros x.
-    apply (A (f x)).
-  - intros A B Himp.
-    apply filter_imply.
-    intros x.
-    apply Himp.
-  - apply filter_htrue.
-  - intros A B.
-    apply filter_and.
-  - apply filter_notempty.
-Defined.
-
-(** *** The filter of neighborhood *)
-
-Definition locally {T : TopologicalSet} (x : T) : Filter (X := T).
-Proof.
-  simple refine (mkFilter' _ _ _ _ _).
-  - apply (neighborhood x).
-  - intros A B Hab.
-    apply neighborhood_impl, Hab.
-  - apply (pr2 (neighborhood_isOpen _)).
-    apply isOpen_htrue.
-    apply tt.
-  - intros A B Ha Hb.
-    apply neighborhood_and.
-    exact Ha.
-    exact Hb.
-  - intros Hx.
-    apply neighborhood_point in Hx.
-    exact Hx.
-Defined.
-
-(** ** Limits *)
-
-Definition filterlim {X Y : UU} (f : X -> Y) (F : Filter (X := X)) (G : Filter (X := Y)) : hProp :=
-  filter_le (filtermap f F) G.
