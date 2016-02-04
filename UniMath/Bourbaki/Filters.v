@@ -163,20 +163,66 @@ Qed.
 
 End Filter_pty.
 
+Lemma isasetFilter (X : UU) : isaset (Filter (X := X)).
+Proof.
+  simple refine (isaset_total2_subset (hSetpair _ _) _).
+  apply impred_isaset ; intros _.
+  apply isasethProp.
+Qed.
+
 (** *** Order on filters *)
 
 Definition filter_le {X : UU} (F G : Filter (X := X)) :=
   ∀ A : X -> hProp, F A -> G A.
+
+Lemma istrans_filter_le {X : UU} :
+  ∀ F G H : Filter (X := X),
+    filter_le F G -> filter_le G H -> filter_le F H.
+Proof.
+  intros F G H Hfg Hgh A Fa.
+  apply Hgh, Hfg, Fa.
+Qed.
+Lemma isrefl_filter_le {X : UU} :
+  ∀ F : Filter (X := X), filter_le F F.
+Proof.
+  intros F A Fa.
+  exact Fa.
+Qed.
+Lemma isantisymm_filter_le {X : UU} :
+  ∀ F G : Filter (X := X), filter_le F G -> filter_le G F -> F = G.
+Proof.
+  intros F G Hle Hge.
+  apply subtypeEquality_prop.
+  apply funextfun ; intros A.
+  apply uahp.
+  now apply Hle.
+  now apply Hge.
+Qed.
+
+Definition PartialOrder_filter_le (X : UU) : PartialOrder (hSetpair Filter (isasetFilter X)).
+Proof.
+  simple refine (PartialOrderpair _ _).
+  - intros F G.
+    simple refine (hProppair _ _).
+    apply (filter_le F G).
+    apply impred_isaprop ; intros A.
+    apply isapropimpl.
+    apply propproperty.
+  - repeat split.
+    + intros F G H ; simpl.
+      apply istrans_filter_le.
+    + intros A ; simpl.
+      apply isrefl_filter_le.
+    + intros F G ; simpl.
+      apply isantisymm_filter_le.
+Defined.
 
 (** *** Image of a filter *)
 
 Definition filtermap {X Y : UU} (f : X -> Y) (F : Filter (X := X)) : Filter (X := Y).
 Proof.
   simple refine (mkFilter' _ _ _ _ _).
-  - intros A.
-    apply (pr1 F).
-    intros x.
-    apply (A (f x)).
+  - apply (λ A : (Y -> hProp), F (λ x : X, A (f x))).
   - intros A B Himp.
     apply filter_imply.
     intros x.
@@ -187,10 +233,42 @@ Proof.
   - apply filter_notempty.
 Defined.
 
+Lemma filtermap_incr {X Y : UU} :
+  ∀ (f : X -> Y) (F G : Filter),
+    filter_le F G -> filter_le (filtermap f F) (filtermap f G).
+Proof.
+  intros f F G Hle A ; simpl.
+  apply Hle.
+Qed.
+
 (** *** Limit: filter version *)
 
-Definition filterlim {X Y : UU} (f : X -> Y) (F : Filter (X := X)) (G : Filter (X := Y)) :=
+Definition filterlim {X Y : UU} (f : X -> Y) (F : Filter) (G : Filter) :=
   filter_le (filtermap f F) G.
+
+Lemma filterlim_comp {X Y Z : UU} :
+  ∀ (f : X -> Y) (g : Y -> Z) (F G H : Filter),
+    filterlim f F G -> filterlim g G H -> filterlim (λ x : X, g (f x)) F H.
+Proof.
+  intros f g F G H Hf Hg A Fa.
+  apply Hg, Hf, Fa.
+Qed.
+
+Lemma filterlim_decr_1 {X Y : UU} :
+  ∀ (f : X -> Y) (F F' : Filter (X := X)) (G : Filter (X := Y)),
+    filter_le F F' -> filterlim f F' G -> filterlim f F G.
+Proof.
+  intros f F F' G Hf Hle A Ha.
+  apply Hle, Hf, Ha.
+Qed.
+
+Lemma filterlim_incr_2 {X Y : UU} :
+  ∀ (f : X -> Y) (F : Filter (X := X)) (G G' : Filter (X := Y)),
+    filter_le G G' -> filterlim f F G -> filterlim f F G'.
+Proof.
+  intros f F G G' Hg Hle A Ha.
+  apply Hg, Hle, Ha.
+Qed.
 
 (** ** Some usefull filters *)
 
@@ -355,7 +433,6 @@ Proof.
   - exact Fa.
   - easy.
 Qed.
-
 
 (** ** Other filters *)
 
