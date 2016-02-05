@@ -2,7 +2,6 @@
 (** Author: Catherine LELAY. Jan 2016 - *)
 (** Based on Bourbaky *)
 
-Require Export UniMath.Bourbaki.Complements.
 Require Export UniMath.Bourbaki.Filters.
 
 
@@ -174,8 +173,7 @@ Qed.
 
 End Topology_pty.
 
-(** ** Topologie induite *)
-(* todo : traduire *)
+(** ** Generated Topology *)
 
 Definition generated_topology {X : hSet} (O : (X -> hProp) -> hProp) : TopologicalSet.
 Proof.
@@ -217,6 +215,18 @@ Proof.
   apply Ht.
   exact Op.
 Qed.
+
+(** ** Product of topologies *)
+
+Definition topology_prod (U V : TopologicalSet) : TopologicalSet.
+Proof.
+  simple refine (generated_topology _).
+  - exists (U × V).
+    apply isaset_dirprod ; apply pr2.
+  - simpl ; intros A.
+    exists ((∀ y : V, isOpen (λ x : U, A (x,,y))) × (∀ x : U, isOpen (λ y : V, A (x,,y)))).
+    apply isapropdirprod ; apply impred_isaprop ; intro ; apply pr2.
+Defined.
 
 (** ** Neighborhood *)
 
@@ -386,41 +396,85 @@ Qed.
 
 (** ** Limits in a Topological Set *)
 
-Definition locally {T : TopologicalSet} (x : T) (base : base_of_neighborhood x) : Filter (X := T).
+Definition locally {T : TopologicalSet} (x : T) : Filter (X := T).
 Proof.
   simple refine (mkFilter' _ _ _ _ _).
-  - apply (neighborhood' x base).
-  - intros A B Hab Ha.
-    apply (pr2 (neighborhood_equiv _ _ _)) ;
-    apply (pr1 (neighborhood_equiv _ _ _)) in Ha.
-    revert Ha.
-    apply neighborhood_impl, Hab.
-  - apply (pr2 (neighborhood_equiv _ _ _)).
-    apply (pr2 (neighborhood_isOpen _)).
+  - apply (neighborhood x).
+  - intros A B.
+    apply neighborhood_impl.
+  - apply (pr2 (neighborhood_isOpen _)).
     apply isOpen_htrue.
     apply tt.
-  - intros A B Ha Hb.
-    apply (pr2 (neighborhood_equiv _ _ _)) ;
-    apply (pr1 (neighborhood_equiv _ _ _)) in Ha ;
-    apply (pr1 (neighborhood_equiv _ _ _)) in Hb.
+  - intros A B.
     apply neighborhood_and.
-    exact Ha.
-    exact Hb.
   - intros Hx.
-    apply (pr1 (neighborhood_equiv _ _ _)), neighborhood_point in Hx.
+    apply neighborhood_point in Hx.
     exact Hx.
 Defined.
 
 (** *** Limit of a filter *)
 
-Definition is_filter_lim {T : TopologicalSet} (F : Filter) (x : T) (base : base_of_neighborhood x) :=
-  filter_le (locally x base) F.
+Definition is_filter_lim {T : TopologicalSet} (F : Filter) (x : T) :=
+  filter_le (locally x) F.
 Definition ex_filter_lim  {T : TopologicalSet} (F : Filter) :=
-  ∃ (x : T) (base : base_of_neighborhood x), is_filter_lim F x base.
+  ∃ (x : T), is_filter_lim F x.
 
 (** *** Limit of a function *)
 
-Definition is_TSlim {X : UU} {T : TopologicalSet} (f : X -> T) (F : Filter (X := X)) (x : T) (base : base_of_neighborhood x) :=
-  filterlim f F (locally x base).
-Definition ex_TSlim {X : UU} {T : TopologicalSet} (f : X -> T) (F : Filter (X := X)) :=
-  ∃ (x : T) (base : base_of_neighborhood x), is_TSlim f F x base.
+Definition is_lim {X : UU} {T : TopologicalSet} (f : X -> T) (F : Filter (X := X)) (x : T) :=
+  filterlim f F (locally x).
+Definition ex_lim {X : UU} {T : TopologicalSet} (f : X -> T) (F : Filter (X := X)) :=
+  ∃ (x : T), is_lim f F x.
+
+(** *** Continuity *)
+
+Definition continuous_at {U V : TopologicalSet} (f : U -> V) (x : U) :=
+  is_lim f (locally x) (f x).
+Lemma notempty_ex {X : UU} :
+  ∀ (dom : X -> hProp) (x : X), dom x -> ¬ (∀ x : X, ¬ dom x).
+Proof.
+  intros dom x Hx H.
+  now apply (H x).
+Qed.
+Definition continuous_on {U V : TopologicalSet} (f : U -> V) (dom : U -> hProp) :=
+  ∀ (x : U) (Hx : dom x),
+    is_lim f (filter_dom (locally x) dom (notempty_ex dom x Hx)) (f x).
+Definition continuous {U V : TopologicalSet} (f : U -> V) :=
+  ∀ x : U, continuous_at f x.
+
+(** *** Continuity for 2 variable functions *)
+
+Definition continuous2d_at {U V W : TopologicalSet} (f : U -> V -> W) (x : U) (y : V) :=
+  continuous_at (U := topology_prod U V) (λ z : U × V, f (pr1 z) (pr2 z)) (x,,y).
+Definition continuous2d {U V W : TopologicalSet} (f : U -> V -> W) :=
+  ∀ (x : U) (y : V), continuous2d_at f x y.
+
+(** ** Topology in algebraic structures *)
+
+Definition isTopological_monoid (X : monoid) :=
+  Σ T : isTopologicalSet X,
+        continuous2d (U := ((pr1 (pr1 X)) ,, T)) (V := ((pr1 (pr1 X)) ,, T)) (W := ((pr1 (pr1 X)) ,, T)) op.
+Definition Topological_monoid :=
+  Σ X : monoid, isTopological_monoid X.
+
+Definition isTopological_gr (X : gr) :=
+  Σ T : isTopologicalSet X,
+        continuous2d (U := ((pr1 (pr1 X)) ,, T)) (V := ((pr1 (pr1 X)) ,, T)) (W := ((pr1 (pr1 X)) ,, T)) op
+      × continuous (U := ((pr1 (pr1 X)) ,, T)) (V := ((pr1 (pr1 X)) ,, T)) (grinv X).
+Definition Topological_gr :=
+  Σ X : gr, isTopological_gr X.
+
+Definition isTopological_rig (X : rig) :=
+  Σ T : isTopologicalSet X,
+        continuous2d (U := ((pr1 (pr1 X)) ,, T)) (V := ((pr1 (pr1 X)) ,, T)) (W := ((pr1 (pr1 X)) ,, T)) op1
+      × continuous2d (U := ((pr1 (pr1 X)) ,, T)) (V := ((pr1 (pr1 X)) ,, T)) (W := ((pr1 (pr1 X)) ,, T)) op2.
+Definition Topological_rig :=
+  Σ X : rig, isTopological_rig X.
+
+Definition isTopological_rng (X : rng) :=
+  Σ T : isTopologicalSet X,
+        continuous2d (U := ((pr1 (pr1 X)) ,, T)) (V := ((pr1 (pr1 X)) ,, T)) (W := ((pr1 (pr1 X)) ,, T)) op1
+      × continuous (U := ((pr1 (pr1 X)) ,, T)) (V := ((pr1 (pr1 X)) ,, T)) rnginv1
+      × continuous2d (U := ((pr1 (pr1 X)) ,, T)) (V := ((pr1 (pr1 X)) ,, T)) (W := ((pr1 (pr1 X)) ,, T)) op2.
+Definition Topological_rng :=
+  Σ X : rng, isTopological_rng X.
