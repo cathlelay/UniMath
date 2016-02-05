@@ -469,7 +469,7 @@ Qed.
 Definition continuous_on {U V : TopologicalSet} (dom : U -> hProp) (f : U -> V) :=
   ∀ (x : U) (Hx : dom x),
     is_lim f (filter_dom (locally x) dom (notempty_ex dom x Hx)) (f x).
-Search Filter.
+
 Definition continuous_on_subtypes {U V : TopologicalSet} (dom : U -> hProp) (f : (Σ x : U, dom x) -> V) :=
   ∀ (x : Σ x : U, dom x),
     is_lim f (locally (T := topology_subtypes U dom) x) (f x).
