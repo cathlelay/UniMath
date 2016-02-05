@@ -451,30 +451,25 @@ Definition continuous2d {U V W : TopologicalSet} (f : U -> V -> W) :=
 
 (** ** Topology in algebraic structures *)
 
-Definition isTopological_monoid (X : monoid) :=
-  Σ T : isTopologicalSet X,
-        continuous2d (U := ((pr1 (pr1 X)) ,, T)) (V := ((pr1 (pr1 X)) ,, T)) (W := ((pr1 (pr1 X)) ,, T)) op.
+Definition isTopological_monoid (X : monoid) (is : isTopologicalSet X) :=
+        continuous2d (U := ((pr1 (pr1 X)) ,, is)) (V := ((pr1 (pr1 X)) ,, is)) (W := ((pr1 (pr1 X)) ,, is)) op.
 Definition Topological_monoid :=
-  Σ X : monoid, isTopological_monoid X.
+  Σ (X : monoid) (is : isTopologicalSet X), isTopological_monoid X is.
 
-Definition isTopological_gr (X : gr) :=
-  Σ T : isTopologicalSet X,
-        continuous2d (U := ((pr1 (pr1 X)) ,, T)) (V := ((pr1 (pr1 X)) ,, T)) (W := ((pr1 (pr1 X)) ,, T)) op
-      × continuous (U := ((pr1 (pr1 X)) ,, T)) (V := ((pr1 (pr1 X)) ,, T)) (grinv X).
+Definition isTopological_gr (X : gr) (is : isTopologicalSet X) :=
+  isTopological_monoid X is
+  × continuous (U := ((pr1 (pr1 X)) ,, is)) (V := ((pr1 (pr1 X)) ,, is)) (grinv X).
 Definition Topological_gr :=
-  Σ X : gr, isTopological_gr X.
-
-Definition isTopological_rig (X : rig) :=
-  Σ T : isTopologicalSet X,
-        continuous2d (U := ((pr1 (pr1 X)) ,, T)) (V := ((pr1 (pr1 X)) ,, T)) (W := ((pr1 (pr1 X)) ,, T)) op1
-      × continuous2d (U := ((pr1 (pr1 X)) ,, T)) (V := ((pr1 (pr1 X)) ,, T)) (W := ((pr1 (pr1 X)) ,, T)) op2.
+  Σ (X : gr) is, isTopological_gr X is.
+Print isrigops.
+Definition isTopological_rig (X : rig) (is : isTopologicalSet X) :=
+  isTopological_monoid (rigaddabmonoid X) is
+  × isTopological_monoid (rigmultmonoid X) is.
 Definition Topological_rig :=
-  Σ X : rig, isTopological_rig X.
+  Σ (X : rig) is, isTopological_rig X is.
 
-Definition isTopological_rng (X : rng) :=
-  Σ T : isTopologicalSet X,
-        continuous2d (U := ((pr1 (pr1 X)) ,, T)) (V := ((pr1 (pr1 X)) ,, T)) (W := ((pr1 (pr1 X)) ,, T)) op1
-      × continuous (U := ((pr1 (pr1 X)) ,, T)) (V := ((pr1 (pr1 X)) ,, T)) rnginv1
-      × continuous2d (U := ((pr1 (pr1 X)) ,, T)) (V := ((pr1 (pr1 X)) ,, T)) (W := ((pr1 (pr1 X)) ,, T)) op2.
+Definition isTopological_rng (X : rng) (is : isTopologicalSet X) :=
+  isTopological_gr (rngaddabgr X) is
+  × isTopological_monoid (rigmultmonoid X) is.
 Definition Topological_rng :=
-  Σ X : rng, isTopological_rng X.
+  Σ (X : rng) is, isTopological_rng X is.
