@@ -70,19 +70,10 @@ Lemma isfilter_finite_intersection_carac :
   -> isfilter_finite_intersection.
 Proof.
   intros Htrue Hand L.
-  apply (Sequence_rect (P := λ L, (∀ n : stn (length L), F (L n)) -> F (finite_intersection L))) ; clear L.
-  - intros.
-    rewrite finite_intersection_htrue.
-    exact Htrue.
-  - intros L A IHl H.
-    rewrite finite_intersection_append.
-    apply Hand.
-    generalize (H (lastelement _)) ; simpl.
-    now rewrite append_fun_compute_2.
-    apply IHl.
-    intros m.
-    generalize (H (dni_lastelement m)) ; simpl.
-    now rewrite append_fun_compute_1.
+  apply (pr2 (finite_intersection_hProp F)).
+  split.
+  - exact Htrue.
+  - exact Hand.
 Qed.
 
 End Filter_def.
@@ -104,10 +95,8 @@ Definition Filter {X : UU} := Σ F : (X -> hProp) -> hProp, isfilter F.
 Definition pr1Filter {X : UU} (F : Filter (X := X)) : (X -> hProp) -> hProp := pr1 F.
 Coercion pr1Filter : Filter >-> Funclass.
 
-Definition mkFilter {X : UU} (F : (X -> hProp) -> hProp) (Himp : isfilter_imply F) (Hand : isfilter_finite_intersection F) (Hempty : isfilter_notempty F) : Filter :=
-  F,, Himp,, Hand,, Hempty.
-Definition mkFilter' {X : UU} (F : (X -> hProp) -> hProp) (Himp : isfilter_imply F) (Htrue : F (λ _ : X, htrue)) (Hand : ∀ A B : X -> hProp, F A -> F B -> F (λ x : X, A x ∧ B x)) (Hempty : isfilter_notempty F) : Filter :=
-  mkFilter F Himp (isfilter_finite_intersection_carac F Htrue Hand) Hempty.
+Definition mkFilter {X : UU} (F : (X -> hProp) -> hProp) (Himp : isfilter_imply F) (Htrue : F (λ _ : X, htrue)) (Hand : ∀ A B : X -> hProp, F A -> F B -> F (λ x : X, A x ∧ B x)) (Hempty : isfilter_notempty F) : Filter :=
+  F ,, Himp ,, (isfilter_finite_intersection_carac F Htrue Hand) ,, Hempty.
 
 Section Filter_pty.
 
@@ -221,7 +210,7 @@ Defined.
 
 Definition filtermap {X Y : UU} (f : X -> Y) (F : Filter (X := X)) : Filter (X := Y).
 Proof.
-  simple refine (mkFilter' _ _ _ _ _).
+  simple refine (mkFilter _ _ _ _ _).
   - apply (λ A : (Y -> hProp), F (λ x : X, A (f x))).
   - intros A B Himp.
     apply filter_imply.
@@ -277,7 +266,7 @@ Qed.
 Definition filter_dom {X : UU} (F : Filter (X := X)) (dom : X -> hProp) (Hdom : ¬ (∀ x : X, ¬ dom x)) :
   Filter (X := X).
 Proof.
-  simple refine (mkFilter' _ _ _ _ _).
+  simple refine (mkFilter _ _ _ _ _).
   - intros A.
     simple refine (hProppair _ _).
     + apply (∀ x, dom x -> A x).
@@ -299,7 +288,7 @@ Defined.
 Definition filter_subtypes {X : UU} (F : Filter (X := X)) (dom : X -> hProp) (Hdom : ¬ (∀ x : X, ¬ dom x)) :
   Filter (X := Σ x : X, dom x).
 Proof.
-  simple refine (mkFilter' _ _ _ _ _).
+  simple refine (mkFilter _ _ _ _ _).
   - intros A.
     simple refine (hProppair _ _).
     + apply (∀ x (Hx : dom x), A (x,,Hx)).
@@ -322,7 +311,7 @@ Defined.
 
 Definition filter_prod {X Y : UU} (Fx : Filter (X := X)) (Fy : Filter (X := Y)) : Filter (X := X × Y).
 Proof.
-  simple refine (mkFilter' _ _ _ _ _).
+  simple refine (mkFilter _ _ _ _ _).
   - intros A.
     apply (∃ (Ax : X -> hProp) (Ay : Y -> hProp), Fx Ax × Fy Ay × (∀ (x : X) (y : Y), Ax x -> Ay y -> A (x,,y))).
   - intros A B Himpl.
@@ -365,7 +354,7 @@ Defined.
 
 Definition filter_pr1 {X Y : UU} (F : Filter (X := X × Y)) : Filter (X := X).
 Proof.
-  simple refine (mkFilter' _ _ _ _ _).
+  simple refine (mkFilter _ _ _ _ _).
   - intros A.
     apply (F (λ x : X × Y, A (pr1 x))).
   - intros A B H.
@@ -381,7 +370,7 @@ Defined.
 
 Definition filter_pr2 {X Y : UU} (F : Filter (X := X × Y)) : Filter (X := Y).
 Proof.
-  simple refine (mkFilter' _ _ _ _ _).
+  simple refine (mkFilter _ _ _ _ _).
   - intros A.
     apply (F (λ x : X × Y, A (pr2 x))).
   - intros A B H.
@@ -440,7 +429,7 @@ Qed.
 
 Definition filter_bot {X : UU} (x0 : X) : Filter (X := X).
 Proof.
-  simple refine (mkFilter' _ _ _ _ _).
+  simple refine (mkFilter _ _ _ _ _).
   - intros A.
     simple refine (hProppair _ _).
     apply (∀ x, A x).
@@ -470,7 +459,7 @@ Qed.
 
 Definition filter_intersection {X : UU} (FF : Filter (X := X) -> hProp) (Hff : ¬ (∀ F : Filter, ¬ FF F)) : Filter (X := X).
 Proof.
-  simple refine (mkFilter' _ _ _ _ _).
+  simple refine (mkFilter _ _ _ _ _).
   - intros A.
     simple refine (hProppair _ _).
     apply (∀ F : Filter, FF F -> F A).
@@ -512,7 +501,7 @@ Qed.
 
 Definition generated_filter {X : UU} (L : (X -> hProp) -> hProp) (Hl : ∀ (L' : Sequence (X -> hProp)), (∀ m, L (L' m)) -> ¬ ∀ x : X, ¬ finite_intersection L' x) : Filter (X := X).
 Proof.
-  simple refine (mkFilter' _ _ _ _ _).
+  simple refine (mkFilter _ _ _ _ _).
   - intros A.
     apply (∃ (L' : Sequence (X -> hProp)), (∀ m, L (L' m)) × (∀ x : X, finite_intersection L' x -> A x)).
   - intros A B H.
@@ -724,7 +713,7 @@ Qed.
 
 Definition base_filter {X : UU} (x0 : X) (base : (X -> hProp) -> hProp) (Hand : ∀ A B : X -> hProp, base A -> base B -> ∃ C : X -> hProp, base C × (∀ x, C x -> A x ∧ B x)) (Hempty : ∃ A : X -> hProp, base A) (Hfalse : ¬ (base (λ _, hfalse))) : Filter (X := X).
 Proof.
-  simple refine (mkFilter' _ _ _ _ _).
+  simple refine (mkFilter _ _ _ _ _).
   - intros A.
     apply (∃ B : X -> hProp, base B × ∀ x, B x -> A x).
   - intros A B H.

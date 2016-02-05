@@ -3,7 +3,8 @@
 (** Based on Bourbaky *)
 
 Require Export UniMath.Bourbaki.Filters.
-
+Require Import UniMath.Foundations.Algebra.DivisionRig.
+Require Import UniMath.Foundations.Algebra.ConstructiveStructures.
 
 Section OpenSet.
 
@@ -39,9 +40,7 @@ Proof.
   rewrite <- finite_intersection_htrue.
   apply H0.
   intros (m,Hm).
-  apply fromempty.
-  revert Hm.
-  apply negnatlthn0.
+  now apply fromempty.
 Qed.
 Lemma isOpenSet_finite_intersection_and :
   isOpenSet_finite_intersection
@@ -61,22 +60,10 @@ Lemma isOpenSet_finite_intersection_carac :
   -> isOpenSet_finite_intersection.
 Proof.
   intros Htrue Hpair L.
-  apply (Sequence_rect (P := λ P : Sequence (X -> hProp),
-                                   (∀ m : stn (length P), isOpen (P m)) -> isOpen (finite_intersection P))) ; clear L.
-  - intros _.
-    rewrite finite_intersection_htrue.
-    apply Htrue.
-  - intros L A IH H.
-    rewrite finite_intersection_append.
-    apply Hpair.
-    generalize (H (lastelement (length L))).
-    simpl.
-    now rewrite append_fun_compute_2.
-    apply IH.
-    intros m.
-    generalize (H (dni_lastelement m)).
-    simpl.
-    now rewrite append_fun_compute_1.
+  apply (pr2 (finite_intersection_hProp isOpen)).
+  split.
+  - exact Htrue.
+  - exact Hpair.
 Qed.
 
 Definition isOpenSet :=
@@ -88,21 +75,7 @@ Definition isTopologicalSet :=
   λ X : hSet, Σ isOpen : (X -> hProp) -> hProp, isOpenSet isOpen.
 Definition TopologicalSet := Σ X : hSet, isTopologicalSet X.
 
-Definition mkTopologicalSet (X : hSet) (isOpen : (X -> hProp) -> hProp)
-
-           (is : isOpenSet_infinite_union isOpen)
-
-(is0 : isOpenSet_finite_intersection isOpen) : TopologicalSet := (X,,isOpen,,is,,is0).
-Definition mkTopologicalSet' (X : hSet) (isOpen : (X -> hProp) -> hProp)
-(is : isOpenSet_infinite_union isOpen)
-(is0 : isOpen (λ _, htrue)) (is1 : ∀ A B, isOpen A -> isOpen B -> isOpen (λ x, A x ∧ B x)) : TopologicalSet.
-Proof.
-  apply (mkTopologicalSet X isOpen).
-  exact is.
-  apply isOpenSet_finite_intersection_carac.
-  exact is0.
-  exact is1.
-Defined.
+Definition mkTopologicalSet (X : hSet) (isOpen : (X -> hProp) -> hProp) (is : isOpenSet_infinite_union isOpen) (is0 : isOpen (λ _, htrue)) (is1 : ∀ A B, isOpen A -> isOpen B -> isOpen (λ x, A x ∧ B x)) : TopologicalSet := (X,,isOpen,,is,,(isOpenSet_finite_intersection_carac _ is0 is1)).
 
 Definition pr1TopologicatSet : TopologicalSet -> hSet := pr1.
 Coercion pr1TopologicatSet : TopologicalSet >-> hSet.
@@ -173,7 +146,9 @@ Qed.
 
 End Topology_pty.
 
-(** ** Generated Topology *)
+(** ** Some topologies *)
+
+(** *** Generated Topology *)
 
 Definition generated_topology {X : hSet} (O : (X -> hProp) -> hProp) : TopologicalSet.
 Proof.
@@ -216,7 +191,7 @@ Proof.
   exact Op.
 Qed.
 
-(** ** Product of topologies *)
+(** *** Product of topologies *)
 
 Definition topology_prod (U V : TopologicalSet) : TopologicalSet.
 Proof.
@@ -226,6 +201,61 @@ Proof.
   - simpl ; intros A.
     exists ((∀ y : V, isOpen (λ x : U, A (x,,y))) × (∀ x : U, isOpen (λ y : V, A (x,,y)))).
     apply isapropdirprod ; apply impred_isaprop ; intro ; apply pr2.
+Defined.
+
+(** *** Topology on a subtype *)
+
+Definition topology_subtypes (T : TopologicalSet) (dom : T -> hProp) : TopologicalSet.
+Proof.
+  simple refine (mkTopologicalSet _ _ _ _ _).
+  - exists (Σ x : T, dom x).
+    apply isaset_total2.
+    apply pr2.
+    intros x.
+    apply isasetaprop.
+    apply pr2.
+  - simpl ; intros A.
+    apply (∃ A' : Open (T := T), A = (λ (y : Σ x0 : T, dom x0), A' (pr1 y))).
+  - intros P Hp.
+    simpl in P.
+    set (P' := λ A : T -> hProp, isOpen A ∧ P (λ y : (Σ x : T, dom x), A (pr1 y))).
+    apply hinhpr.
+    simple refine (tpair _ _ _).
+    exists (infinite_union P').
+    apply isOpen_infinite_union.
+    intros A Ha.
+    apply (pr1 Ha).
+    apply funextfun ; intros (x,Hx).
+    apply uahp.
+    + apply hinhuniv.
+      intros (A,(Ha,Ax)).
+      generalize (Hp _ Ha).
+      apply hinhfun.
+      intros (A',Ha').
+      exists A' ; split.
+      split.
+      apply (pr2 A').
+      now rewrite <- Ha'.
+      now rewrite Ha' in Ax.
+    + apply hinhfun.
+      intros (A,(P'a,Ax)).
+      exists (λ x, A (pr1 x)).
+      split.
+      apply (pr2 P'a).
+      exact Ax.
+  - simpl.
+    apply hinhpr.
+    now exists ((λ _, htrue),,isOpen_htrue).
+  - intros A B.
+    apply hinhfun2.
+    intros (A',->) (B',->).
+    simple refine (tpair _ _ _).
+    simple refine (tpair _ _ _).
+    intros x ; apply (A' x ∧ B' x).
+    apply isOpen_and.
+    apply (pr2 A').
+    apply (pr2 B').
+    reflexivity.
 Defined.
 
 (** ** Neighborhood *)
@@ -398,7 +428,7 @@ Qed.
 
 Definition locally {T : TopologicalSet} (x : T) : Filter (X := T).
 Proof.
-  simple refine (mkFilter' _ _ _ _ _).
+  simple refine (mkFilter _ _ _ _ _).
   - apply (neighborhood x).
   - intros A B.
     apply neighborhood_impl.
@@ -436,9 +466,13 @@ Proof.
   intros dom x Hx H.
   now apply (H x).
 Qed.
-Definition continuous_on {U V : TopologicalSet} (f : U -> V) (dom : U -> hProp) :=
+Definition continuous_on {U V : TopologicalSet} (dom : U -> hProp) (f : U -> V) :=
   ∀ (x : U) (Hx : dom x),
     is_lim f (filter_dom (locally x) dom (notempty_ex dom x Hx)) (f x).
+Search Filter.
+Definition continuous_on_subtypes {U V : TopologicalSet} (dom : U -> hProp) (f : (Σ x : U, dom x) -> V) :=
+  ∀ (x : Σ x : U, dom x),
+    is_lim f (locally (T := topology_subtypes U dom) x) (f x).
 Definition continuous {U V : TopologicalSet} (f : U -> V) :=
   ∀ x : U, continuous_at f x.
 
@@ -452,7 +486,7 @@ Definition continuous2d {U V W : TopologicalSet} (f : U -> V -> W) :=
 (** ** Topology in algebraic structures *)
 
 Definition isTopological_monoid (X : monoid) (is : isTopologicalSet X) :=
-        continuous2d (U := ((pr1 (pr1 X)) ,, is)) (V := ((pr1 (pr1 X)) ,, is)) (W := ((pr1 (pr1 X)) ,, is)) op.
+  continuous2d (U := ((pr1 (pr1 X)) ,, is)) (V := ((pr1 (pr1 X)) ,, is)) (W := ((pr1 (pr1 X)) ,, is)) BinaryOperations.op.
 Definition Topological_monoid :=
   Σ (X : monoid) (is : isTopologicalSet X), isTopological_monoid X is.
 
@@ -461,7 +495,7 @@ Definition isTopological_gr (X : gr) (is : isTopologicalSet X) :=
   × continuous (U := ((pr1 (pr1 X)) ,, is)) (V := ((pr1 (pr1 X)) ,, is)) (grinv X).
 Definition Topological_gr :=
   Σ (X : gr) is, isTopological_gr X is.
-Print isrigops.
+
 Definition isTopological_rig (X : rig) (is : isTopologicalSet X) :=
   isTopological_monoid (rigaddabmonoid X) is
   × isTopological_monoid (rigmultmonoid X) is.
@@ -473,3 +507,27 @@ Definition isTopological_rng (X : rng) (is : isTopologicalSet X) :=
   × isTopological_monoid (rigmultmonoid X) is.
 Definition Topological_rng :=
   Σ (X : rng) is, isTopological_rng X is.
+
+Definition isTopological_DivRig (X : DivRig) (is : isTopologicalSet X) :=
+  isTopological_rig (pr1 X) is
+  × continuous_on_subtypes (U := ((pr1 (pr1 (pr1 X))) ,, is)) (V := ((pr1 (pr1 (pr1 X))) ,, is)) (λ x : X, hProppair (x != 0%dr) (isapropneg _)) invDivRig.
+Definition Topological_DivRig :=
+  Σ (X : DivRig) is, isTopological_DivRig X is.
+
+Definition isTopological_fld (X : fld) (is : isTopologicalSet X) :=
+  isTopological_rng (pr1 X) is
+  × continuous_on_subtypes (U := ((pr1 (pr1 (pr1 X))) ,, is)) (V := ((pr1 (pr1 (pr1 X))) ,, is)) (λ x : X, hProppair (x != 0%rng) (isapropneg _)) (λ x, fldmultinv (pr1 x) (pr2 x)).
+Definition Topological_fld :=
+  Σ (X : fld) is, isTopological_fld X is.
+
+Definition isTopological_ConstructiveDivisionRig (X : ConstructiveDivisionRig) (is : isTopologicalSet X) :=
+  isTopological_rig (pr1 X) is
+  × continuous_on_subtypes (U := ((pr1 (pr1 (pr1 X))) ,, is)) (V := ((pr1 (pr1 (pr1 X))) ,, is)) (λ x : X, (x ≠ 0)%CDR) (λ x, CDRinv (pr1 x) (pr2 x)).
+Definition Topological_ConstructiveDivisionRig :=
+  Σ (X : ConstructiveDivisionRig) is, isTopological_ConstructiveDivisionRig X is.
+
+Definition isTopological_ConstructiveField (X : ConstructiveField) (is : isTopologicalSet X) :=
+  isTopological_rng (pr1 X) is
+  × continuous_on_subtypes (U := ((pr1 (pr1 (pr1 X))) ,, is)) (V := ((pr1 (pr1 (pr1 X))) ,, is)) (λ x : X, (x ≠ 0)%CF) (λ x, CFinv (pr1 x) (pr2 x)).
+Definition Topological_ConstructiveField :=
+  Σ (X : ConstructiveField) is, isTopological_ConstructiveField X is.

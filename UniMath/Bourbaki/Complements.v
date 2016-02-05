@@ -55,6 +55,19 @@ Proof.
       exact Bx.
 Qed.
 
+Lemma infinite_union_hProp {X : UU} :
+  ∀ (P : (X -> hProp) -> hProp),
+    (∀ (L : (X -> hProp) -> hProp), (∀ A, L A -> P A) -> P (infinite_union L))
+    -> (∀ A B, P A -> P B -> P (λ x : X, A x ∨ B x)).
+Proof.
+  intros P Hp A B Pa Pb.
+  rewrite <- infinite_union_or.
+  apply Hp.
+  intros C.
+  apply hinhuniv.
+  now intros [-> | ->].
+Qed.
+
 (** finite intersection *)
 
 Definition finite_intersection {X : UU} (P : Sequence (X -> hProp)) : X -> hProp.
@@ -167,4 +180,36 @@ Proof.
   apply funextfun ; intro n.
   apply append_fun_compute_1.
   reflexivity.
+Qed.
+
+Lemma finite_intersection_hProp {X : UU} :
+  ∀ (P : (X -> hProp) -> hProp),
+    (∀ (L : Sequence (X -> hProp)), (∀ n, P (L n)) -> P (finite_intersection L))
+    <-> (P (λ _, htrue) × (∀ A B, P A -> P B -> P (λ x : X, A x ∧ B x))).
+Proof.
+  intros P.
+  split.
+  - split.
+    + rewrite <- finite_intersection_htrue.
+      apply X0.
+      now intros (n,Hn).
+    + intros A B Pa Pb.
+      rewrite <- finite_intersection_and.
+      apply X0.
+      intros (n,Hn).
+      now destruct n ; simpl.
+  - intros (P0,P2).
+    apply (Sequence_rect (P := λ L : Sequence (X -> hProp),
+                                     (∀ n : stn (length L), P (L n)) -> P (finite_intersection L))).
+    + intros _.
+      now rewrite finite_intersection_htrue.
+    + intros L A IHl Hl.
+      rewrite finite_intersection_append.
+      apply P2.
+      * rewrite <- (append_fun_compute_2 L A).
+        now apply Hl.
+      * apply IHl.
+        intros n.
+        rewrite <- (append_fun_compute_1 L A).
+        apply Hl.
 Qed.
