@@ -86,19 +86,19 @@ Proof.
   now apply Hirrefl.
 Qed.
 
-Local Lemma isEffectiveOrder_hnnq : isEffectiveOrder hnnq_le hnnq_lt.
+Local Lemma isEffectiveOrder_hnnq : isEffectiveOrder hnnq_ge hnnq_gt.
 Proof.
-  split ; [ split | repeat split ].
-  - exact ispreorder_hnnq_le.
-  - exact isStrongOrder_hnnq_lt.
+  split ; [ | split ; [ | repeat split]].
+  - exact ispreorder_hnnq_ge.
+  - exact isStrongOrder_hnnq_gt.
   - intros x y.
-    now apply hqlthtoleh.
+    now apply hqgthtogeh.
   - easy.
   - easy.
   - intros x y z.
-    now apply hqlthlehtrans.
+    now apply hqgthgehtrans.
   - intros x y z.
-    now apply hqlehlthtrans.
+    now apply hqgehgthtrans.
 Qed.
 
 (** ** hnnq is a half field *)
@@ -437,7 +437,7 @@ Lemma isdecrel_ltNonnegativeRationals :
   ∀ x y : NonnegativeRationals, (x < y) ⨿ ¬ (x < y).
 Proof.
   intros x y.
-  apply isdecrelhqlth.
+  apply isdecrelhqgth.
 Qed.
 
 Lemma le_eqorltNonnegativeRationals :
@@ -461,7 +461,7 @@ Proof.
     + now apply fromempty, Hneq, Heq.
     + exact Hlt.
   - right.
-    apply neghqgehtolth.
+    apply neghqlehtogth.
     exact Hlt.
 Qed.
 Lemma eq0orgt0NonnegativeRationals :
@@ -522,7 +522,8 @@ Proof.
   intros x y.
   split.
   - now apply neghqgehtolth.
-  - now apply hqlthtoneghqgeh.
+  - change (x < y -> ¬ (x >= y)).
+    now apply (hqlthtoneghqgeh (pr1 x) (pr1 y)).
 Qed.
 
 Definition ltNonnegativeRationals_noteq :
@@ -622,7 +623,8 @@ Definition iscomm_plusNonnegativeRationals:
 Lemma plusNonnegativeRationals_ltcompat_r :
   ∀ x y z : NonnegativeRationals, (y < z) <-> (y + x < z + x).
 Proof.
-  intros x y z.
+  intros (x,Hx) (y,Hy) (z,Hz).
+  change ((y < z)%hq <-> (y + x < z + x)%hq).
   split.
   now apply hqlthandplusr.
   now apply hqlthandplusrinv.
@@ -676,8 +678,8 @@ Lemma plusNonnegativeRationals_ltcompat :
 Proof.
   intros x x' y y' Hx Hy.
   apply istrans_ltNonnegativeRationals with (x + y').
-  now apply hqlthandplusl, Hy.
-  now apply hqlthandplusr, Hx.
+  now apply plusNonnegativeRationals_ltcompat_l.
+  now apply plusNonnegativeRationals_ltcompat_r.
 Qed.
 Lemma plusNonnegativeRationals_le_lt_ltcompat :
   ∀ x x' y y' : NonnegativeRationals,
@@ -685,8 +687,8 @@ Lemma plusNonnegativeRationals_le_lt_ltcompat :
 Proof.
   intros x x' y y' Hx Hy.
   apply istrans_lt_le_ltNonnegativeRationals with (x + y').
-  now apply hqlthandplusl, Hy.
-  now apply hqlehandplusr, Hx.
+  now apply plusNonnegativeRationals_ltcompat_l.
+  now apply plusNonnegativeRationals_lecompat_r.
 Qed.
 Lemma plusNonnegativeRationals_lt_le_ltcompat :
   ∀ x x' y y' : NonnegativeRationals,
@@ -694,8 +696,8 @@ Lemma plusNonnegativeRationals_lt_le_ltcompat :
 Proof.
   intros x x' y y' Hx Hy.
   apply istrans_le_lt_ltNonnegativeRationals with (x + y').
-  now apply hqlehandplusl, Hy.
-  now apply hqlthandplusr, Hx.
+  now apply plusNonnegativeRationals_lecompat_l.
+  now apply plusNonnegativeRationals_ltcompat_r.
 Qed.
 
 Lemma plusNonnegativeRationals_le_r :

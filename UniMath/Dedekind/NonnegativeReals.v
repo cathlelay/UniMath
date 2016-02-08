@@ -187,47 +187,47 @@ Qed.
 
 (** Partial order on [Dcuts] *)
 
-Definition Dcuts_le_rel : hrel Dcuts_set :=
+Definition Dcuts_ge_rel : hrel Dcuts_set :=
   λ X Y : Dcuts_set,
-          hProppair (∀ x : NonnegativeRationals, x ∈ X -> x ∈ Y)
+          hProppair (∀ x : NonnegativeRationals, x ∈ Y -> x ∈ X)
                     (impred_isaprop _ (λ _, isapropimpl _ _ (pr2 _))).
 
-Lemma istrans_Dcuts_le_rel : istrans Dcuts_le_rel.
+Lemma istrans_Dcuts_ge_rel : istrans Dcuts_ge_rel.
 Proof.
   intros x y z Hxy Hyz r Xr.
-  now apply Hyz, Hxy.
+  now apply Hxy, Hyz.
 Qed.
-Lemma isrefl_Dcuts_le_rel : isrefl Dcuts_le_rel.
+Lemma isrefl_Dcuts_ge_rel : isrefl Dcuts_ge_rel.
 Proof.
   now intros X x Xx.
 Qed.
 
-Lemma ispreorder_Dcuts_le_rel : ispreorder Dcuts_le_rel.
+Lemma ispreorder_Dcuts_ge_rel : ispreorder Dcuts_ge_rel.
 Proof.
   split.
-  exact istrans_Dcuts_le_rel.
-  exact isrefl_Dcuts_le_rel.
+  exact istrans_Dcuts_ge_rel.
+  exact isrefl_Dcuts_ge_rel.
 Qed.
 
 (** Strict partial order on [Dcuts] *)
 
-Definition Dcuts_lt_rel : hrel Dcuts_set :=
+Definition Dcuts_gt_rel : hrel Dcuts_set :=
   fun (X Y : Dcuts_set) =>
-    hexists (fun x : NonnegativeRationals => dirprod (neg (x ∈ X)) (x ∈ Y)).
+    hexists (fun x : NonnegativeRationals => dirprod (neg (x ∈ Y)) (x ∈ X)).
 
-Lemma istrans_Dcuts_lt_rel : istrans Dcuts_lt_rel.
+Lemma istrans_Dcuts_gt_rel : istrans Dcuts_gt_rel.
 Proof.
   intros x y z.
   apply hinhfun2.
   intros (r,(Xr,Yr)) (n,(Yn,Zn)).
-  exists r ; split.
-  exact Xr.
-  apply is_Dcuts_bot with n.
-  exact Zn.
+  exists n ; split.
+  exact Yn.
+  apply is_Dcuts_bot with r.
+  exact Yr.
   apply lt_leNonnegativeRationals.
   now apply Dcuts_finite with y.
 Qed.
-Lemma isirrefl_Dcuts_lt_rel : isirrefl Dcuts_lt_rel.
+Lemma isirrefl_Dcuts_gt_rel : isirrefl Dcuts_gt_rel.
 Proof.
   intros x.
   unfold neg ;
@@ -235,16 +235,16 @@ Proof.
   intros (r,(nXr,Xr)).
   now apply nXr.
 Qed.
-Lemma iscotrans_Dcuts_lt_rel :
-  iscotrans Dcuts_lt_rel.
+Lemma iscotrans_Dcuts_gt_rel :
+  iscotrans Dcuts_gt_rel.
 Proof.
   intros x y z.
   apply hinhuniv ; intros (r,(Xr,Zr)).
-  generalize (is_Dcuts_open z r Zr) ; apply hinhuniv ; intros (r',(Zr',Hr)).
+  generalize (is_Dcuts_open x r Zr) ; apply hinhuniv ; intros (r',(Zr',Hr)).
   assert (Hr0 : 0%NRat < r' - r) by (now apply ispositive_minusNonnegativeRationals).
   generalize (is_Dcuts_error y _ Hr0) ; apply hinhuniv ; intros [Yq | Yq].
   - apply Utilities.squash_element ;
-    right ; apply Utilities.squash_element.
+    left ; apply Utilities.squash_element.
     exists r' ; split.
     + intro H0 ; apply Yq.
       apply is_Dcuts_bot with r'.
@@ -253,14 +253,14 @@ Proof.
     + exact Zr'.
   - destruct Yq as (q,(Yq,nYq)).
     destruct (isdecrel_leNonnegativeRationals (q + (r' - r)) r') as [Hdec | Hdec].
-    + apply hinhpr ; right ; apply hinhpr.
+    + apply hinhpr ; left ; apply hinhpr.
       exists r' ; split.
       intro Yr' ; apply nYq.
       apply is_Dcuts_bot with r'.
       exact Yr'.
       exact Hdec.
       exact Zr'.
-    + apply hinhpr ; left ; apply hinhpr.
+    + apply hinhpr ; right ; apply hinhpr.
       exists q ; split.
       * intro Xq ; apply Xr.
         apply is_Dcuts_bot with q.
@@ -274,36 +274,36 @@ Proof.
       * exact Yq.
 Qed.
 
-Lemma isstpo_Dcuts_lt_rel : isStrongOrder Dcuts_lt_rel.
+Lemma isstpo_Dcuts_gt_rel : isStrongOrder Dcuts_gt_rel.
 Proof.
   split.
-  exact istrans_Dcuts_lt_rel.
-  exact isirrefl_Dcuts_lt_rel.
+  exact istrans_Dcuts_gt_rel.
+  exact isirrefl_Dcuts_gt_rel.
 Qed.
 
 (** Effectively Ordered Set *)
 
-Lemma Dcuts_lt_le_rel :
-  ∀ x y : Dcuts_set, Dcuts_lt_rel x y -> Dcuts_le_rel x y.
+Lemma Dcuts_gt_ge_rel :
+  ∀ x y : Dcuts_set, Dcuts_gt_rel x y -> Dcuts_ge_rel x y.
 Proof.
   intros x y ; apply hinhuniv ; intros (r,(Xr,Yr)).
   intros n Xn.
   apply is_Dcuts_bot with r.
   exact Yr.
   apply lt_leNonnegativeRationals.
-  now apply Dcuts_finite with x.
+  now apply Dcuts_finite with y.
 Qed.
 
-Lemma Dcuts_le_ngt_rel :
-  ∀ x y : Dcuts_set, ¬ Dcuts_lt_rel x y <-> Dcuts_le_rel y x.
+Lemma Dcuts_ge_ngt_rel :
+  ∀ x y : Dcuts_set, ¬ Dcuts_gt_rel x y <-> Dcuts_ge_rel y x.
 Proof.
   intros X Y.
   split.
-  - intros Hnlt y Yy.
+  - intros Hngt y Yy.
     generalize (is_Dcuts_open _ _ Yy) ; apply hinhuniv ; intros (y',(Yy',Hy)).
     apply ispositive_minusNonnegativeRationals in Hy.
-    generalize (is_Dcuts_error X _ Hy) ; apply hinhuniv ; intros [nXc | ].
-    + apply fromempty, Hnlt.
+    generalize (is_Dcuts_error Y _ Hy) ; apply hinhuniv ; intros [nXc | ].
+    + apply fromempty, Hngt.
       apply hinhpr.
       exists y' ; split.
       * intro Xy' ; apply nXc.
@@ -312,7 +312,7 @@ Proof.
       * exact Yy'.
     + intros (x,(Xx,Hx)).
       apply is_Dcuts_bot with (1 := Xx).
-      apply notlt_geNonnegativeRationals ; intro H ; apply Hnlt.
+      apply notlt_geNonnegativeRationals ; intro H ; apply Hngt.
       apply hinhpr.
       exists (x + (y' - y)) ; split.
       * exact Hx.
@@ -329,43 +329,41 @@ Proof.
     now apply Yr, Hxy.
 Qed.
 
-Lemma istrans_Dcuts_lt_le_rel :
-  ∀ x y z : Dcuts_set, Dcuts_lt_rel x y -> Dcuts_le_rel y z -> Dcuts_lt_rel x z.
+Lemma istrans_Dcuts_gt_ge_rel :
+  ∀ x y z : Dcuts_set, Dcuts_gt_rel x y -> Dcuts_ge_rel y z -> Dcuts_gt_rel x z.
 Proof.
-  intros x y z Hlt Hle.
-  revert Hlt ; apply hinhfun ; intros (r,(nXr,Yr)).
+  intros x y z Hgt Hge.
+  revert Hgt ; apply hinhfun ; intros (r,(nXr,Yr)).
   exists r ; split.
-  - exact nXr.
-  - now apply Hle.
+  - intro H ; apply nXr.
+    now apply Hge.
+  - exact Yr.
 Qed.
-Lemma istrans_Dcuts_le_lt_rel :
-  ∀ x y z : Dcuts_set, Dcuts_le_rel x y -> Dcuts_lt_rel y z -> Dcuts_lt_rel x z.
+Lemma istrans_Dcuts_ge_gt_rel :
+  ∀ x y z : Dcuts_set, Dcuts_ge_rel x y -> Dcuts_gt_rel y z -> Dcuts_gt_rel x z.
 Proof.
-  intros x y z Hle.
+  intros x y z Hge.
   apply hinhfun ; intros (r,(nYr,Zr)).
   exists r ; split.
-  - intros Xr ; apply nYr.
-    now apply Hle.
-  - exact Zr.
+  - exact nYr.
+  - now apply Hge.
 Qed.
 
-Lemma iseo_Dcuts_le_lt_rel :
-  isEffectiveOrder Dcuts_le_rel Dcuts_lt_rel.
+Lemma iseo_Dcuts_ge_gt_rel :
+  isEffectiveOrder Dcuts_ge_rel Dcuts_gt_rel.
 Proof.
-  split.
-  - split.
-    + exact ispreorder_Dcuts_le_rel.
-    + exact isstpo_Dcuts_lt_rel.
-  - repeat split.
-    + exact Dcuts_lt_le_rel.
-    + now apply Dcuts_le_ngt_rel.
-    + apply (pr2 (Dcuts_le_ngt_rel _ _)).
-    + exact istrans_Dcuts_lt_le_rel.
-    + exact istrans_Dcuts_le_lt_rel.
+  split ; [ | split ; [ | repeat split]].
+  - exact ispreorder_Dcuts_ge_rel.
+  - exact isstpo_Dcuts_gt_rel.
+  - exact Dcuts_gt_ge_rel.
+  - now apply Dcuts_ge_ngt_rel.
+  - apply (pr2 (Dcuts_ge_ngt_rel _ _)).
+  - exact istrans_Dcuts_gt_ge_rel.
+  - exact istrans_Dcuts_ge_gt_rel.
 Qed.
 
 Definition iseo_Dcuts : EffectiveOrder Dcuts_set :=
-  pairEffectiveOrder Dcuts_le_rel Dcuts_lt_rel iseo_Dcuts_le_lt_rel.
+  pairEffectiveOrder Dcuts_ge_rel Dcuts_gt_rel iseo_Dcuts_ge_gt_rel.
 
 Definition eo_Dcuts : EffectivelyOrderedSet :=
   pairEffectivelyOrderedSet iseo_Dcuts.
@@ -453,8 +451,10 @@ Proof.
   intros X Y.
   apply (isapropcoprod (X < Y) (Y < X)
                        (propproperty (X < Y))
-                       (propproperty (Y < X))
-                       (λ Hlt : X < Y, pr2 (Dcuts_le_ngt_rel Y X) (Dcuts_lt_le_rel X Y Hlt))).
+                       (propproperty (Y < X))).
+  intros Hlt.
+  apply (pr2 (Dcuts_ge_ngt_rel _ _)).
+  now apply Dcuts_gt_ge_rel.
 Qed.
 Definition Dcuts_ap_rel (X Y : Dcuts_set) : hProp :=
   hProppair ((X < Y) ⨿ (Y < X)) (isaprop_Dcuts_ap_rel X Y).
@@ -463,8 +463,8 @@ Lemma isirrefl_Dcuts_ap_rel : isirrefl Dcuts_ap_rel.
 Proof.
   intros x.
   intros [Hap|Hap].
-  now apply isirrefl_Dcuts_lt_rel with (1 := Hap).
-  now apply isirrefl_Dcuts_lt_rel with (1 := Hap).
+  now apply isirrefl_Dcuts_gt_rel with (1 := Hap).
+  now apply isirrefl_Dcuts_gt_rel with (1 := Hap).
 Qed.
 Lemma issymm_Dcuts_ap_rel : issymm Dcuts_ap_rel.
 Proof.
@@ -475,14 +475,14 @@ Lemma iscotrans_Dcuts_ap_rel : iscotrans Dcuts_ap_rel.
 Proof.
   intros x y z.
   intros [Hap|Hap].
-  - generalize (iscotrans_Dcuts_lt_rel _ y _ Hap) ; apply hinhfun.
+  - generalize (iscotrans_Dcuts_gt_rel _ y _ Hap) ; apply hinhfun.
     intros [Hy | Hy].
-    + now left ; left.
     + now right ; left.
-  - generalize (iscotrans_Dcuts_lt_rel _ y _ Hap) ; apply hinhfun.
+    + now left ; left.
+  - generalize (iscotrans_Dcuts_gt_rel _ y _ Hap) ; apply hinhfun.
     intros [Hy | Hy].
-    + now right ; right.
     + now left ; right.
+    + now right ; right.
 Qed.
 
 Lemma istight_Dcuts_ap_rel : istight Dcuts_ap_rel.
@@ -491,11 +491,11 @@ Proof.
   apply Dcuts_eq_is_eq.
   intros r ; split ; revert r.
   - change (X <= Y).
-    apply Dcuts_le_ngt_rel.
+    apply Dcuts_ge_ngt_rel.
     intro Hlt ; apply Hap.
     now right.
   - change (Y <= X).
-    apply Dcuts_le_ngt_rel.
+    apply Dcuts_ge_ngt_rel.
     intro Hlt ; apply Hap.
     now left.
 Qed.
@@ -553,24 +553,24 @@ Lemma Dcuts_gt_lt :
 Proof.
   now split.
 Qed.
-Lemma Dcuts_gt_ge :
-  ∀ x y : Dcuts, x > y -> x >= y.
+Lemma Dcuts_lt_le :
+  ∀ x y : Dcuts, x < y -> x <= y.
 Proof.
   intros x y.
-  now apply Dcuts_lt_le_rel.
+  now apply Dcuts_gt_ge_rel.
 Qed.
 
 Lemma Dcuts_gt_nle :
   ∀ x y : Dcuts, x > y -> neg (x <= y).
 Proof.
   intros x y Hlt Hle.
-  now apply (pr2 (Dcuts_le_ngt_rel _ _)) in Hle.
+  now apply (pr2 (Dcuts_ge_ngt_rel _ _)) in Hle.
 Qed.
 Lemma Dcuts_nlt_ge :
   ∀ x y : Dcuts, neg (x < y) <-> (x >= y).
 Proof.
   intros X Y.
-  now apply Dcuts_le_ngt_rel.
+  now apply Dcuts_ge_ngt_rel.
 Qed.
 Lemma Dcuts_lt_nge :
   ∀ x y : Dcuts, x < y -> neg (x >= y).
@@ -2950,7 +2950,7 @@ Proof.
       intros [nYx | Hyx ] ; apply_pr2_in ispositive_minusNonnegativeRationals Hx.
       * rewrite <- (Dcuts_minus_plus_r (Dcuts_minus X Y) X Y).
         exact Xr.
-        apply Dcuts_lt_le_rel.
+        apply Dcuts_lt_le.
         apply hinhpr ; exists (x - r) ; split.
         exact nYx.
         apply is_Dcuts_bot with (1 := Xx).
@@ -2966,7 +2966,7 @@ Proof.
         apply notge_ltNonnegativeRationals in Hle.
         rewrite <- (Dcuts_minus_plus_r (Dcuts_minus X Y) X Y).
         exact Xr.
-        apply Dcuts_lt_le_rel.
+        apply Dcuts_lt_le.
         apply hinhpr ; exists ((x + y) - r) ; split.
         exact nYy.
         apply is_Dcuts_bot with (1 := Xx).
@@ -3497,8 +3497,8 @@ Proof.
       exists (pr1 HU) ; intros n m Hn Hm.
       set (pr2 HU n m Hn Hm) ; clearbody d ; clear -d ; rename d into HU.
       split.
-      * now refine (Dcuts_lt_le_rel _ _ (pr1 HU)).
-      * now refine (Dcuts_lt_le_rel _ _ (pr2 HU)).
+      * now refine (Dcuts_lt_le _ _ (pr1 HU)).
+      * now refine (Dcuts_lt_le _ _ (pr2 HU)).
 Defined.
 
 Lemma Dcuts_Cauchy_seq_impl_ex_lim_seq (u : nat -> Dcuts) (Hu : Dcuts_Cauchy_seq u) :
@@ -3518,10 +3518,10 @@ Proof.
   exists N ; intros n Hn.
   generalize (λ n Hn, Hu n N Hn (isreflnatleh _)) ; clear Hu ; intros Hu.
   split.
-  - eapply istrans_Dcuts_lt_le_rel.
-    now apply (Hu n Hn).
+  - eapply istrans_Dcuts_ge_gt_rel.
+    2: now apply (Hu n Hn).
     rewrite (double_Dcuts_half eps), <- isassoc_Dcuts_plus.
-    eapply istrans_Dcuts_le_rel, Dcuts_plus_lecompat_l.
+    eapply istrans_Dcuts_ge_rel, Dcuts_plus_lecompat_l.
     + apply Dcuts_plus_lecompat_r.
       intros r Hr.
       simpl.
@@ -3546,7 +3546,7 @@ Proof.
         exists N ; intros m Hm.
         simpl.
         rewrite minusNonnegativeRationals_plus_exchange, iscomm_plusNonnegativeRationals, minusNonnegativeRationals_plus_r.
-        generalize (Dcuts_lt_le_rel _ _ (pr2 (Hu m Hm)) _ Hq) ; clear Hu.
+        generalize (Dcuts_lt_le _ _ (pr2 (Hu m Hm)) _ Hq) ; clear Hu.
         apply hinhuniv ; intros [|] ; apply hinhuniv ; [ intros [Xr | Yr] | intros ((rx,ry)) ; simpl ; intros (->,(Xr,Yr))].
         apply is_Dcuts_bot with (1 := Xr).
         now apply minusNonnegativeRationals_le.
@@ -3567,7 +3567,17 @@ Proof.
         exact Hrc.
         simpl ; unfold Dcuts_half_val.
         now rewrite <- NQhalf_double.
-  - apply istrans_Dcuts_le_lt_rel with (Dcuts_plus (U N) (Dcuts_half eps)).
+  - apply istrans_Dcuts_gt_ge_rel with (Dcuts_plus (U N) (Dcuts_half eps)).
+    + pattern eps at 1 ;
+      rewrite (double_Dcuts_half eps), <- isassoc_Dcuts_plus.
+      apply Dcuts_plus_ltcompat_l.
+      apply istrans_Dcuts_ge_gt_rel with (Dcuts_plus (U n) (NonnegativeRationals_to_Dcuts (c / 2))).
+      2: now apply (pr2 (Hu _ Hn)).
+      apply Dcuts_plus_lecompat_r.
+      intros r Hr.
+      apply is_Dcuts_bot with (1 := Hc).
+      rewrite (NQhalf_double c).
+      apply lt_leNonnegativeRationals, plusNonnegativeRationals_ltcompat ; apply Hr.
     + intros r.
       apply hinhuniv ; intros (c',(Hc'0,(N',Hc'))).
       case (isdecrel_ltNonnegativeRationals r (c / 2)) ; intro Hrc.
@@ -3586,7 +3596,7 @@ Proof.
           apply istrans_leNonnegativeRationals with r.
           now apply minusNonnegativeRationals_le.
           now apply plusNonnegativeRationals_le_r. }
-        { generalize (Dcuts_lt_le_rel _ _ (pr1 (Hu _ HN)) _ (Hc' _ (isreflnatleh _))).
+        { generalize (Dcuts_lt_le _ _ (pr1 (Hu _ HN)) _ (Hc' _ (isreflnatleh _))).
           apply hinhuniv ; intros [|] ; apply hinhuniv ; [intros [Xr | Yr] | intros ((rx,ry)) ; simpl ; intros (Hr,(Xr,Yr))].
           - apply is_Dcuts_bot with (1 := Xr).
             apply istrans_leNonnegativeRationals with r.
@@ -3608,16 +3618,6 @@ Proof.
             exact Hrc. }
         unfold Dcuts_half_val.
         now rewrite <- NQhalf_double.
-    + pattern eps at 2 ;
-      rewrite (double_Dcuts_half eps), <- isassoc_Dcuts_plus.
-      apply Dcuts_plus_ltcompat_l.
-      apply istrans_Dcuts_lt_le_rel with (Dcuts_plus (U n) (NonnegativeRationals_to_Dcuts (c / 2))).
-      now apply (pr2 (Hu _ Hn)).
-      apply Dcuts_plus_lecompat_r.
-      intros r Hr.
-      apply is_Dcuts_bot with (1 := Hc).
-      rewrite (NQhalf_double c).
-      apply lt_leNonnegativeRationals, plusNonnegativeRationals_ltcompat ; apply Hr.
 Qed.
 
 (** ** Dedekind Completeness *)
@@ -3693,7 +3693,7 @@ Proof.
       intros (Y,(EY,Yc)).
       apply Hx.
       apply E_bot with (1 := EY).
-      apply Dcuts_lt_le_rel.
+      apply Dcuts_lt_le.
       apply hinhpr.
       exists c ; split.
       2: exact Yc.
@@ -3931,7 +3931,7 @@ Proof.
     apply hinhuniv.
     intros X.
     apply E_bot with (1 := pr1 (pr2 X)).
-    apply Dcuts_lt_le_rel.
+    apply Dcuts_lt_le.
     apply hinhpr.
     exists r.
     split.
@@ -3954,32 +3954,6 @@ Proof.
     apply (pr2 (pr2 r)).
 Qed.
 
-Lemma isub_Dcuts_of_Dcuts (E : hsubtypes Dcuts) E_bot E_error :
-  isUpperBound (X := PreorderedSetEffectiveOrder eo_Dcuts) E (Dcuts_of_Dcuts E E_bot E_error).
-Proof.
-  intros ;
-  intros x Ex r Hr.
-  apply hinhpr.
-  now exists x.
-Qed.
-Lemma islbub_Dcuts_of_Dcuts (E : hsubtypes Dcuts) E_bot E_error :
-  isSmallerThanUpperBounds (X := PreorderedSetEffectiveOrder eo_Dcuts) E (Dcuts_of_Dcuts E E_bot E_error).
-Proof.
-  intros.
-  intros x Hx ; simpl.
-  intros r ; apply hinhuniv ;
-  intros (y,(Ey,Yr)).
-  generalize (Hx y Ey).
-  now intros H ; apply H.
-Qed.
-Lemma islub_Dcuts_of_Dcuts (E : hsubtypes eo_Dcuts) E_bot E_error :
-  isLeastUpperBound (X := PreorderedSetEffectiveOrder eo_Dcuts) E (Dcuts_of_Dcuts E E_bot E_error).
-Proof.
-  split.
-  exact (isub_Dcuts_of_Dcuts E E_bot E_error).
-  exact (islbub_Dcuts_of_Dcuts E E_bot E_error).
-Qed.
-
 (** * Definition of non-negative real numbers *)
 
 Delimit Scope NR_scope with NR.
@@ -3990,7 +3964,7 @@ Definition NonnegativeReals : ConstructiveCommutativeDivisionRig
 Definition EffectivelyOrdered_NonnegativeReals : EffectivelyOrderedSet.
 Proof.
   exists NonnegativeReals.
-  apply (pairEffectiveOrder Dcuts_le_rel Dcuts_lt_rel iseo_Dcuts_le_lt_rel).
+  apply (pairEffectiveOrder Dcuts_ge_rel Dcuts_gt_rel iseo_Dcuts_ge_gt_rel).
 Defined.
 
 (** ** Relations *)
@@ -4255,8 +4229,15 @@ Definition istrans_ltNonnegativeReals :
   ∀ x y z : NonnegativeReals, x < y -> y < z -> x < z
   := istrans_EOlt (X := EffectivelyOrdered_NonnegativeReals).
 Definition iscotrans_ltNonnegativeReals :
-  ∀ x y z : NonnegativeReals, x < z -> x < y ∨ y < z
-  := iscotrans_Dcuts_lt_rel.
+  ∀ x y z : NonnegativeReals, x < z -> x < y ∨ y < z.
+Proof.
+  intros x y z Hxz.
+  generalize (iscotrans_Dcuts_gt_rel _ y  _ Hxz).
+  apply hinhfun.
+  intros [Hz | Hz].
+  now right.
+  now left.
+Qed.
 Definition isirrefl_ltNonnegativeReals :
   ∀ x : NonnegativeReals, ¬ (x < x)
   := isirrefl_EOlt (X := EffectivelyOrdered_NonnegativeReals).
@@ -4609,18 +4590,18 @@ Proof.
   intros (N,Hn) (M,Hm).
   specialize (Hn (max N M) (max_le_l _ _)).
   specialize (Hm (max N M) (max_le_r _ _)).
-  apply (isirrefl_Dcuts_lt_rel ((l + l') / 2)).
-  apply istrans_Dcuts_lt_rel with (u (max N M)).
+  apply (isirrefl_Dcuts_gt_rel ((l + l') / 2)).
+  apply istrans_Dcuts_gt_rel with (u (max N M)).
+  - rewrite (minusNonnegativeReals_plus_r (l' - l) l' l), (iscomm_plusNonnegativeReals _ l), <- isassoc_plusNonnegativeReals, !isdistr_Dcuts_half_plus, <-double_Dcuts_half.
+    exact (pr1 Hn).
+    now apply Dcuts_lt_le.
+    reflexivity.
   - apply_pr2 (plusNonnegativeReals_ltcompat_l ((l' - l) / 2)).
     rewrite <- isdistr_Dcuts_half_plus.
     rewrite (iscomm_plusNonnegativeReals l), isassoc_plusNonnegativeReals, (iscomm_plusNonnegativeReals l).
     rewrite <- (minusNonnegativeReals_plus_r (l' - l) l' l), isdistr_Dcuts_half_plus, <- double_Dcuts_half.
     exact (pr2 Hm).
-    now apply Dcuts_lt_le_rel.
-    reflexivity.
-  - rewrite (minusNonnegativeReals_plus_r (l' - l) l' l), (iscomm_plusNonnegativeReals _ l), <- isassoc_plusNonnegativeReals, !isdistr_Dcuts_half_plus, <-double_Dcuts_half.
-    exact (pr1 Hn).
-    now apply Dcuts_lt_le_rel.
+    now apply Dcuts_lt_le.
     reflexivity.
 Qed.
 Lemma is_lim_seq_unique (u : nat -> NonnegativeReals) (l l' : NonnegativeReals) :

@@ -576,7 +576,7 @@ Proof.
   simpl pr2.
   apply_pr2 le0_NonnegativeReals.
   apply minusNonnegativeReals_eq_zero.
-  apply Dcuts_lt_le_rel.
+  apply Dcuts_lt_le.
   exact Hlt.
   eapply istrans_le_lt_ltNonnegativeReals, Hlt.
   apply isnonnegative_NonnegativeReals.
@@ -657,7 +657,7 @@ Proof.
   simpl pr1.
   apply_pr2 le0_NonnegativeReals.
   apply minusNonnegativeReals_eq_zero.
-  apply Dcuts_lt_le_rel.
+  apply Dcuts_lt_le.
   exact Hlt.
   eapply istrans_le_lt_ltNonnegativeReals, Hlt.
   apply isnonnegative_NonnegativeReals.
