@@ -353,9 +353,10 @@ End eo_pty.
 
 (** ** Constructive Total Effective Order *)
 
-Definition isConstructiveTotalEffectiveOrder {X : UU} (ap gt ge : hrel X) :=
+Definition isConstructiveTotalEffectiveOrder {X : UU} (ap ge gt : hrel X) :=
   istightap ap
-  × isEffectiveOrder gt ge
+  × isEffectiveOrder ge gt
+  × (isantisymm ge)
   × (∀ x y : X, ap x y <-> (gt x y) ⨿ (gt y x)).
 Definition ConstructiveTotalEffectiveOrder X :=
   Σ ap gt ge : hrel X, isConstructiveTotalEffectiveOrder ap gt ge.

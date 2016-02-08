@@ -152,25 +152,60 @@ End Topology_pty.
 
 Definition generated_topology {X : hSet} (O : (X -> hProp) -> hProp) : TopologicalSet.
 Proof.
-  exists X.
-  assert (Ho : ∀ P : X -> hProp, isaprop (∀ T : isTopologicalSet X, (∀ Q : X -> hProp, O Q -> (pr1 T) Q) -> (pr1 T P))).
-  { intros.
-    apply impred_isaprop ; intro T.
+  simple refine (mkTopologicalSet _ _ _ _ _).
+  - apply X.
+  - intros P.
+    simple refine (tpair _ _ _).
+    apply (∀ x, P x -> ∃ L : Sequence (X -> hProp), (forall n, O (L n)) × (∀ y : X, (finite_intersection L) y -> P y)).
+    apply impred_isaprop ; intro x.
     apply isapropimpl.
-    now apply pr2. }
-  exists (λ P : X -> hProp, hProppair (∀ T : isTopologicalSet X, (∀ Q : X -> hProp, O Q -> (pr1 T) Q) -> (pr1 T P)) (Ho P)).
-  split.
-  - intros P Hp T Ht.
-    apply (pr1 (pr2 T)).
-    intros A Pa.
-    apply Hp.
+    apply propproperty.
+  - intros P Hp x.
+    apply hinhuniv.
+    intros (A,(Pa,Ax)).
+    specialize (Hp A Pa x Ax) ; revert Hp.
+    apply hinhfun.
+    intros (L,(Ol,Hl)).
+    exists L.
+    split.
+    exact Ol.
+    intros y Hy.
+    apply hinhpr.
+    exists A.
+    split.
     exact Pa.
-    exact Ht.
-  - intros P Hp T Ht.
-    apply (pr2 (pr2 T)).
-    intros m.
-    apply Hp.
-    exact Ht.
+    now apply Hl.
+  - intros x _.
+    apply hinhpr.
+    exists nil.
+    split.
+    now intros (n,Hn).
+    intros _ _.
+    exact tt.
+  - intros A B Ha Hb x (Ax,Bx).
+    specialize (Ha _ Ax).
+    specialize (Hb _ Bx).
+    revert Ha Hb.
+    apply hinhfun2.
+    intros (La,(Ola,Hla)) (Lb,(Olb,Hlb)).
+    exists (concatenate La Lb).
+    split.
+    + intros n ; simpl.
+      destruct (invmap (weqfromcoprodofstn (length La) (length Lb)) n) ; simpl.
+      now apply Ola.
+      now apply Olb.
+    + intros y Hy.
+      split.
+      apply Hla.
+      intros n.
+      simpl in Hy.
+      specialize (Hy ((weqfromcoprodofstn (length La) (length Lb)) (ii1 n))).
+      now rewrite homotinvweqweq, coprod_rect_compute_1 in Hy.
+      apply Hlb.
+      intros n.
+      simpl in Hy.
+      specialize (Hy ((weqfromcoprodofstn (length La) (length Lb)) (ii2 n))).
+      now rewrite homotinvweqweq, coprod_rect_compute_2 in Hy.
 Defined.
 
 Lemma generated_topology_smallest {X : hSet} :
@@ -178,18 +213,12 @@ Lemma generated_topology_smallest {X : hSet} :
     (∀ P : X -> hProp, O P -> pr1 T P)
     -> ∀ P : X -> hProp, isOpen (T := generated_topology O) P -> pr1 T P.
 Proof.
-  intros O T Ht P Hp.
-  apply Hp.
-  exact Ht.
-Qed.
+Admitted.
 Lemma generated_topology_included {X : hSet} :
   ∀ (O : (X -> hProp) -> hProp) (P : X -> hProp),
     O P -> isOpen (T := generated_topology O) P.
 Proof.
-  intros O P Op T Ht.
-  apply Ht.
-  exact Op.
-Qed.
+Admitted.
 
 (** *** Product of topologies *)
 
