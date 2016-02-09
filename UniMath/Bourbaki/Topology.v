@@ -146,147 +146,6 @@ Qed.
 
 End Topology_pty.
 
-(** ** Some topologies *)
-
-(** *** Generated Topology *)
-
-Definition generated_topology {X : hSet} (O : (X -> hProp) -> hProp) : TopologicalSet.
-Proof.
-  simple refine (mkTopologicalSet _ _ _ _ _).
-  - apply X.
-  - intros P.
-    simple refine (tpair _ _ _).
-    apply (∀ x, P x -> ∃ L : Sequence (X -> hProp), (forall n, O (L n)) × (∀ y : X, (finite_intersection L) y -> P y)).
-    apply impred_isaprop ; intro x.
-    apply isapropimpl.
-    apply propproperty.
-  - intros P Hp x.
-    apply hinhuniv.
-    intros (A,(Pa,Ax)).
-    specialize (Hp A Pa x Ax) ; revert Hp.
-    apply hinhfun.
-    intros (L,(Ol,Hl)).
-    exists L.
-    split.
-    exact Ol.
-    intros y Hy.
-    apply hinhpr.
-    exists A.
-    split.
-    exact Pa.
-    now apply Hl.
-  - intros x _.
-    apply hinhpr.
-    exists nil.
-    split.
-    now intros (n,Hn).
-    intros _ _.
-    exact tt.
-  - intros A B Ha Hb x (Ax,Bx).
-    specialize (Ha _ Ax).
-    specialize (Hb _ Bx).
-    revert Ha Hb.
-    apply hinhfun2.
-    intros (La,(Ola,Hla)) (Lb,(Olb,Hlb)).
-    exists (concatenate La Lb).
-    split.
-    + intros n ; simpl.
-      destruct (invmap (weqfromcoprodofstn (length La) (length Lb)) n) ; simpl.
-      now apply Ola.
-      now apply Olb.
-    + intros y Hy.
-      split.
-      apply Hla.
-      intros n.
-      simpl in Hy.
-      specialize (Hy ((weqfromcoprodofstn (length La) (length Lb)) (ii1 n))).
-      now rewrite homotinvweqweq, coprod_rect_compute_1 in Hy.
-      apply Hlb.
-      intros n.
-      simpl in Hy.
-      specialize (Hy ((weqfromcoprodofstn (length La) (length Lb)) (ii2 n))).
-      now rewrite homotinvweqweq, coprod_rect_compute_2 in Hy.
-Defined.
-
-Lemma generated_topology_smallest {X : hSet} :
-  ∀ (O : (X -> hProp) -> hProp) (T : isTopologicalSet X),
-    (∀ P : X -> hProp, O P -> pr1 T P)
-    -> ∀ P : X -> hProp, isOpen (T := generated_topology O) P -> pr1 T P.
-Proof.
-Admitted.
-Lemma generated_topology_included {X : hSet} :
-  ∀ (O : (X -> hProp) -> hProp) (P : X -> hProp),
-    O P -> isOpen (T := generated_topology O) P.
-Proof.
-Admitted.
-
-(** *** Product of topologies *)
-
-Definition topology_prod (U V : TopologicalSet) : TopologicalSet.
-Proof.
-  simple refine (generated_topology _).
-  - exists (U × V).
-    apply isaset_dirprod ; apply pr2.
-  - simpl ; intros A.
-    exists ((∀ y : V, isOpen (λ x : U, A (x,,y))) × (∀ x : U, isOpen (λ y : V, A (x,,y)))).
-    apply isapropdirprod ; apply impred_isaprop ; intro ; apply pr2.
-Defined.
-
-(** *** Topology on a subtype *)
-
-Definition topology_subtypes (T : TopologicalSet) (dom : T -> hProp) : TopologicalSet.
-Proof.
-  simple refine (mkTopologicalSet _ _ _ _ _).
-  - exists (Σ x : T, dom x).
-    apply isaset_total2.
-    apply pr2.
-    intros x.
-    apply isasetaprop.
-    apply pr2.
-  - simpl ; intros A.
-    apply (∃ A' : Open (T := T), A = (λ (y : Σ x0 : T, dom x0), A' (pr1 y))).
-  - intros P Hp.
-    simpl in P.
-    set (P' := λ A : T -> hProp, isOpen A ∧ P (λ y : (Σ x : T, dom x), A (pr1 y))).
-    apply hinhpr.
-    simple refine (tpair _ _ _).
-    exists (infinite_union P').
-    apply isOpen_infinite_union.
-    intros A Ha.
-    apply (pr1 Ha).
-    apply funextfun ; intros (x,Hx).
-    apply uahp.
-    + apply hinhuniv.
-      intros (A,(Ha,Ax)).
-      generalize (Hp _ Ha).
-      apply hinhfun.
-      intros (A',Ha').
-      exists A' ; split.
-      split.
-      apply (pr2 A').
-      now rewrite <- Ha'.
-      now rewrite Ha' in Ax.
-    + apply hinhfun.
-      intros (A,(P'a,Ax)).
-      exists (λ x, A (pr1 x)).
-      split.
-      apply (pr2 P'a).
-      exact Ax.
-  - simpl.
-    apply hinhpr.
-    now exists ((λ _, htrue),,isOpen_htrue).
-  - intros A B.
-    apply hinhfun2.
-    intros (A',->) (B',->).
-    simple refine (tpair _ _ _).
-    simple refine (tpair _ _ _).
-    intros x ; apply (A' x ∧ B' x).
-    apply isOpen_and.
-    apply (pr2 A').
-    apply (pr2 B').
-    reflexivity.
-Defined.
-
 (** ** Neighborhood *)
 
 Section Neighborhood.
@@ -420,7 +279,7 @@ Qed.
 
 End Neighborhood.
 
-(** ** Locally *)
+(** ** Base of Neighborhood *)
 
 Definition is_base_of_neighborhood {T : TopologicalSet} (x : T) (B : (T -> hProp) -> hProp) :=
   (∀ P : T -> hProp, B P -> neighborhood x P)
@@ -452,6 +311,172 @@ Proof.
     exists (pr1 O).
     exact (pr2 O).
 Qed.
+
+(** ** Some topologies *)
+
+(** *** Generated Topology *)
+
+Definition generated_topology {X : hSet} (O : (X -> hProp) -> hProp) : TopologicalSet.
+Proof.
+  simple refine (mkTopologicalSet _ _ _ _ _).
+  - apply X.
+  - intros P.
+    simple refine (tpair _ _ _).
+    apply (∀ x, P x -> ∃ L : Sequence (X -> hProp), (forall n, O (L n) × L n x) × (∀ y : X, (finite_intersection L) y -> P y)).
+    apply impred_isaprop ; intro x.
+    apply isapropimpl.
+    apply propproperty.
+  - intros P Hp x.
+    apply hinhuniv.
+    intros (A,(Pa,Ax)).
+    specialize (Hp A Pa x Ax) ; revert Hp.
+    apply hinhfun.
+    intros (L,(Ol,Hl)).
+    exists L.
+    split.
+    exact Ol.
+    intros y Hy.
+    apply hinhpr.
+    exists A.
+    split.
+    exact Pa.
+    now apply Hl.
+  - intros x _.
+    apply hinhpr.
+    exists nil.
+    split.
+    now intros (n,Hn).
+    intros _ _.
+    exact tt.
+  - intros A B Ha Hb x (Ax,Bx).
+    specialize (Ha _ Ax).
+    specialize (Hb _ Bx).
+    revert Ha Hb.
+    apply hinhfun2.
+    intros (La,(Ola,Hla)) (Lb,(Olb,Hlb)).
+    exists (concatenate La Lb).
+    split.
+    + intros n ; simpl.
+      destruct (invmap (weqfromcoprodofstn (length La) (length Lb)) n) ; simpl.
+      now apply Ola.
+      now apply Olb.
+    + intros y Hy.
+      split.
+      apply Hla.
+      intros n.
+      simpl in Hy.
+      specialize (Hy ((weqfromcoprodofstn (length La) (length Lb)) (ii1 n))).
+      now rewrite homotinvweqweq, coprod_rect_compute_1 in Hy.
+      apply Hlb.
+      intros n.
+      simpl in Hy.
+      specialize (Hy ((weqfromcoprodofstn (length La) (length Lb)) (ii2 n))).
+      now rewrite homotinvweqweq, coprod_rect_compute_2 in Hy.
+Defined.
+
+Lemma generated_topology_included {X : hSet} :
+  ∀ (O : (X -> hProp) -> hProp) (P : X -> hProp),
+    O P -> isOpen (T := generated_topology O) P.
+Proof.
+  intros O P Op.
+  intros x Hx.
+  apply hinhpr.
+  exists (singletonSequence P).
+  split.
+  - now simpl.
+  - intros y Hy.
+    apply (Hy (0%nat,,paths_refl _)).
+Qed.
+Lemma generated_topology_smallest {X : hSet} :
+  ∀ (O : (X -> hProp) -> hProp) (T : isTopologicalSet X),
+    (∀ P : X -> hProp, O P -> pr1 T P)
+    -> ∀ P : X -> hProp, isOpen (T := generated_topology O) P -> pr1 T P.
+Proof.
+  intros O T Ht P Hp.
+  apply (neighborhood_isOpen (T := (X,,T))).
+  intros x Px.
+  generalize (Hp x Px) ; clear Hp.
+  apply hinhfun.
+  intros (L,(Hl,Hp)).
+  simple refine (tpair _ _ _).
+  simple refine (tpair _ _ _).
+  apply (finite_intersection L).
+  apply (isOpen_finite_intersection (T := X,,T)).
+  intros m.
+  apply Ht.
+  apply Hl.
+  split.
+  intros m.
+  apply (pr2 (Hl m)).
+  apply Hp.
+Qed.
+
+(** *** Product of topologies *)
+
+Definition topology_prod (U V : TopologicalSet) : TopologicalSet.
+Proof.
+  simple refine (generated_topology _).
+  - exists (U × V).
+    apply isaset_dirprod ; apply pr2.
+  - simpl ; intros A.
+    exists ((∀ y : V, isOpen (λ x : U, A (x,,y))) × (∀ x : U, isOpen (λ y : V, A (x,,y)))).
+    apply isapropdirprod ; apply impred_isaprop ; intro ; apply pr2.
+Defined.
+
+(** *** Topology on a subtype *)
+
+Definition topology_subtypes (T : TopologicalSet) (dom : T -> hProp) : TopologicalSet.
+Proof.
+  simple refine (mkTopologicalSet _ _ _ _ _).
+  - exists (Σ x : T, dom x).
+    apply isaset_total2.
+    apply pr2.
+    intros x.
+    apply isasetaprop.
+    apply pr2.
+  - simpl ; intros A.
+    apply (∃ A' : Open (T := T), A = (λ (y : Σ x0 : T, dom x0), A' (pr1 y))).
+  - intros P Hp.
+    simpl in P.
+    set (P' := λ A : T -> hProp, isOpen A ∧ P (λ y : (Σ x : T, dom x), A (pr1 y))).
+    apply hinhpr.
+    simple refine (tpair _ _ _).
+    exists (infinite_union P').
+    apply isOpen_infinite_union.
+    intros A Ha.
+    apply (pr1 Ha).
+    apply funextfun ; intros (x,Hx).
+    apply uahp.
+    + apply hinhuniv.
+      intros (A,(Ha,Ax)).
+      generalize (Hp _ Ha).
+      apply hinhfun.
+      intros (A',Ha').
+      exists A' ; split.
+      split.
+      apply (pr2 A').
+      now rewrite <- Ha'.
+      now rewrite Ha' in Ax.
+    + apply hinhfun.
+      intros (A,(P'a,Ax)).
+      exists (λ x, A (pr1 x)).
+      split.
+      apply (pr2 P'a).
+      exact Ax.
+  - simpl.
+    apply hinhpr.
+    now exists ((λ _, htrue),,isOpen_htrue).
+  - intros A B.
+    apply hinhfun2.
+    intros (A',->) (B',->).
+    simple refine (tpair _ _ _).
+    simple refine (tpair _ _ _).
+    intros x ; apply (A' x ∧ B' x).
+    apply isOpen_and.
+    apply (pr2 A').
+    apply (pr2 B').
+    reflexivity.
+Defined.
 
 (** ** Limits in a Topological Set *)
 
