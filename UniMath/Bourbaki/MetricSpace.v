@@ -394,3 +394,69 @@ Proof.
 Qed.
 
 End Balls.
+
+(** ** Limits in a Metric Space *)
+
+Definition locally {NR : NonnegativeMonoid} {M : MetricSet (NR := NR)} (x : M) : Filter (X := M).
+Proof.
+  intros NR M x.
+  simple refine (mkFilter _ _ _ _ _).
+  - apply (neighborhood' (T := metric_topology) x).
+    refine (tpair _ _ _).
+    apply is_base_of_neighborhood_ball.
+  - intros A B.
+    intros Himpl Ha.
+    apply (pr2 (neighborhood_equiv _ _ _)).
+    apply neighborhood_equiv in Ha.
+    revert Ha.
+    apply neighborhood_impl, Himpl.
+  - apply (pr2 (neighborhood_equiv _ _ _)).
+    apply (pr2 (neighborhood_isOpen _)).
+    apply (isOpen_htrue (T := metric_topology)).
+    apply tt.
+  - intros A B Ha Hb.
+    apply (pr2 (neighborhood_equiv _ _ _)).
+    apply neighborhood_equiv in Ha.
+    apply neighborhood_equiv in Hb.
+    revert Ha Hb.
+    apply neighborhood_and.
+  - intros Hx.
+    apply neighborhood_equiv in Hx.
+    apply neighborhood_point in Hx.
+    exact Hx.
+Defined.
+
+(** *** Limit of a filter *)
+
+Definition is_filter_lim {NR : NonnegativeMonoid} {M : MetricSet (NR := NR)} (F : Filter) (x : M) :=
+  filter_le (locally x) F.
+Definition ex_filter_lim {NR : NonnegativeMonoid} {M : MetricSet (NR := NR)} (F : Filter) :=
+  ∃ (x : M), is_filter_lim F x.
+
+(** *** Limit of a function *)
+
+Definition is_lim {X : UU} {NR : NonnegativeMonoid} {M : MetricSet (NR := NR)} (f : X -> M) (F : Filter (X := X)) (x : M) :=
+  filterlim f F (locally x).
+Definition ex_lim {X : UU} {NR : NonnegativeMonoid} {M : MetricSet (NR := NR)} (f : X -> M) (F : Filter (X := X)) :=
+  ∃ (x : M), is_lim f F x.
+
+(** *** Continuity *)
+
+Definition continuous_at {NR : NonnegativeMonoid} {U V : MetricSet (NR := NR)} (f : U -> V) (x : U) :=
+  is_lim f (locally x) (f x).
+Definition continuous_on {NR : NonnegativeMonoid} {U V : MetricSet (NR := NR)} (dom : U -> hProp) (f : U -> V) :=
+  ∀ (x : U) (Hx : dom x),
+    is_lim f (filter_dom (locally x) dom (notempty_ex dom x Hx)) (f x).
+
+Definition continuous_subtypes {NR : NonnegativeMonoid} {U V : MetricSet (NR := NR)} (dom : U -> hProp) (f : (Σ x : U, dom x) -> V) :=
+  ∀ (x : Σ x : U, dom x),
+    is_lim f (filter_subtypes (locally (pr1 x)) dom (notempty_ex dom (pr1 x) (pr2 x))) (f x).
+Definition continuous {NR : NonnegativeMonoid} {U V : MetricSet (NR := NR)} (f : U -> V) :=
+  ∀ x : U, continuous_at f x.
+
+(** *** Continuity for 2 variable functions *)
+
+Definition continuous2d_at {NR : NonnegativeMonoid} {U V W : MetricSet (NR := NR)} (f : U -> V -> W) (x : U) (y : V) :=
+  is_lim (λ z : U × V, f (pr1 z) (pr2 z)) (filter_prod (locally x) (locally y)) (f x y).
+Definition continuous2d {NR : NonnegativeMonoid} {U V W : MetricSet (NR := NR)} (f : U -> V -> W) :=
+  ∀ (x : U) (y : V), continuous2d_at f x y.
