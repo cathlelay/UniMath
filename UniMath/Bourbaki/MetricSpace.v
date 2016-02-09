@@ -433,12 +433,74 @@ Definition is_filter_lim {NR : NonnegativeMonoid} {M : MetricSet (NR := NR)} (F 
 Definition ex_filter_lim {NR : NonnegativeMonoid} {M : MetricSet (NR := NR)} (F : Filter) :=
   ∃ (x : M), is_filter_lim F x.
 
+Lemma is_filter_lim_correct {NR : NonnegativeMonoid} {M : MetricSet (NR := NR)} (F : Filter) (x : M) :
+  is_filter_lim F x <-> Topology.is_filter_lim (T := metric_topology) F x.
+Proof.
+  intros NR M F x.
+  split.
+  - intros H P Hp.
+    apply H.
+    revert Hp.
+    apply (pr2 (neighborhood_equiv _ _ _)).
+  - intros H P Hp.
+    apply H.
+    revert Hp.
+    apply (pr1 (neighborhood_equiv _ _ _)).
+Qed.
+Lemma ex_filter_lim_correct {NR : NonnegativeMonoid} {M : MetricSet (NR := NR)} (F : Filter (X := M)) :
+  ex_filter_lim F <-> Topology.ex_filter_lim (T := metric_topology) F.
+Proof.
+  intros NR M F.
+  split.
+  - apply hinhfun.
+    intros (x,Hx).
+    exists x.
+    revert Hx.
+    apply (pr1 (is_filter_lim_correct _ _)).
+  - apply hinhfun.
+    intros (x,Hx).
+    exists x.
+    revert Hx.
+    apply (pr2 (is_filter_lim_correct _ _)).
+Qed.
+
 (** *** Limit of a function *)
 
 Definition is_lim {X : UU} {NR : NonnegativeMonoid} {M : MetricSet (NR := NR)} (f : X -> M) (F : Filter (X := X)) (x : M) :=
   filterlim f F (locally x).
 Definition ex_lim {X : UU} {NR : NonnegativeMonoid} {M : MetricSet (NR := NR)} (f : X -> M) (F : Filter (X := X)) :=
   ∃ (x : M), is_lim f F x.
+
+Lemma is_lim_correct {X : UU} {NR : NonnegativeMonoid} {M : MetricSet (NR := NR)} (f : X -> M) (F : Filter (X := X)) (x : M) :
+  is_lim f F x <-> Topology.is_lim (T := metric_topology) f F x.
+Proof.
+  intros.
+  split.
+  - intros Hx P HP.
+    apply Hx in HP.
+    revert HP.
+    apply (pr1 (neighborhood_equiv _ _ _)).
+  - intros Hx P HP.
+    apply Hx in HP.
+    revert HP.
+    apply (pr2 (neighborhood_equiv _ _ _)).
+Qed.
+Lemma ex_lim_correct {X : UU} {NR : NonnegativeMonoid} {M : MetricSet (NR := NR)} (f : X -> M) (F : Filter (X := X)) :
+  ex_lim f F <-> Topology.ex_lim (T := metric_topology) f F.
+Proof.
+  intros.
+  split.
+  - apply hinhfun.
+    intros (x,Hx).
+    exists x.
+    revert Hx.
+    apply (pr1 (is_lim_correct _ _ _)).
+  - apply hinhfun.
+    intros (x,Hx).
+    exists x.
+    revert Hx.
+    apply (pr2 (is_lim_correct _ _ _)).
+Qed.
 
 (** *** Continuity *)
 
