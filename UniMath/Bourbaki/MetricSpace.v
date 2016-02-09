@@ -14,7 +14,9 @@ Require Import UniMath.Dedekind.Sets.
 Definition isNonnegativeMonoid {X : monoid} (ap ge gt : hrel X) :=
   isConstructiveTotalEffectiveOrder ap ge gt
   × isbinophrel gt
-  × (∀ x : X, ge x 0%addmonoid).
+  × (∀ x : X, ge x 0%addmonoid)
+  × (∃ x0, ap x0 0%addmonoid)
+  × (∃ min : X -> X -> X, (∀ x y : X, ge x (min x y) × ge y (min x y))).
 Definition NonnegativeMonoid :=
   Σ (X : monoid) (ap gt ge : hrel X), isNonnegativeMonoid ap gt ge.
 
@@ -62,7 +64,7 @@ Lemma isnonnegative_NnM {X : NonnegativeMonoid} :
   ∀ x : X, x >= 0.
 Proof.
   intros X.
-  exact (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))).
+  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))).
 Qed.
 Lemma isnonnegative_NnM' {X : NonnegativeMonoid} :
   ∀ x : X, ¬ (0 > x).
@@ -83,6 +85,21 @@ Proof.
   apply fromempty.
   revert Hx.
   now apply isnonnegative_NnM'.
+Qed.
+
+Lemma NnM_nottrivial (X : NonnegativeMonoid) :
+  ∃ x0 : X, x0 ≠ 0.
+Proof.
+  intros X.
+  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))).
+Qed.
+
+Lemma NnMmin (X : NonnegativeMonoid) :
+  ∃ min : X -> X -> X,
+    ∀ x y : X, x >= (min x y) × y >= (min x y).
+Proof.
+  intros X.
+  exact (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))).
 Qed.
 
 (** ** Definition of metric spaces *)
@@ -181,6 +198,14 @@ Proof.
   apply (eps > dist x y).
 Defined.
 
+Lemma ball_center :
+  ∀ (x : M) (eps : NR), eps > 0 -> ball x eps x.
+Proof.
+  intros x eps He.
+  unfold ball.
+  now rewrite dist_0.
+Qed.
+
 Definition metric_topology : TopologicalSet.
 Proof.
   simple refine (generated_topology _).
@@ -193,8 +218,8 @@ Lemma isOpen_ball :
   ∀ (x : M) (eps : Σ e : NR, e ≠ 0),
     isOpen (T := metric_topology) (ball x (pr1 eps)).
 Proof.
-  intros x eps T H.
-  apply H.
+  intros x eps.
+  apply generated_topology_included.
   apply hinhpr.
   now exists x, eps.
 Qed.
@@ -215,6 +240,36 @@ Proof.
     now apply (pr2 eps).
   - intros P.
     apply hinhuniv.
+    intros ((O,Ho),(Ox,Hp)).
+    simpl in Ox, Hp.
+    generalize (Ho x Ox) ; clear Ho.
+    apply hinhuniv.
+    intros (L) ; revert L.
+    apply (Sequence_rect (P := λ t : Sequence (pr1 (pr1 M) -> hProp),
+   (∀ n : stn (length t),
+    (∃ (x0 : M) (eps : Σ e : NR, e ≠ 0), t n = ball x0 (pr1 eps)) × t n x)
+   × (∀ y : pr1 (pr1 M), finite_intersection t y -> O y) ->
+   ∃ Q : Open, _)).
+    + intros (_,H).
+      generalize (NnM_nottrivial NR).
+      apply hinhfun.
+      intros eps.
+      exists (ball x (pr1 eps) ,, (isOpen_ball _ _)).
+      split.
+      apply hinhpr.
+      now exists eps.
+      intros y _.
+      apply Hp, H.
+      now intros (n,Hn).
+    + intros L A IHl (Hl,Ho).
+      generalize (Hl (lastelement _)).
+      intros (Ha,Ax).
+      revert Ha.
+      apply hinhuniv.
+      intros (xa,(epsa,Ha)).
+      simpl in Ax, Ha.
+      rewrite append_fun_compute_2 in Ax, Ha.
+
 Qed.
 
 End Balls.
