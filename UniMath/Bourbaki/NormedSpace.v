@@ -189,38 +189,38 @@ Qed.*)
 
 (** ** Definition of module *)
 
-Definition ismodule (K : rng) (X : gr) (scal : K -> X -> X) :=
+Definition ismodule (K : rig) (X : monoid) (scal : K -> X -> X) :=
   (∀ (a : K) (x y : X), scal a (x + y)%addmonoid = (scal a x + scal a y)%addmonoid)
   × (∀ (a b : K) (x : X), scal (a + b) x = (scal a x + scal b x)%addmonoid)
   × (∀ (a b : K) (x : X), scal (a * b) x = scal a (scal b x))
-  × (∀ x : X, scal 1%rng x = x).
-Definition module (K : rng) :=
+  × (∀ x : X, scal 1%rig x = x).
+Definition module (K : rig) :=
   Σ (X : gr) (scal : K -> X -> X), ismodule K X scal.
-Definition pr1module (K : rng) : (module K) -> gr := pr1.
+Definition pr1module (K : rig) : (module K) -> gr := pr1.
 Coercion pr1module : module >-> gr.
 
-Definition scal {K : rng} {X : module K} : K -> X -> X :=
+Definition scal {K : rig} {X : module K} : K -> X -> X :=
   pr1 (pr2 X).
 
 (** ** Ring with absolute value *)
 
-Definition isabsrng (NR : NonnegativeRig) (K : rng) (abs : K -> NR) :=
-  (abs 0%rng = 0)
-  × (abs 1%rng = 1)
+Definition isabsrig (NR : NonnegativeRig) (K : rig) (abs : K -> NR) :=
+  (abs 0%rig = 0)
+  × (abs 1%rig = 1)
   × (∀ (x y : K), abs x + abs y >= abs (x + y)%rng)
   × (∀ (x y : K), abs x * abs y >= abs (x * y)%rng).
-Definition absrng {NR : NonnegativeRig} :=
-  Σ  (K : rng) (abs : K -> NR), isabsrng NR K abs.
+Definition absrig {NR : NonnegativeRig} :=
+  Σ  (K : rig) (abs : K -> NR), isabsrig NR K abs.
 
-Definition absrngtorng {NR : NonnegativeRig} (K : absrng (NR := NR)) : rng := (pr1 K).
-Coercion absrngtorng : absrng >-> rng.
+Definition absrigtorig {NR : NonnegativeRig} (K : absrig (NR := NR)) : rig := (pr1 K).
+Coercion absrigtorig : absrig >-> rig.
 
 (** ** Definition of normed module *)
 
 Section NormedModule.
 
 Context {NR : NonnegativeRig}.
-Context {K : absrng (NR := NR)}.
+Context {K : absrig (NR := NR)}.
 Context {X : module K}.
 Context (norm : X -> NR).
 
