@@ -19,7 +19,7 @@ Definition isNonnegativeMonoid {X : monoid} (ap ge gt : hrel X) :=
   × (∀ x y : X, gt x y -> ∃ minus : X, gt minus 0%addmonoid × x = (y + minus)%addmonoid).
 
 Definition NonnegativeMonoid :=
-  Σ (X : monoid) (ap gt ge : hrel X), isNonnegativeMonoid ap gt ge.
+  Σ (X : monoid) (ap ge gt : hrel X), isNonnegativeMonoid ap ge gt.
 
 Definition pr1NonnegativeMonoid : NonnegativeMonoid -> monoid := pr1.
 Coercion pr1NonnegativeMonoid : NonnegativeMonoid >-> monoid.
