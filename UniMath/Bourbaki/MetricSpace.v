@@ -285,6 +285,14 @@ Proof.
   apply istriangle_dist.
 Qed.
 
+Lemma ball_symm :
+  ∀ (x y : M) (eps : NR), ball x eps y -> ball y eps x.
+Proof.
+  intros x y eps.
+  unfold ball.
+  now rewrite issymm_dist.
+Qed.
+
 Definition metric_topology : TopologicalSet.
 Proof.
   simple refine (generated_topology _).

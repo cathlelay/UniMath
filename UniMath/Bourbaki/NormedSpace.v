@@ -146,6 +146,27 @@ Proof.
   apply (pr2 (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))).
 Qed.
 
+Lemma NnRplus_ge_l :
+  ∀ k x y : X, k + x >= k + y -> x >= y.
+Proof.
+  intros k x y Hge.
+  apply notNnRgt_ge.
+  intro Hgt.
+  apply (pr2 (notNnRgt_ge _ _)) in Hge.
+  apply Hge.
+  now apply NnRplus_gt_l.
+Qed.
+Lemma NnRplus_ge_r :
+  ∀ k x y : X, x + k >= y + k -> x >= y.
+Proof.
+  intros k x y Hge.
+  apply notNnRgt_ge.
+  intro Hgt.
+  apply (pr2 (notNnRgt_ge _ _)) in Hge.
+  apply Hge.
+  now apply NnRplus_gt_r.
+Qed.
+
 Lemma NnRmult_gt :
   ∀ a b c d : X,
     a > b -> c > d -> ((a * c) + (b * d)) > ((a * d) + (b * c)).
@@ -175,6 +196,27 @@ Proof.
   now rewrite !rigmultx0, rigrunax1, riglunax1.
 Qed.
 
+Lemma NnRmult_ge_l :
+  ∀ k x y : X, k > 0 -> k * x >= k * y -> x >= y.
+Proof.
+  intros k x y Hk Hge.
+  apply notNnRgt_ge.
+  intro Hgt.
+  apply (pr2 (notNnRgt_ge _ _)) in Hge.
+  apply Hge.
+  now apply NnRmult_gt_l.
+Qed.
+Lemma NnRmult_ge_r :
+  ∀ k x y : X, k > 0 -> x * k >= y * k -> x >= y.
+Proof.
+  intros k x y Hk Hge.
+  apply notNnRgt_ge.
+  intro Hgt.
+  apply (pr2 (notNnRgt_ge _ _)) in Hge.
+  apply Hge.
+  now apply NnRmult_gt_r.
+Qed.
+
 Lemma NnRap_gt_0 :
   ∀ x : X, x ≠ 0 -> x > 0.
 Proof.
@@ -192,6 +234,20 @@ Proof.
   intros x y H.
   apply (pr2 (istotal_NnRgt _ _)).
   now left.
+Qed.
+
+Lemma isantisymm_NnRge :
+  ∀ x y : X, x >= y -> y >= x -> x = y.
+Proof.
+  intros x y Hge Hle.
+  apply istight_NnRap.
+  intros Hap.
+  apply istotal_NnRgt in Hap.
+  destruct Hap as [Hgt | Hgt].
+  revert Hgt.
+  apply (pr2 (notNnRgt_ge _ _)), Hle.
+  revert Hgt.
+  apply (pr2 (notNnRgt_ge _ _)), Hge.
 Qed.
 
 Lemma NnR_nottrivial :
@@ -217,15 +273,16 @@ End NonnegativeRig_pty.
 
 (** ** Definition of module *)
 
-Definition ismodule (K : rng) (X : gr) (ap : tightap X) (scal : K -> X -> X) :=
-  (∀ (a : K) (x y : X), scal a (x + y)%addmonoid = (scal a x + scal a y)%addmonoid)
+Definition ismodule (K : rng) (X : abgr) (ap : tightap X) (scal : K -> X -> X) :=
+  (isbinophrel ap)
+  × (∀ (a : K) (x y : X), scal a (x + y)%addmonoid = (scal a x + scal a y)%addmonoid)
   × (∀ (a b : K) (x : X), scal (a + b) x = (scal a x + scal b x)%addmonoid)
   × (∀ (a b : K) (x : X), scal (a * b) x = scal a (scal b x))
   × (∀ x : X, scal (- (1))%rng x = grinv _ x).
 Definition module (K : rng) :=
-  Σ (X : gr) (ap : tightap X) (scal : K -> X -> X), ismodule K X ap scal.
-Definition pr1module (K : rng) : (module K) -> gr := pr1.
-Coercion pr1module : module >-> gr.
+  Σ (X : abgr) (ap : tightap X) (scal : K -> X -> X), ismodule K X ap scal.
+Definition pr1module (K : rng) : (module K) -> abgr := pr1.
+Coercion pr1module : module >-> abgr.
 
 
 Section Module_pty.
@@ -237,27 +294,40 @@ Definition Map : tightap X :=
 Definition scal : K -> X -> X :=
   pr1 (pr2 (pr2 X)).
 
+Lemma Mplus_ap_l :
+  ∀ k x y : X, Map x y -> Map (k + x)%addmonoid (k + y)%addmonoid.
+Proof.
+  intros k x y.
+  apply (pr1 (pr1 (pr2 (pr2 (pr2 X))))).
+Qed.
+Lemma Mplus_ap_r :
+  ∀ k x y : X, Map x y -> Map (x + k)%addmonoid (y + k)%addmonoid.
+Proof.
+  intros k x y.
+  apply (pr2 (pr1 (pr2 (pr2 (pr2 X))))).
+Qed.
+
 Lemma isldistr_scal :
   ∀ (a : K) (x y : X), scal a (x + y)%addmonoid = (scal a x + scal a y)%addmonoid.
 Proof.
-  exact (pr1 (pr2 (pr2 (pr2 X)))).
+  exact (pr1 (pr2 (pr2 (pr2 (pr2 X))))).
 Qed.
 Lemma isrdistr_scal :
   ∀ (a b : K) (x : X), scal (a + b) x = (scal a x + scal b x)%addmonoid.
 Proof.
-  exact (pr1 (pr2 (pr2 (pr2 (pr2 X))))).
+  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))).
 Qed.
 
 Lemma isassoc_scal :
   ∀ (a b : K) (x : X), scal (a * b) x = scal a (scal b x).
 Proof.
-  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))).
+  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))).
 Qed.
 
 Lemma scal_m1 :
   ∀ x : X, scal (- (1))%rng x = grinv _ x.
 Proof.
-  exact (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))).
+  exact (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))).
 Qed.
 
 Lemma islunit_scal_1 :
@@ -273,10 +343,31 @@ Qed.
 
 Lemma islabsorb_scal_0 :
   ∀ x : X, scal 0%rng x = 0%addmonoid.
-Admitted.
+Proof.
+  intros x.
+  rewrite <- (rnglinvax1 _ 1%rng).
+  rewrite isrdistr_scal.
+  rewrite scal_m1, islunit_scal_1.
+  apply grlinvax.
+Qed.
 Lemma israbsorb_scal_0 :
   ∀ k : K, scal k 0%addmonoid = 0%addmonoid.
-Admitted.
+Proof.
+  intros k.
+  pattern (0%addmonoid : X) at 1.
+  rewrite <- (grlinvax _ 0%addmonoid).
+  rewrite <- scal_m1.
+  rewrite isldistr_scal.
+  rewrite <- isassoc_scal.
+  rewrite rngrmultminus.
+  rewrite rngrunax2.
+  pattern k at 1.
+  rewrite <- (rnglunax2 _ k).
+  rewrite <- rnglmultminus.
+  rewrite isassoc_scal.
+  rewrite scal_m1.
+  apply grlinvax.
+Qed.
 
 End Module_pty.
 
@@ -284,7 +375,7 @@ End Module_pty.
 
 Definition isabsrng (NR : NonnegativeRig) (K : rng) (abs : K -> NR) :=
   (abs 0%rng = 0)
-  × (abs 1%rng = 1)
+  × (abs (- (1))%rng = 1)
   × (∀ (x y : K), abs x + abs y >= abs (x + y)%rng)
   × (∀ (x y : K), abs x * abs y >= abs (x * y)%rng).
 Definition absrng {NR : NonnegativeRig} :=
@@ -293,7 +384,53 @@ Definition absrng {NR : NonnegativeRig} :=
 Definition absrngtorng {NR : NonnegativeRig} (K : absrng (NR := NR)) : rng := (pr1 K).
 Coercion absrngtorng : absrng >-> rng.
 
-Definition abs {NR : NonnegativeRig} {K : absrng (NR := NR)} : K -> NR := (pr1 (pr2 K)).
+Section absrng_pty.
+
+Context {NR : NonnegativeRig} {K : absrng (NR := NR)}.
+
+Definition abs : K -> NR := (pr1 (pr2 K)).
+
+Lemma abs_0 :
+  abs 0%rng = 0.
+Proof.
+  apply (pr1 (pr2 (pr2 K))).
+Qed.
+Lemma abs_m1 :
+  abs (-(1))%rng = 1.
+Proof.
+  apply (pr1 (pr2 (pr2 (pr2 K)))).
+Qed.
+Lemma istriangle_abs :
+  ∀ (x y : K), abs x + abs y >= abs (x + y)%rng.
+Proof.
+  apply (pr1 (pr2 (pr2 (pr2 (pr2 K))))).
+Qed.
+Lemma issubmult_abs :
+  ∀ (x y : K), abs x * abs y >= abs (x * y)%rng.
+Proof.
+  apply (pr2 (pr2 (pr2 (pr2 (pr2 K))))).
+Qed.
+
+Lemma abs_1 :
+  abs 1%rng = 1.
+Proof.
+  apply isantisymm_NnRge.
+  - apply NnRmult_ge_l with (abs (- (1))%rng).
+    rewrite abs_m1.
+    apply NnR_nottrivial.
+    eapply istrans_NnRge.
+    apply issubmult_abs.
+    rewrite (rngrunax2 K), rigrunax2.
+    apply isrefl_NnRge.
+  - rewrite <- (rngrunax2 K 1%rng).
+    rewrite <- rngmultminusminus.
+    eapply istrans_NnRge, issubmult_abs.
+    rewrite abs_m1.
+    rewrite rigrunax2.
+    apply isrefl_NnRge.
+Qed.
+
+End absrng_pty.
 
 (** ** Definition of normed module *)
 
@@ -307,7 +444,7 @@ Context (norm : X -> NR).
 Definition issepp_isnorm : hProp.
 Proof.
   simple refine (hProppair _ _).
-  apply (∀ x : X, (Map x 0%addmonoid) <-> (norm x ≠ 0)).
+  apply (∀ x : X, (Map x 0%addmonoid) <-> (norm x > 0)).
   apply impred_isaprop ; intros x.
   apply isapropdirprod.
   apply isapropimpl.
@@ -354,7 +491,7 @@ Context {NR : NonnegativeRig}
         {X : NormedModule K}.
 
 Lemma issepp_norm :
-  ∀ x : X, (Map x 0%addmonoid) <-> (norm x ≠ 0).
+  ∀ x : X, (Map x 0%addmonoid) <-> (norm x > 0).
 Proof.
   intros.
   now apply (pr1 (pr2 (pr2 X))).
@@ -381,6 +518,26 @@ Proof.
     eapply istrans_NnRge.
     2: apply issubmult_norm.
     rewrite abs_m1.
+    rewrite riglunax2.
+    apply isrefl_NnRge. }
+  intros x.
+  apply isantisymm_NnRge.
+  pattern x at 2.
+  rewrite <- (grinvinv _ x).
+  now apply X0.
+  now apply X0.
+Qed.
+
+Lemma grinvop :
+  ∀ (x y : X), grinv X (x + y)%addmonoid = (grinv X y + grinv X x)%addmonoid.
+Proof.
+  intros.
+  apply (pr2 (pr2 Map)).
+  intro Hap.
+  apply (Mplus_ap_l (x + y)%addmonoid) in Hap.
+  revert Hap.
+  rewrite grrinvax, assocax, <- (assocax _ y), grrinvax, lunax, grrinvax.
+  apply (pr1 (pr1 (pr2 Map))).
 Qed.
 
 End NormedModule_pty.
@@ -401,138 +558,146 @@ Proof.
   apply Map.
   simple refine (tpair _ _ _).
   intros x y.
-  apply (norm (X := X) (x + grinv _ y)%addmonoid).
+  apply (norm (X := X) (x + grinv X y)%addmonoid).
   repeat split.
   - intros x y.
-
+    rewrite <- norm_grinv.
+    rewrite (grinvop (X := X)).
+    rewrite grinvinv.
+    reflexivity.
+  - intros Hap.
+    simpl.
+    apply issepp_norm.
+    rewrite <- (grrinvax X y).
+    apply Mplus_ap_r.
+    apply Hap.
+  - simpl.
+    intro Hgt.
+    rewrite <- (runax X x), <- (lunax X y).
+    change (Map (x + unel X)%addmonoid (unel X + y)%addmonoid).
+    pattern (unel X) at 1.
+    rewrite <- (grlinvax X y).
+    rewrite <- (assocax X).
+    apply (Mplus_ap_r y).
+    apply (pr2 (issepp_norm _)).
+    apply Hgt.
+  - intros x y z ; simpl.
+    eapply istrans_NnRge.
+    apply istriangle_norm.
+    rewrite assocax, <- (assocax _ (grinv X y)).
+    rewrite grlinvax, lunax.
+    apply isrefl_NnRge.
 Defined.
 
 End dist_norm.
 
-(** ** Limits in a Metric Space *)
+(** ** Limits in a Normed Module *)
 
-Definition locally {NR : NonnegativeRig} {M : MetricSet (NR := NR)} (x : M) : Filter (X := M).
-Proof.
-  intros NR M x.
-  simple refine (mkFilter _ _ _ _ _).
-  - apply (neighborhood' (T := metric_topology) x).
-    refine (tpair _ _ _).
-    apply is_base_of_neighborhood_ball.
-  - intros A B.
-    intros Himpl Ha.
-    apply (pr2 (neighborhood_equiv _ _ _)).
-    apply neighborhood_equiv in Ha.
-    revert Ha.
-    apply neighborhood_impl, Himpl.
-  - apply (pr2 (neighborhood_equiv _ _ _)).
-    apply (pr2 (neighborhood_isOpen _)).
-    apply (isOpen_htrue (T := metric_topology)).
-    apply tt.
-  - intros A B Ha Hb.
-    apply (pr2 (neighborhood_equiv _ _ _)).
-    apply neighborhood_equiv in Ha.
-    apply neighborhood_equiv in Hb.
-    revert Ha Hb.
-    apply neighborhood_and.
-  - intros Hx.
-    apply neighborhood_equiv in Hx.
-    apply neighborhood_point in Hx.
-    exact Hx.
-Defined.
+Definition locally {NR : NonnegativeRig} {K : absrng (NR := NR)} {X : NormedModule K} (x : X) : Filter (X := X) :=
+  locally (M := metric_norm) x.
 
 (** *** Limit of a filter *)
 
-Definition is_filter_lim {NR : NonnegativeRig} {M : MetricSet (NR := NR)} (F : Filter) (x : M) :=
+Definition is_filter_lim {NR : NonnegativeRig} {K : absrng (NR := NR)} {X : NormedModule K} (F : Filter) (x : X) :=
   filter_le (locally x) F.
-Definition ex_filter_lim {NR : NonnegativeRig} {M : MetricSet (NR := NR)} (F : Filter) :=
-  ∃ (x : M), is_filter_lim F x.
-
-Lemma is_filter_lim_correct {NR : NonnegativeRig} {M : MetricSet (NR := NR)} (F : Filter) (x : M) :
-  is_filter_lim F x <-> Topology.is_filter_lim (T := metric_topology) F x.
-Proof.
-  intros NR M F x.
-  split.
-  - intros H P Hp.
-    apply H.
-    revert Hp.
-    apply (pr2 (neighborhood_equiv _ _ _)).
-  - intros H P Hp.
-    apply H.
-    revert Hp.
-    apply (pr1 (neighborhood_equiv _ _ _)).
-Qed.
-Lemma ex_filter_lim_correct {NR : NonnegativeRig} {M : MetricSet (NR := NR)} (F : Filter (X := M)) :
-  ex_filter_lim F <-> Topology.ex_filter_lim (T := metric_topology) F.
-Proof.
-  intros NR M F.
-  split.
-  - apply hinhfun.
-    intros (x,Hx).
-    exists x.
-    revert Hx.
-    apply (pr1 (is_filter_lim_correct _ _)).
-  - apply hinhfun.
-    intros (x,Hx).
-    exists x.
-    revert Hx.
-    apply (pr2 (is_filter_lim_correct _ _)).
-Qed.
+Definition ex_filter_lim {NR : NonnegativeRig} {K : absrng (NR := NR)} {X : NormedModule K} (F : Filter) :=
+  ∃ (x : X), is_filter_lim F x.
 
 (** *** Limit of a function *)
 
-Definition is_lim {X : UU} {NR : NonnegativeRig} {M : MetricSet (NR := NR)} (f : X -> M) (F : Filter (X := X)) (x : M) :=
+Definition is_lim {X : UU} {NR : NonnegativeRig} {K : absrng (NR := NR)} {V : NormedModule K} (f : X -> V) (F : Filter) (x : V) :=
   filterlim f F (locally x).
-Definition ex_lim {X : UU} {NR : NonnegativeRig} {M : MetricSet (NR := NR)} (f : X -> M) (F : Filter (X := X)) :=
-  ∃ (x : M), is_lim f F x.
-
-Lemma is_lim_correct {X : UU} {NR : NonnegativeRig} {M : MetricSet (NR := NR)} (f : X -> M) (F : Filter (X := X)) (x : M) :
-  is_lim f F x <-> Topology.is_lim (T := metric_topology) f F x.
-Proof.
-  intros.
-  split.
-  - intros Hx P HP.
-    apply Hx in HP.
-    revert HP.
-    apply (pr1 (neighborhood_equiv _ _ _)).
-  - intros Hx P HP.
-    apply Hx in HP.
-    revert HP.
-    apply (pr2 (neighborhood_equiv _ _ _)).
-Qed.
-Lemma ex_lim_correct {X : UU} {NR : NonnegativeRig} {M : MetricSet (NR := NR)} (f : X -> M) (F : Filter (X := X)) :
-  ex_lim f F <-> Topology.ex_lim (T := metric_topology) f F.
-Proof.
-  intros.
-  split.
-  - apply hinhfun.
-    intros (x,Hx).
-    exists x.
-    revert Hx.
-    apply (pr1 (is_lim_correct _ _ _)).
-  - apply hinhfun.
-    intros (x,Hx).
-    exists x.
-    revert Hx.
-    apply (pr2 (is_lim_correct _ _ _)).
-Qed.
+Definition ex_lim {X : UU} {NR : NonnegativeRig} {K : absrng (NR := NR)} {V : NormedModule K} (f : X -> V) (F : Filter) :=
+  ∃ (x : V), is_lim f F x.
 
 (** *** Continuity *)
 
-Definition continuous_at {NR : NonnegativeRig} {U V : MetricSet (NR := NR)} (f : U -> V) (x : U) :=
+Definition continuous_at {NR : NonnegativeRig} {K : absrng (NR := NR)} {U V : NormedModule K} (f : U -> V) (x : U) :=
   is_lim f (locally x) (f x).
-Definition continuous_on {NR : NonnegativeRig} {U V : MetricSet (NR := NR)} (dom : U -> hProp) (f : U -> V) :=
+Definition continuous_on {NR : NonnegativeRig} {K : absrng (NR := NR)} {U V : NormedModule K} (dom : U -> hProp) (f : U -> V) :=
   ∀ (x : U) (Hx : dom x),
     is_lim f (filter_dom (locally x) dom (notempty_ex dom x Hx)) (f x).
 
-Definition continuous_subtypes {NR : NonnegativeRig} {U V : MetricSet (NR := NR)} (dom : U -> hProp) (f : (Σ x : U, dom x) -> V) :=
+Definition continuous_subtypes {NR : NonnegativeRig} {K : absrng (NR := NR)} {U V : NormedModule K} (dom : U -> hProp) (f : (Σ x : U, dom x) -> V) :=
   ∀ (x : Σ x : U, dom x),
     is_lim f (filter_subtypes (locally (pr1 x)) dom (notempty_ex dom (pr1 x) (pr2 x))) (f x).
-Definition continuous {NR : NonnegativeRig} {U V : MetricSet (NR := NR)} (f : U -> V) :=
+Definition continuous {NR : NonnegativeRig} {K : absrng (NR := NR)} {U V : NormedModule K} (f : U -> V) :=
   ∀ x : U, continuous_at f x.
 
 (** *** Continuity for 2 variable functions *)
 
-Definition continuous2d_at {NR : NonnegativeRig} {U V W : MetricSet (NR := NR)} (f : U -> V -> W) (x : U) (y : V) :=
+Definition continuous2d_at {NR : NonnegativeRig} {K : absrng (NR := NR)} {U V W : NormedModule K} (f : U -> V -> W) (x : U) (y : V) :=
   is_lim (λ z : U × V, f (pr1 z) (pr2 z)) (filter_prod (locally x) (locally y)) (f x y).
-Definition continuous2d {NR : NonnegativeRig} {U V W : MetricSet (NR := NR)} (f : U -> V -> W) :=
+Definition continuous2d {NR : NonnegativeRig} {K : absrng (NR := NR)} {U V W : NormedModule K} (f : U -> V -> W) :=
   ∀ (x : U) (y : V), continuous2d_at f x y.
+
+(** *** Lemmas of continuity *)
+
+Lemma continuous_grinv {NR : NonnegativeRig} {K : absrng (NR := NR)} {X : NormedModule K} :
+  continuous (grinv X).
+Proof.
+  intros NR K X x P.
+  apply hinhuniv.
+  intros (O,(Ho,Op)).
+  revert Ho.
+  apply hinhfun.
+  intros (eps,->).
+  exists (ball (M := metric_norm) (grinv X x) (pr1 eps)).
+  split.
+  apply hinhpr.
+  now exists eps.
+  intros t Ht.
+  rewrite <- (grinvinv X t).
+  apply Op.
+  apply ball_symm.
+  unfold ball ; simpl.
+  eapply istrans_NnRgt_ge.
+  apply Ht.
+  unfold dist ; simpl.
+  rewrite (commax X).
+  apply isrefl_NnRge.
+Qed.
+
+Lemma continuous_plus {NR : NonnegativeRig} {K : absrng (NR := NR)} {X : NormedModule K} :
+  continuous2d (λ x y : X, (x + y)%addmonoid).
+Proof.
+  intros NR K X x y P.
+  apply hinhuniv.
+  intros (Ax,(Ay,(Hx,(Hy,Ha)))).
+  revert Hx Hy.
+  apply hinhuniv2.
+  intros (Ox,(Hox,Hpx)) (Oy,(Hoy,Hpy)).
+  revert Hox Hoy.
+  apply hinhuniv2.
+  intros (ex,->) (ey,->).
+  generalize (NnRmin_carac (pr1 ex) (pr1 ey)).
+  apply hinhfun ; intros (min,(Hex,(Hey,Hmin))).
+  exists (ball (M := metric_norm) (x + y)%addmonoid min).
+  split.
+  apply hinhpr.
+  simple refine (tpair _ _ _).
+  simple refine (tpair _ _ _).
+  apply min.
+  apply Hmin.
+  apply (pr2 ex).
+  apply (pr2 ey).
+  reflexivity.
+  intros t Ht.
+  rewrite <- (runax X t).
+  rewrite <- (grlinvax X y).
+  rewrite <- (assocax X).
+  apply (Ha (t + grinv X y)%addmonoid y).
+  apply Hpx.
+  unfold ball ; simpl.
+  eapply istrans_NnRge_gt.
+  apply Hex.
+  eapply istrans_NnRgt_ge.
+  apply Ht.
+  unfold dist ; simpl.
+  rewrite (grinvop (X := X)), grinvinv.
+  rewrite (assocax X).
+  apply isrefl_NnRge.
+  apply Hpy.
+  apply ball_center.
+  apply (pr2 ey).
+Qed.
