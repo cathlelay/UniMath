@@ -511,12 +511,12 @@ Qed.
 Definition continuous_at {NR : NonnegativeMonoid} {U V : MetricSet (NR := NR)} (f : U -> V) (x : U) :=
   is_lim f (locally x) (f x).
 Definition continuous_on {NR : NonnegativeMonoid} {U V : MetricSet (NR := NR)} (dom : U -> hProp) (f : U -> V) :=
-  ∀ (x : U) (Hx : dom x),
-    is_lim f (filter_dom (locally x) dom (notempty_ex dom x Hx)) (f x).
+  ∀ (x : U) (Hx : dom x) H,
+    is_lim f (filter_dom (locally x) dom H) (f x).
 
 Definition continuous_subtypes {NR : NonnegativeMonoid} {U V : MetricSet (NR := NR)} (dom : U -> hProp) (f : (Σ x : U, dom x) -> V) :=
-  ∀ (x : Σ x : U, dom x),
-    is_lim f (filter_subtypes (locally (pr1 x)) dom (notempty_ex dom (pr1 x) (pr2 x))) (f x).
+  ∀ (x : Σ x : U, dom x) H,
+    is_lim f (filter_subtypes (locally (pr1 x)) dom H) (f x).
 Definition continuous {NR : NonnegativeMonoid} {U V : MetricSet (NR := NR)} (f : U -> V) :=
   ∀ x : U, continuous_at f x.
 

@@ -514,19 +514,13 @@ Definition ex_lim {X : UU} {T : TopologicalSet} (f : X -> T) (F : Filter (X := X
 
 Definition continuous_at {U V : TopologicalSet} (f : U -> V) (x : U) :=
   is_lim f (locally x) (f x).
-Lemma notempty_ex {X : UU} :
-  ∀ (dom : X -> hProp) (x : X), dom x -> ¬ (∀ x : X, ¬ dom x).
-Proof.
-  intros dom x Hx H.
-  now apply (H x).
-Qed.
 Definition continuous_on {U V : TopologicalSet} (dom : U -> hProp) (f : U -> V) :=
-  ∀ (x : U) (Hx : dom x),
-    is_lim f (filter_dom (locally x) dom (notempty_ex dom x Hx)) (f x).
+  ∀ (x : U) (Hx : dom x) H,
+    is_lim f (filter_dom (locally x) dom H) (f x).
 
 Definition continuous_subtypes {U V : TopologicalSet} (dom : U -> hProp) (f : (Σ x : U, dom x) -> V) :=
-  ∀ (x : Σ x : U, dom x),
-    is_lim f (filter_subtypes (locally (pr1 x)) dom (notempty_ex dom (pr1 x) (pr2 x))) (f x).
+  ∀ (x : Σ x : U, dom x) H,
+    is_lim f (filter_subtypes (locally (pr1 x)) dom H) (f x).
 Definition continuous {U V : TopologicalSet} (f : U -> V) :=
   ∀ x : U, continuous_at f x.
 

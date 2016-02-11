@@ -263,48 +263,73 @@ Qed.
 
 (** *** Filter on a domain *)
 
-Definition filter_dom {X : UU} (F : Filter (X := X)) (dom : X -> hProp) (Hdom : ¬ (∀ x : X, ¬ dom x)) :
+Definition filter_dom {X : UU} (F : Filter (X := X)) (dom : X -> hProp) (Hdom : ∀ P, F P -> ¬ ¬ ∃ x, dom x ∧ P x) :
   Filter (X := X).
 Proof.
   simple refine (mkFilter _ _ _ _ _).
   - intros A.
+    apply (pr1 F).
+    intros x.
     simple refine (hProppair _ _).
-    + apply (∀ x, dom x -> A x).
-    + apply impred_isaprop ; intros x.
-      apply isapropimpl.
-      now apply propproperty.
-  - simpl ; intros A B Himpl Ha x Hx.
-    apply Himpl, Ha, Hx.
-  - intros x Hx.
+    apply (dom x -> A x).
+    apply isapropimpl.
+    now apply propproperty.
+  - simpl ; intros A B Himpl.
+    apply filter_imply.
+    intros x Ax Hx.
+    apply Himpl, Ax, Hx.
+  - apply filter_forall.
+    intros x Hx.
     exact tt.
-  - simpl ; intros A B Ha Hb x Hx.
+  - simpl ; intros A B Ha Hb.
+    generalize (filter_and _ _ _ Ha Hb).
+    apply filter_imply.
+    intros x (Ax,Bx) Hx.
     split.
-    + apply Ha, Hx.
-    + apply Hb, Hx.
+    + apply Ax, Hx.
+    + apply Bx, Hx.
   - simpl.
-    apply Hdom.
+    intro Hf.
+    apply Hdom in Hf.
+    apply Hf.
+    unfold neg.
+    apply (hinhuniv (P := hProppair _ isapropempty)).
+    intros (x,(Hx,Hx')).
+    now apply Hx'.
 Defined.
 
-Definition filter_subtypes {X : UU} (F : Filter (X := X)) (dom : X -> hProp) (Hdom : ¬ (∀ x : X, ¬ dom x)) :
+Definition filter_subtypes {X : UU} (F : Filter (X := X)) (dom : X -> hProp) (Hdom : ¬ F (λ x : X, hneg (dom x))) :
   Filter (X := Σ x : X, dom x).
 Proof.
   simple refine (mkFilter _ _ _ _ _).
   - intros A.
+    apply (pr1 F).
+    intros x.
     simple refine (hProppair _ _).
-    + apply (∀ x (Hx : dom x), A (x,,Hx)).
-    + apply impred_isaprop ; intros x.
-      apply impred_isaprop ; intros Hx.
+    + apply (∀ (Hx : dom x), A (x,,Hx)).
+    + apply impred_isaprop ; intros Hx.
       now apply propproperty.
-  - simpl ; intros A B Himpl Ha x Hx.
-    apply Himpl, Ha.
-  - intros x Hx.
+  - simpl ; intros A B Himpl.
+    apply filter_imply.
+    intros x Ax Hx.
+    apply Himpl, Ax.
+  - apply filter_forall.
+    intros x Hx.
     exact tt.
-  - simpl ; intros A B Ha Hb x Hx.
+  - simpl ; intros A B Ha Hb.
+    generalize (filter_and _ _ _ Ha Hb).
+    apply filter_imply.
+    intros x (Ax,Bx) Hx.
     split.
-    + apply Ha.
-    + apply Hb.
+    + apply Ax.
+    + apply Bx.
   - simpl.
+    intro Hf.
     apply Hdom.
+    revert Hf.
+    apply filter_imply.
+    intros x Hx H.
+    now apply Hx.
 Defined.
 
 (** *** Product of filters *)

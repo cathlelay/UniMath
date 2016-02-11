@@ -373,13 +373,14 @@ End Module_pty.
 
 (** ** Ring with absolute value *)
 
-Definition isabsrng (NR : NonnegativeRig) (K : rng) (abs : K -> NR) :=
-  (abs 0%rng = 0)
+Definition isabsrng (NR : NonnegativeRig) (K : rng) (ap : tightap K) (abs : K -> NR) :=
+  (isbinophrel (X := rngaddabgr K) ap)
+  × (∀ x : K, ap x 0%rng <-> abs x > 0)
   × (abs (- (1))%rng = 1)
   × (∀ (x y : K), abs x + abs y >= abs (x + y)%rng)
   × (∀ (x y : K), abs x * abs y >= abs (x * y)%rng).
 Definition absrng {NR : NonnegativeRig} :=
-  Σ (K : rng) (abs : K -> NR), isabsrng NR K abs.
+  Σ (K : rng) (ap : tightap K) (abs : K -> NR), isabsrng NR K ap abs.
 
 Definition absrngtorng {NR : NonnegativeRig} (K : absrng (NR := NR)) : rng := (pr1 K).
 Coercion absrngtorng : absrng >-> rng.
@@ -388,27 +389,38 @@ Section absrng_pty.
 
 Context {NR : NonnegativeRig} {K : absrng (NR := NR)}.
 
-Definition abs : K -> NR := (pr1 (pr2 K)).
+Definition absrng_ap : tightap K := (pr1 (pr2 K)).
+Definition abs : K -> NR := (pr1 (pr2 (pr2 K))).
 
+Lemma issepp_abs :
+  ∀ x : K, absrng_ap x 0%rng <-> abs x > 0.
+Proof.
+  apply (pr1 (pr2 (pr2 (pr2 (pr2 K))))).
+Qed.
 Lemma abs_0 :
   abs 0%rng = 0.
 Proof.
-  apply (pr1 (pr2 (pr2 K))).
+  apply istight_NnRap.
+  intro H.
+  apply NnRap_gt_0 in H.
+  apply (pr2 (issepp_abs _)) in H.
+  revert H.
+  apply (isirrefltightapSet (X := (pr1 (pr1 (pr1 K))) ,, absrng_ap)).
 Qed.
 Lemma abs_m1 :
   abs (-(1))%rng = 1.
 Proof.
-  apply (pr1 (pr2 (pr2 (pr2 K)))).
+  apply (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 K)))))).
 Qed.
 Lemma istriangle_abs :
   ∀ (x y : K), abs x + abs y >= abs (x + y)%rng.
 Proof.
-  apply (pr1 (pr2 (pr2 (pr2 (pr2 K))))).
+  apply (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 K))))))).
 Qed.
 Lemma issubmult_abs :
   ∀ (x y : K), abs x * abs y >= abs (x * y)%rng.
 Proof.
-  apply (pr2 (pr2 (pr2 (pr2 (pr2 K))))).
+  apply (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 K))))))).
 Qed.
 
 Lemma abs_1 :
@@ -483,6 +495,38 @@ Definition pr1NormedModule {NR : NonnegativeRig} (K : absrng (NR := NR)) : Norme
 Coercion pr1NormedModule : NormedModule >-> module.
 
 Definition norm {NR : NonnegativeRig} {K : absrng (NR := NR)} {X : NormedModule K} : (X -> NR) := pr1 (pr2 X).
+
+Definition absrng_to_NormedModule {NR : NonnegativeRig} (K : absrng (NR := NR)) : NormedModule K.
+Proof.
+  intros NR K.
+  simple refine (tpair _ _ _).
+  - simple refine (tpair _ _ _).
+    apply rngaddabgr, (pr1 K).
+    simple refine (tpair _ _ _).
+    apply absrng_ap.
+    simple refine (tpair _ _ _).
+    intros x y.
+    apply (x * y)%rng.
+    repeat split ; simpl.
+    + exact (pr1 (pr1 (pr2 (pr2 (pr2 K))))).
+    + exact (pr2 (pr1 (pr2 (pr2 (pr2 K))))).
+    + intros a x y.
+      now apply (rngldistr K).
+    + intros a b x.
+      now apply (rngrdistr K).
+    + intros a b x.
+      now apply (rngassoc2 K).
+    + intros x.
+      rewrite rnglmultminus, rnglunax2.
+      reflexivity.
+  - simple refine (tpair _ _ _).
+    apply abs.
+    repeat split.
+    + exact (pr1 (issepp_abs x)).
+    + exact (pr2 (issepp_abs x)).
+    + exact istriangle_abs.
+    + exact issubmult_abs.
+Defined.
 
 Section NormedModule_pty.
 
@@ -615,12 +659,12 @@ Definition ex_lim {X : UU} {NR : NonnegativeRig} {K : absrng (NR := NR)} {V : No
 Definition continuous_at {NR : NonnegativeRig} {K : absrng (NR := NR)} {U V : NormedModule K} (f : U -> V) (x : U) :=
   is_lim f (locally x) (f x).
 Definition continuous_on {NR : NonnegativeRig} {K : absrng (NR := NR)} {U V : NormedModule K} (dom : U -> hProp) (f : U -> V) :=
-  ∀ (x : U) (Hx : dom x),
-    is_lim f (filter_dom (locally x) dom (notempty_ex dom x Hx)) (f x).
+  ∀ (x : U) (H : dom x) H,
+    is_lim f (filter_dom (locally x) dom H) (f x).
 
 Definition continuous_subtypes {NR : NonnegativeRig} {K : absrng (NR := NR)} {U V : NormedModule K} (dom : U -> hProp) (f : (Σ x : U, dom x) -> V) :=
-  ∀ (x : Σ x : U, dom x),
-    is_lim f (filter_subtypes (locally (pr1 x)) dom (notempty_ex dom (pr1 x) (pr2 x))) (f x).
+  ∀ (x : Σ x : U, dom x) H,
+    is_lim f (filter_subtypes (locally (pr1 x)) dom H) (f x).
 Definition continuous {NR : NonnegativeRig} {K : absrng (NR := NR)} {U V : NormedModule K} (f : U -> V) :=
   ∀ x : U, continuous_at f x.
 
@@ -628,6 +672,8 @@ Definition continuous {NR : NonnegativeRig} {K : absrng (NR := NR)} {U V : Norme
 
 Definition continuous2d_at {NR : NonnegativeRig} {K : absrng (NR := NR)} {U V W : NormedModule K} (f : U -> V -> W) (x : U) (y : V) :=
   is_lim (λ z : U × V, f (pr1 z) (pr2 z)) (filter_prod (locally x) (locally y)) (f x y).
+Definition continuous2d_on {NR : NonnegativeRig} {K : absrng (NR := NR)} {U V W : NormedModule K} (f : U -> V -> W) (dom : U -> V -> hProp) :=
+  ∀ x y Hz, is_lim (λ z : U × V, f (pr1 z) (pr2 z)) (filter_dom (filter_prod (locally x) (locally y)) (λ z : U × V, dom (pr1 z) (pr2 z)) Hz) (f x y).
 Definition continuous2d {NR : NonnegativeRig} {K : absrng (NR := NR)} {U V W : NormedModule K} (f : U -> V -> W) :=
   ∀ (x : U) (y : V), continuous2d_at f x y.
 
