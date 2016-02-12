@@ -191,3 +191,71 @@ Proof.
     apply Dcuts_lt_le, H.
     reflexivity.
 Defined.
+
+Definition NR_MetricSpace : MetricSet (NR := NonnegativeRig_to_NonnegativeAddMonoid NR_NonnegativeRig).
+Proof.
+  simple refine (tpair _ _ _).
+  exact Dcuts.
+  simple refine (tpair _ _ _).
+  intros x y.
+  apply maxNonnegativeReals.
+  exact (x - y).
+  exact (y - x).
+  repeat split.
+  - intros x y.
+    apply iscomm_Dcuts_max.
+  - intros [H | H].
+    eapply istrans_lt_le_ltNonnegativeReals.
+    apply ispositive_minusNonnegativeReals, H.
+    apply Dcuts_max_le_r.
+    eapply istrans_lt_le_ltNonnegativeReals.
+    apply ispositive_minusNonnegativeReals, H.
+    apply Dcuts_max_le_l.
+  - apply hinhuniv ; intros (r,(_)).
+    apply hinhuniv.
+    intros [H | H].
+    + right.
+      apply_pr2 ispositive_minusNonnegativeReals.
+      apply hinhpr.
+      exists r ; split.
+      apply Dcuts_zero_empty.
+      exact H.
+    + left.
+      apply_pr2 ispositive_minusNonnegativeReals.
+      apply hinhpr.
+      exists r ; split.
+      apply Dcuts_zero_empty.
+      exact H.
+  - intros x y z.
+    change (maxNonnegativeReals (x - z) (z - x) <= maxNonnegativeReals (x - y) (y - x) + maxNonnegativeReals (y - z) (z - y)).
+    apply Dcuts_max_le.
+    + eapply istrans_leNonnegativeReals.
+      2: apply plusNonnegativeReals_lecompat_r, Dcuts_max_le_l.
+      eapply istrans_leNonnegativeReals.
+      2: apply plusNonnegativeReals_lecompat_l, Dcuts_max_le_l.
+      apply_pr2 (plusNonnegativeReals_lecompat_l z).
+      rewrite isassoc_plusNonnegativeReals, !Dcuts_minus_plus_max.
+      apply Dcuts_max_le.
+      * eapply istrans_leNonnegativeReals.
+        2: apply plusNonnegativeReals_lecompat_r, Dcuts_max_le_l.
+        rewrite Dcuts_minus_plus_max.
+        apply Dcuts_max_le_l.
+      * eapply istrans_leNonnegativeReals.
+        2: apply plusNonnegativeReals_lecompat_r, Dcuts_max_le_r.
+        apply Dcuts_plus_le_r.
+    + eapply istrans_leNonnegativeReals.
+      2: apply plusNonnegativeReals_lecompat_r, Dcuts_max_le_r.
+      eapply istrans_leNonnegativeReals.
+      2: apply plusNonnegativeReals_lecompat_l, Dcuts_max_le_r.
+      rewrite iscomm_plusNonnegativeReals.
+      apply_pr2 (plusNonnegativeReals_lecompat_l x).
+      rewrite isassoc_plusNonnegativeReals, !Dcuts_minus_plus_max.
+      apply Dcuts_max_le.
+      * eapply istrans_leNonnegativeReals.
+        2: apply plusNonnegativeReals_lecompat_r, Dcuts_max_le_l.
+        rewrite Dcuts_minus_plus_max.
+        apply Dcuts_max_le_l.
+      * eapply istrans_leNonnegativeReals.
+        2: apply plusNonnegativeReals_lecompat_r, Dcuts_max_le_r.
+        apply Dcuts_plus_le_r.
+Defined.
