@@ -1,11 +1,9 @@
 (** * Results about Metric Spaces *)
 (** Author: Catherine LELAY. Jan 2016 - *)
 
-Require Export UniMath.Bourbaki.Filters.
 Require Export UniMath.Foundations.Algebra.Apartness.
+Require Export UniMath.Bourbaki.Filters.
 Require Import UniMath.Bourbaki.Topology.
-Require Import UniMath.Foundations.Algebra.DivisionRig.
-Require Import UniMath.Foundations.Algebra.ConstructiveStructures.
 Require Import UniMath.Dedekind.Sets.
 
 (** ** Nonnegative *)
@@ -437,6 +435,31 @@ Definition is_filter_lim {NR : NonnegativeMonoid} {M : MetricSet (NR := NR)} (F 
 Definition ex_filter_lim {NR : NonnegativeMonoid} {M : MetricSet (NR := NR)} (F : Filter) :=
   ∃ (x : M), is_filter_lim F x.
 
+Lemma is_filter_lim_aux {NR : NonnegativeMonoid} {M : MetricSet (NR := NR)} (F : Filter) (x : M) :
+  (∀ eps : (Σ e : NR, e > 0), F (λ y, ball x (pr1 eps) y)) <-> is_filter_lim F x.
+Proof.
+  intros NR M F x.
+  split.
+  - intros H P.
+    apply hinhuniv.
+    intros (O,(Ho,Op)).
+    revert Ho.
+    apply hinhuniv.
+    intros (e,->).
+    generalize (H e) ; clear H.
+    apply filter_imply.
+    exact Op.
+  - intros H e.
+    apply H.
+    apply hinhpr.
+    exists (ball x (pr1 e)).
+    split.
+    apply hinhpr.
+    exists e.
+    reflexivity.
+    easy.
+Qed.
+
 Lemma is_filter_lim_correct {NR : NonnegativeMonoid} {M : MetricSet (NR := NR)} (F : Filter) (x : M) :
   is_filter_lim F x <-> Topology.is_filter_lim (T := metric_topology) F x.
 Proof.
@@ -470,12 +493,12 @@ Qed.
 
 (** *** Limit of a function *)
 
-Definition is_lim {X : UU} {NR : NonnegativeMonoid} {M : MetricSet (NR := NR)} (f : X -> M) (F : Filter (X := X)) (x : M) :=
+Definition is_lim {X : UU} {NR : NonnegativeMonoid} {M : MetricSet (NR := NR)} (f : X -> M) (F : Filter) (x : M) :=
   filterlim f F (locally x).
-Definition ex_lim {X : UU} {NR : NonnegativeMonoid} {M : MetricSet (NR := NR)} (f : X -> M) (F : Filter (X := X)) :=
+Definition ex_lim {X : UU} {NR : NonnegativeMonoid} {M : MetricSet (NR := NR)} (f : X -> M) (F : Filter) :=
   ∃ (x : M), is_lim f F x.
 
-Lemma is_lim_correct {X : UU} {NR : NonnegativeMonoid} {M : MetricSet (NR := NR)} (f : X -> M) (F : Filter (X := X)) (x : M) :
+Lemma is_lim_correct {X : UU} {NR : NonnegativeMonoid} {M : MetricSet (NR := NR)} (f : X -> M) (F : Filter) (x : M) :
   is_lim f F x <-> Topology.is_lim (T := metric_topology) f F x.
 Proof.
   intros.
@@ -510,10 +533,10 @@ Qed.
 
 Definition continuous_at {NR : NonnegativeMonoid} {U V : MetricSet (NR := NR)} (f : U -> V) (x : U) :=
   is_lim f (locally x) (f x).
+
 Definition continuous_on {NR : NonnegativeMonoid} {U V : MetricSet (NR := NR)} (dom : U -> hProp) (f : U -> V) :=
   ∀ (x : U) (Hx : dom x) H,
     is_lim f (filter_dom (locally x) dom H) (f x).
-
 Definition continuous_subtypes {NR : NonnegativeMonoid} {U V : MetricSet (NR := NR)} (dom : U -> hProp) (f : (Σ x : U, dom x) -> V) :=
   ∀ (x : Σ x : U, dom x) H,
     is_lim f (filter_subtypes (locally (pr1 x)) dom H) (f x).
@@ -524,5 +547,6 @@ Definition continuous {NR : NonnegativeMonoid} {U V : MetricSet (NR := NR)} (f :
 
 Definition continuous2d_at {NR : NonnegativeMonoid} {U V W : MetricSet (NR := NR)} (f : U -> V -> W) (x : U) (y : V) :=
   is_lim (λ z : U × V, f (pr1 z) (pr2 z)) (filter_prod (locally x) (locally y)) (f x y).
+
 Definition continuous2d {NR : NonnegativeMonoid} {U V W : MetricSet (NR := NR)} (f : U -> V -> W) :=
   ∀ (x : U) (y : V), continuous2d_at f x y.

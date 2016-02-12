@@ -1,12 +1,9 @@
 (** * Results about Normed Spaces *)
 (** Author: Catherine LELAY. Jan 2016 - *)
 
+Require Export UniMath.Foundations.Algebra.Rigs_and_Rings.
 Require Export UniMath.Bourbaki.Filters.
-Require Export UniMath.Foundations.Algebra.Apartness.
-Require Import UniMath.Bourbaki.Topology.
 Require Import UniMath.Bourbaki.MetricSpace.
-Require Import UniMath.Foundations.Algebra.DivisionRig.
-Require Import UniMath.Foundations.Algebra.ConstructiveStructures.
 Require Import UniMath.Dedekind.Sets.
 
 (** ** Nonnegative Rig *)
