@@ -281,3 +281,47 @@ Proof.
         2: apply plusNonnegativeReals_lecompat_r, Dcuts_max_le_r.
         apply Dcuts_plus_le_r.
 Defined.
+
+Definition ball (x eps y : NonnegativeReals) :=
+  x < y + eps × y < x + eps.
+Lemma ball_correct :
+  ∀ x eps y : NonnegativeReals,
+    0 < eps ->
+    (ball x eps y <-> MetricSpace.ball (M := NR_MetricSpace) x eps y).
+Proof.
+  intros x eps y.
+  split.
+  - intros (Hxy,Hyx).
+    apply Dcuts_max_lt.
+    + apply_pr2 (plusNonnegativeReals_ltcompat_l y).
+      rewrite Dcuts_minus_plus_max, iscomm_plusNonnegativeReals.
+      apply Dcuts_max_lt.
+      exact Hxy.
+      now apply plusNonnegativeReals_lt_r.
+    + apply_pr2 (plusNonnegativeReals_ltcompat_l x).
+      rewrite Dcuts_minus_plus_max, iscomm_plusNonnegativeReals.
+      apply Dcuts_max_lt.
+      exact Hyx.
+      now apply plusNonnegativeReals_lt_r.
+  - intros Hxy.
+    split.
+    + eapply istrans_le_lt_ltNonnegativeReals, plusNonnegativeReals_ltcompat_r, Hxy.
+      eapply istrans_leNonnegativeReals, plusNonnegativeReals_lecompat_r, Dcuts_max_le_l.
+      rewrite iscomm_plusNonnegativeReals, Dcuts_minus_plus_max.
+      now apply Dcuts_max_le_l.
+    + eapply istrans_le_lt_ltNonnegativeReals, plusNonnegativeReals_ltcompat_r, Hxy.
+      eapply istrans_leNonnegativeReals, plusNonnegativeReals_lecompat_r, Dcuts_max_le_r.
+      rewrite iscomm_plusNonnegativeReals, Dcuts_minus_plus_max.
+      apply Dcuts_max_le_l.
+Qed.
+
+Definition locally (x : NonnegativeReals) : Filter (X := NonnegativeReals).
+Proof.
+  intros x.
+  simple refine (mkFilter _ _ _ _ _).
+  - intros P.
+    apply (∃ eps : NonnegativeReals, 0 < eps × ).
+
+Defined.
+
+Definition is_filter_lim (F : Filter (X := NonnegativeReals)) (x : NonnegativeReals)
