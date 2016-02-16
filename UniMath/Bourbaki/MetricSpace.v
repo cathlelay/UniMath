@@ -6,15 +6,23 @@ Require Export UniMath.Bourbaki.Filters.
 Require Import UniMath.Bourbaki.Topology.
 Require Import UniMath.Dedekind.Sets.
 
-(** ** Nonnegative *)
+(** ** Nonnegative Monoid *)
+
+Definition is_min {X : UU} (ge gt : hrel X)
+           (x y min : X) :=
+  ge x min × ge y min
+     × (∀ z : X, gt x z -> gt y z -> gt min z).
+Definition is_minus {X : monoid} (gt : hrel X)
+           (x y minus : X) (Hxy : gt x y) :=
+  gt minus 0%addmonoid × x = (y + minus)%addmonoid.
 
 Definition isNonnegativeMonoid {X : monoid} (ap ge gt : hrel X) :=
   isConstructiveTotalEffectiveOrder ap ge gt
   × isbinophrel gt
   × (∀ x : X, ge x 0%addmonoid)
   × (∃ x0, gt x0 0%addmonoid)
-  × (∀ x y : X, ∃ min : X, ge x min × ge y min × (gt x 0%addmonoid -> gt y 0%addmonoid -> gt min 0%addmonoid))
-  × (∀ x y : X, gt x y -> ∃ minus : X, gt minus 0%addmonoid × x = (y + minus)%addmonoid).
+  × (∀ x y : X, ∃ min : X, is_min ge gt x y min)
+  × (∀ (x y : X) is, ∃ minus : X, is_minus gt x y minus is).
 
 Definition NonnegativeMonoid :=
   Σ (X : monoid) (ap ge gt : hrel X), isNonnegativeMonoid ap ge gt.
@@ -140,7 +148,7 @@ Qed.
 
 Lemma NnMmin_carac {X : NonnegativeMonoid} :
   ∀ x y : X, ∃ min : X,
-    x >= min × y >= min × (x > 0 -> y > 0 -> min > 0).
+    x >= min × y >= min × (∀ z : X, x > z -> y > z -> min > z).
 Proof.
   intros X.
   exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))))).
@@ -357,7 +365,7 @@ Proof.
         apply hinhfun.
         intros (min,(min_x,(min_y,min_pos))).
         simpl in He1.
-        specialize (min_pos e0_pos e1_pos).
+        specialize (min_pos _ e0_pos e1_pos).
         exists (min ,, min_pos).
         intros y Hy.
         rewrite finite_intersection_append.

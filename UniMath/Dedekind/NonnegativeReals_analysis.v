@@ -121,6 +121,28 @@ Lemma minNonnegativeReals_le_r :
 Proof.
   now intros x y r (Xr,Yr).
 Qed.
+Lemma minNonnegativeReals_gtcompat :
+  ∀ x y z : NonnegativeReals, z < x -> z < y -> z < minNonnegativeReals x y.
+Proof.
+  intros x y z.
+  apply hinhfun2.
+  intros (rx,(nZx,Xr)) (ry,(nZy,Yr)).
+  case (isdecrel_ltNonnegativeRationals rx ry) ; intro Hr.
+  - exists rx.
+    split.
+    exact nZx.
+    split.
+    exact Xr.
+    apply is_Dcuts_bot with (1 := Yr).
+    now apply lt_leNonnegativeRationals.
+  - exists ry.
+    split.
+    exact nZy.
+    split.
+    apply is_Dcuts_bot with (1 := Xr).
+    now apply notlt_geNonnegativeRationals.
+    exact Yr.
+Qed.
 Lemma ispositive_minNonnegativeReals :
   ∀ x y : NonnegativeReals, 0 < x -> 0 < y -> 0 < minNonnegativeReals x y.
 Proof.
@@ -180,8 +202,8 @@ Proof.
     exists (minNonnegativeReals x y) ; repeat split.
     now apply minNonnegativeReals_le_l.
     now apply minNonnegativeReals_le_r.
-    intros Hx Hy.
-    now apply ispositive_minNonnegativeReals.
+    intros z.
+    now apply minNonnegativeReals_gtcompat.
   - intros x y H.
     apply hinhpr.
     exists (minusNonnegativeReals x y) ; split.

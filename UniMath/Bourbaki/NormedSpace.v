@@ -14,8 +14,8 @@ Definition isNonnegativeRig {X : rig} (ap ge gt : hrel X) :=
   × isrigmultgt X gt
   × (∀ x : X, ge x 0%rig)
   × (gt 1%rig 0%rig)
-  × (∀ x y : X, ∃ min : X, ge x min × ge y min × (gt x 0%rig -> gt y 0%rig -> gt min 0%rig))
-  × (∀ x y : X, gt x y -> ∃ minus : X, gt minus 0%rig × x = (y + minus)%rig).
+  × (∀ x y : X, ∃ min : X, is_min ge gt x y min)
+  × (∀ (x y : X) (Hxy : gt x y), ∃ minus : X, is_minus (X := rigaddabmonoid X) gt x y minus Hxy).
 
 Definition NonnegativeRig :=
   Σ (X : rig) (ap gt ge : hrel X), isNonnegativeRig ap gt ge.
@@ -40,9 +40,10 @@ Local Notation "x ≠ y" := (NnRap _ x y).
 Local Notation "x >= y" :=  (NnRge _ x y).
 Local Notation "x > y" :=  (NnRgt _ x y).
 
-Definition NonnegativeRig_to_NonnegativeAddMonoid (X : NonnegativeRig) : NonnegativeMonoid.
+Definition NonnegativeRig_to_NonnegativeAddMonoid (X : NonnegativeRig) :
+  NonnegativeMonoid.
 Proof.
-  intro X.
+  intros X.
   simple refine (tpair _ _ _).
   - apply (abmonoidtomonoid (rigaddabmonoid X)).
   - exists (NnRap X), (NnRge X), (NnRgt X).
@@ -54,7 +55,7 @@ Proof.
     apply (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))).
     apply hinhpr.
     exists 1.
-    apply (pr1 (pr2  (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))))).
+    apply (pr2  (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))).
     apply (pr1 (pr2 (pr2  (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))))).
     apply (pr2 (pr2 (pr2  (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))))).
 Defined.
@@ -255,7 +256,7 @@ Qed.
 
 Lemma NnRmin_carac :
   ∀ x y : X, ∃ min : X,
-    x >= min × y >= min × (x > 0 -> y > 0 -> min > 0).
+    x >= min × y >= min × (∀ z : X, x > z -> y > z -> min > z).
 Proof.
   exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))))).
 Qed.
