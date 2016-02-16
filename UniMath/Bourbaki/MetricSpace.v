@@ -395,7 +395,7 @@ Proof.
     revert X.
     apply hinhfun.
     intros (e,He).
-    exists (ball x (pr1 e) ,, isOpen_ball _ _).
+    exists (ball x (pr1 e)).
     split.
     apply hinhpr.
     now exists e.
@@ -407,39 +407,13 @@ End Balls.
 
 (** ** Limits in a Metric Space *)
 
-Definition locally {NR : NonnegativeMonoid} {M : MetricSet (NR := NR)} (x : M) : Filter (X := M).
-Proof.
-  intros NR M x.
-  simple refine (mkFilter _ _ _ _ _).
-  - apply (neighborhood' (T := metric_topology) x).
-    refine (tpair _ _ _).
-    apply is_base_of_neighborhood_ball.
-  - intros A B.
-    intros Himpl Ha.
-    apply (pr2 (neighborhood_equiv _ _ _)).
-    apply neighborhood_equiv in Ha.
-    revert Ha.
-    apply neighborhood_impl, Himpl.
-  - apply (pr2 (neighborhood_equiv _ _ _)).
-    apply (pr2 (neighborhood_isOpen _)).
-    apply (isOpen_htrue (T := metric_topology)).
-    apply tt.
-  - intros A B Ha Hb.
-    apply (pr2 (neighborhood_equiv _ _ _)).
-    apply neighborhood_equiv in Ha.
-    apply neighborhood_equiv in Hb.
-    revert Ha Hb.
-    apply neighborhood_and.
-  - intros Hx.
-    apply neighborhood_equiv in Hx.
-    apply neighborhood_point in Hx.
-    exact Hx.
-Defined.
+Definition locally {NR : NonnegativeMonoid} {M : MetricSet (NR := NR)} (x : M) : Filter (X := M) :=
+  locally_base (T := metric_topology) x (_,,is_base_of_neighborhood_ball x).
 
 (** *** Limit of a filter *)
 
 Definition is_filter_lim {NR : NonnegativeMonoid} {M : MetricSet (NR := NR)} (F : Filter) (x : M) :=
-  filter_le (locally x) F.
+  is_filter_lim_base (T := metric_topology) F x (_,,is_base_of_neighborhood_ball x).
 Definition ex_filter_lim {NR : NonnegativeMonoid} {M : MetricSet (NR := NR)} (F : Filter) :=
   ∃ (x : M), is_filter_lim F x.
 
@@ -468,79 +442,17 @@ Proof.
     easy.
 Qed.
 
-Lemma is_filter_lim_correct {NR : NonnegativeMonoid} {M : MetricSet (NR := NR)} (F : Filter) (x : M) :
-  is_filter_lim F x <-> Topology.is_filter_lim (T := metric_topology) F x.
-Proof.
-  intros NR M F x.
-  split.
-  - intros H P Hp.
-    apply H.
-    revert Hp.
-    apply (pr2 (neighborhood_equiv _ _ _)).
-  - intros H P Hp.
-    apply H.
-    revert Hp.
-    apply (pr1 (neighborhood_equiv _ _ _)).
-Qed.
-Lemma ex_filter_lim_correct {NR : NonnegativeMonoid} {M : MetricSet (NR := NR)} (F : Filter (X := M)) :
-  ex_filter_lim F <-> Topology.ex_filter_lim (T := metric_topology) F.
-Proof.
-  intros NR M F.
-  split.
-  - apply hinhfun.
-    intros (x,Hx).
-    exists x.
-    revert Hx.
-    apply (pr1 (is_filter_lim_correct _ _)).
-  - apply hinhfun.
-    intros (x,Hx).
-    exists x.
-    revert Hx.
-    apply (pr2 (is_filter_lim_correct _ _)).
-Qed.
-
 (** *** Limit of a function *)
 
 Definition is_lim {X : UU} {NR : NonnegativeMonoid} {M : MetricSet (NR := NR)} (f : X -> M) (F : Filter) (x : M) :=
-  filterlim f F (locally x).
+  is_lim_base (T := metric_topology) f F x (_,,is_base_of_neighborhood_ball x).
 Definition ex_lim {X : UU} {NR : NonnegativeMonoid} {M : MetricSet (NR := NR)} (f : X -> M) (F : Filter) :=
   ∃ (x : M), is_lim f F x.
-
-Lemma is_lim_correct {X : UU} {NR : NonnegativeMonoid} {M : MetricSet (NR := NR)} (f : X -> M) (F : Filter) (x : M) :
-  is_lim f F x <-> Topology.is_lim (T := metric_topology) f F x.
-Proof.
-  intros.
-  split.
-  - intros Hx P HP.
-    apply Hx in HP.
-    revert HP.
-    apply (pr1 (neighborhood_equiv _ _ _)).
-  - intros Hx P HP.
-    apply Hx in HP.
-    revert HP.
-    apply (pr2 (neighborhood_equiv _ _ _)).
-Qed.
-Lemma ex_lim_correct {X : UU} {NR : NonnegativeMonoid} {M : MetricSet (NR := NR)} (f : X -> M) (F : Filter (X := X)) :
-  ex_lim f F <-> Topology.ex_lim (T := metric_topology) f F.
-Proof.
-  intros.
-  split.
-  - apply hinhfun.
-    intros (x,Hx).
-    exists x.
-    revert Hx.
-    apply (pr1 (is_lim_correct _ _ _)).
-  - apply hinhfun.
-    intros (x,Hx).
-    exists x.
-    revert Hx.
-    apply (pr2 (is_lim_correct _ _ _)).
-Qed.
 
 (** *** Continuity *)
 
 Definition continuous_at {NR : NonnegativeMonoid} {U V : MetricSet (NR := NR)} (f : U -> V) (x : U) :=
-  is_lim f (locally x) (f x).
+  continuous_base_at (U := metric_topology) (V := metric_topology) f x  (_,,is_base_of_neighborhood_ball x) (_,,is_base_of_neighborhood_ball (f x)).
 
 Definition continuous_on {NR : NonnegativeMonoid} {U V : MetricSet (NR := NR)} (dom : U -> hProp) (f : U -> V) :=
   ∀ (x : U) (Hx : dom x) H,
@@ -554,7 +466,7 @@ Definition continuous {NR : NonnegativeMonoid} {U V : MetricSet (NR := NR)} (f :
 (** *** Continuity for 2 variable functions *)
 
 Definition continuous2d_at {NR : NonnegativeMonoid} {U V W : MetricSet (NR := NR)} (f : U -> V -> W) (x : U) (y : V) :=
-  is_lim (λ z : U × V, f (pr1 z) (pr2 z)) (filter_prod (locally x) (locally y)) (f x y).
+  continuous2d_base_at (U := metric_topology) (V := metric_topology) (W := metric_topology) f x y (_,,is_base_of_neighborhood_ball x) (_,,is_base_of_neighborhood_ball y) (_,,is_base_of_neighborhood_ball (f x y)).
 
 Definition continuous2d {NR : NonnegativeMonoid} {U V W : MetricSet (NR := NR)} (f : U -> V -> W) :=
   ∀ (x : U) (y : V), continuous2d_at f x y.

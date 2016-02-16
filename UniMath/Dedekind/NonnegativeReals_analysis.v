@@ -283,7 +283,8 @@ Proof.
 Defined.
 
 Definition ball (x eps y : NonnegativeReals) :=
-  x < y + eps × y < x + eps.
+  x < y + eps ∧ y < x + eps.
+
 Lemma ball_correct :
   ∀ x eps y : NonnegativeReals,
     0 < eps ->
@@ -315,13 +316,57 @@ Proof.
       apply Dcuts_max_le_l.
 Qed.
 
+Definition base_of_neighborhood_ball (x : NonnegativeReals) : Topology.base_of_neighborhood (T := metric_topology (M := NR_MetricSpace)) x.
+Proof.
+  intros x.
+  generalize (is_base_of_neighborhood_ball (M := NR_MetricSpace) x) ; intro is.
+  simple refine (tpair _ _ _).
+  intros A.
+  apply (∃ eps : NonnegativeReals, 0 < eps × ∀ y : NonnegativeReals, A y <-> ball x eps y).
+  split.
+  - intros P HP.
+    apply (pr1 is).
+    revert HP.
+    apply hinhfun.
+    intros (e,(He,HP)).
+    exists (e,,He).
+    apply funextfun ; intros y.
+    apply uahp.
+    + intros Py.
+      apply ball_correct.
+      exact He.
+      now apply HP.
+    + intros H.
+      apply_pr2 HP.
+      apply_pr2 ball_correct.
+      exact He.
+      exact H.
+  - intros P HP.
+    generalize (pr2 is P HP).
+    apply hinhfun.
+    intros (Q,(HQ,H)).
+    exists Q.
+    split.
+    + revert HQ.
+      apply hinhfun.
+      intros ((e,He),->).
+      exists e.
+      split.
+      exact He.
+      split.
+      apply_pr2 ball_correct.
+      exact He.
+      apply ball_correct.
+      exact He.
+    + apply H.
+Defined.
 Definition locally (x : NonnegativeReals) : Filter (X := NonnegativeReals).
 Proof.
   intros x.
-  simple refine (mkFilter _ _ _ _ _).
-  - intros P.
-    apply (∃ eps : NonnegativeReals, 0 < eps × ).
-
+  simple refine (Topology.locally_base (T := metric_topology (M := NR_MetricSpace)) _ _).
+  apply x.
+  apply base_of_neighborhood_ball.
 Defined.
 
-Definition is_filter_lim (F : Filter (X := NonnegativeReals)) (x : NonnegativeReals)
+Definition is_filter_lim (F : Filter (X := NonnegativeReals)) (x : NonnegativeReals) :=
+  Topology.is_filter_lim_base (T := metric_topology (M := NR_MetricSpace)) F x (base_of_neighborhood_ball x).
