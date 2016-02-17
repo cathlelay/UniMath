@@ -686,62 +686,55 @@ Proof.
   revert Ho.
   apply hinhfun.
   intros (eps,->).
-  exists (ball (M := metric_norm) (grinv X x) (pr1 eps)).
+  exists (ball (M := metric_norm) x (pr1 eps)).
   split.
   apply hinhpr.
-  now exists eps.
+  exists eps.
+  reflexivity.
   intros t Ht.
-  rewrite <- (grinvinv X t).
   apply Op.
   apply ball_symm.
   unfold ball ; simpl.
   eapply istrans_NnRgt_ge.
   apply Ht.
   unfold dist ; simpl.
+  rewrite (grinvinv X).
   rewrite (commax X).
   apply isrefl_NnRge.
 Qed.
 
 Lemma continuous_plus {NR : NonnegativeRig} {K : absrng (NR := NR)} {X : NormedModule K} :
+  (∀ e : NR, e > 0 -> ∃ e1 e2 : NR, e = e1 + e2 × e1 > 0 × e2 > 0) ->
   continuous2d (λ x y : X, (x + y)%addmonoid).
 Proof.
-  intros NR K X x y P.
+  intros NR K X Hnr x y P.
   apply hinhuniv.
-  intros (Ax,(Ay,(Hx,(Hy,Ha)))).
-  revert Hx Hy.
-  apply hinhuniv2.
-  intros (Ox,(Hox,Hpx)) (Oy,(Hoy,Hpy)).
-  revert Hox Hoy.
-  apply hinhuniv2.
-  intros (ex,->) (ey,->).
-  generalize (NnRmin_carac (pr1 ex) (pr1 ey)).
-  apply hinhfun ; intros (min,(Hex,(Hey,Hmin))).
-  exists (ball (M := metric_norm) (x + y)%addmonoid min).
-  split.
+  intros (O,(Ho',Ho)).
+  revert Ho'.
+  apply hinhuniv.
+  intros ((e,He),->).
+  generalize (Hnr e He).
+  apply hinhuniv.
+  intros (e1,(e2,(->,(He1,He2)))).
   apply hinhpr.
-  simple refine (tpair _ _ _).
-  simple refine (tpair _ _ _).
-  apply min.
-  apply Hmin.
-  apply (pr2 ex).
-  apply (pr2 ey).
-  reflexivity.
-  intros t Ht.
-  rewrite <- (runax X t).
-  rewrite <- (grlinvax X y).
-  rewrite <- (assocax X).
-  apply (Ha (t + grinv X y)%addmonoid y).
-  apply Hpx.
-  unfold ball ; simpl.
-  eapply istrans_NnRge_gt.
-  apply Hex.
-  eapply istrans_NnRgt_ge.
-  apply Ht.
+  exists (ball (M := metric_norm) x e1), (ball (M := metric_norm) y e2).
+  repeat split.
+  apply locally_ball.
+  exact He1.
+  apply locally_ball.
+  exact He2.
+  intros x' y' Hx Hy.
+  apply Ho.
+  unfold ball.
+  refine (istrans_NnRgt _ _ _ _ _).
+  apply NnRplus_gt_r, Hx.
+  refine (istrans_NnRgt_ge _ _ _ _ _).
+  apply NnRplus_gt_l, Hy.
   unfold dist ; simpl.
-  rewrite (grinvop (X := X)), grinvinv.
-  rewrite (assocax X).
+  eapply istrans_NnRge.
+  apply istriangle_norm.
+  rewrite !(assocax X).
+  rewrite (commax X (grinv X x')), !(assocax X).
+  rewrite (grinvop (X := X)).
   apply isrefl_NnRge.
-  apply Hpy.
-  apply ball_center.
-  apply (pr2 ey).
 Qed.

@@ -4575,59 +4575,6 @@ Definition Cauchy_lim_seq (u : nat -> NonnegativeReals) (Cu : Cauchy_seq u) : No
 Definition Cauchy_seq_impl_ex_lim_seq (u : nat -> NonnegativeReals) (Cu : Cauchy_seq u) : is_lim_seq u (Cauchy_lim_seq u Cu)
   := (Dcuts_Cauchy_seq_impl_ex_lim_seq u Cu).
 
-(** Additionals theorems and definitions about limits *)
-
-Lemma is_lim_seq_unique_aux (u : nat -> NonnegativeReals) (l l' : NonnegativeReals) :
-  is_lim_seq u l -> is_lim_seq u l' -> l < l' -> empty.
-Proof.
-  intros u l l' Hl Hl' Hlt.
-  assert (Hlt0 : 0 < l' - l).
-  { now apply ispositive_minusNonnegativeReals. }
-  assert (Hlt0' : 0 < (l' - l) / 2).
-  { now apply ispositive_Dcuts_half. }
-  generalize (Hl _ Hlt0') (Hl' _ Hlt0') ; clear Hl Hl'.
-  apply (hinhuniv2 (P := hProppair _ isapropempty)).
-  intros (N,Hn) (M,Hm).
-  specialize (Hn (max N M) (max_le_l _ _)).
-  specialize (Hm (max N M) (max_le_r _ _)).
-  apply (isirrefl_Dcuts_gt_rel ((l + l') / 2)).
-  apply istrans_Dcuts_gt_rel with (u (max N M)).
-  - rewrite (minusNonnegativeReals_plus_r (l' - l) l' l), (iscomm_plusNonnegativeReals _ l), <- isassoc_plusNonnegativeReals, !isdistr_Dcuts_half_plus, <-double_Dcuts_half.
-    exact (pr1 Hn).
-    now apply Dcuts_lt_le.
-    reflexivity.
-  - apply_pr2 (plusNonnegativeReals_ltcompat_l ((l' - l) / 2)).
-    rewrite <- isdistr_Dcuts_half_plus.
-    rewrite (iscomm_plusNonnegativeReals l), isassoc_plusNonnegativeReals, (iscomm_plusNonnegativeReals l).
-    rewrite <- (minusNonnegativeReals_plus_r (l' - l) l' l), isdistr_Dcuts_half_plus, <- double_Dcuts_half.
-    exact (pr2 Hm).
-    now apply Dcuts_lt_le.
-    reflexivity.
-Qed.
-Lemma is_lim_seq_unique (u : nat -> NonnegativeReals) (l l' : NonnegativeReals) :
-  is_lim_seq u l -> is_lim_seq u l' -> l = l'.
-Proof.
-  intros u l l' Hl Hl'.
-  apply istight_apNonnegativeReals.
-  intros [ | ].
-  - now apply (is_lim_seq_unique_aux u).
-  - now apply (is_lim_seq_unique_aux u).
-Qed.
-Lemma isaprop_ex_lim_seq :
-  ∀ u : nat -> NonnegativeReals, isaprop (Σ l : NonnegativeReals, is_lim_seq u l).
-Proof.
-  intros u l l'.
-  apply (iscontrweqf (X := (pr1 l = pr1 l'))).
-  now apply invweq, total2_paths_hProp_equiv.
-  rewrite (is_lim_seq_unique _ _ _ (pr2 l) (pr2 l')).
-  apply iscontrloopsifisaset.
-  apply pr2.
-Qed.
-Definition ex_lim_seq  (u : nat -> NonnegativeReals) : hProp
-  := hProppair (Σ l : NonnegativeReals, is_lim_seq u l) (isaprop_ex_lim_seq u).
-Definition Lim_seq (u : nat -> NonnegativeReals) (Lu : ex_lim_seq u) : NonnegativeReals
-  := pr1 Lu.
-
 (** ** Opacify *)
 
 Global Opaque NonnegativeReals EffectivelyOrdered_NonnegativeReals.

@@ -564,10 +564,10 @@ Proof.
   intros.
   split.
   - intros Hx P HP.
-    apply Hx, (pr2 (neighborhood_equiv _ _ _)).
+    eapply neighborhood_equiv, Hx.
     exact HP.
   - intros Hx P HP.
-    eapply Hx, neighborhood_equiv.
+    apply (pr2 (neighborhood_equiv _ _ _)), Hx.
     exact HP.
 Qed.
 Lemma ex_filter_lim_base_correct {T : TopologicalSet} (F : Filter (X := T)) :
@@ -604,10 +604,10 @@ Proof.
   intros.
   split.
   - intros Hx P HP.
-    eapply neighborhood_equiv, Hx.
+    apply Hx, (pr2 (neighborhood_equiv _ _ _)).
     exact HP.
   - intros Hx P HP.
-    apply (pr2 (neighborhood_equiv _ _ _)), Hx.
+    eapply Hx, neighborhood_equiv.
     exact HP.
 Qed.
 Lemma ex_lim_base_correct {X : UU} {T : TopologicalSet} (f : X -> T) (F : Filter) :

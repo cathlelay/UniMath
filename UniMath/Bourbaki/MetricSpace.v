@@ -410,6 +410,19 @@ End Balls.
 Definition locally {NR : NonnegativeMonoid} {M : MetricSet (NR := NR)} (x : M) : Filter (X := M) :=
   locally_base (T := metric_topology) x (_,,is_base_of_neighborhood_ball x).
 
+Lemma locally_ball {NR : NonnegativeMonoid} {M : MetricSet (NR := NR)} (x : M) :
+  ∀ e : NR, e > 0 -> locally x (ball x e).
+Proof.
+  intros NR M x e He.
+  apply hinhpr.
+  exists (ball x e).
+  split.
+  apply hinhpr.
+  exists (e,,He).
+  reflexivity.
+  easy.
+Qed.
+
 (** *** Limit of a filter *)
 
 Definition is_filter_lim {NR : NonnegativeMonoid} {M : MetricSet (NR := NR)} (F : Filter) (x : M) :=
@@ -417,37 +430,38 @@ Definition is_filter_lim {NR : NonnegativeMonoid} {M : MetricSet (NR := NR)} (F 
 Definition ex_filter_lim {NR : NonnegativeMonoid} {M : MetricSet (NR := NR)} (F : Filter) :=
   ∃ (x : M), is_filter_lim F x.
 
-Lemma is_filter_lim_aux {NR : NonnegativeMonoid} {M : MetricSet (NR := NR)} (F : Filter) (x : M) :
-  (∀ eps : (Σ e : NR, e > 0), F (λ y, ball x (pr1 eps) y)) <-> is_filter_lim F x.
-Proof.
-  intros NR M F x.
-  split.
-  - intros H P.
-    apply hinhuniv.
-    intros (O,(Ho,Op)).
-    revert Ho.
-    apply hinhuniv.
-    intros (e,->).
-    generalize (H e) ; clear H.
-    apply filter_imply.
-    exact Op.
-  - intros H e.
-    apply H.
-    apply hinhpr.
-    exists (ball x (pr1 e)).
-    split.
-    apply hinhpr.
-    exists e.
-    reflexivity.
-    easy.
-Qed.
-
 (** *** Limit of a function *)
 
 Definition is_lim {X : UU} {NR : NonnegativeMonoid} {M : MetricSet (NR := NR)} (f : X -> M) (F : Filter) (x : M) :=
   is_lim_base (T := metric_topology) f F x (_,,is_base_of_neighborhood_ball x).
 Definition ex_lim {X : UU} {NR : NonnegativeMonoid} {M : MetricSet (NR := NR)} (f : X -> M) (F : Filter) :=
   ∃ (x : M), is_lim f F x.
+
+Lemma is_lim_aux {X : UU} {NR : NonnegativeMonoid} {M : MetricSet (NR := NR)} (f : X -> M) (F : Filter) (x : M) :
+  is_lim f F x <->
+  (∀ eps : (Σ e : NR, e > 0), F (λ y, ball x (pr1 eps) (f y))).
+Proof.
+  intros X NR M f F x.
+  split.
+  - intros H e.
+    eapply filter_imply.
+    2: apply H.
+    intros y Hy.
+    apply Hy.
+    apply locally_ball.
+    now apply (pr2 e).
+  - intros H P.
+    apply hinhuniv.
+    intros (O,(Ho,Ho')).
+    revert Ho.
+    apply hinhuniv.
+    intros (e,->).
+    generalize (H e).
+    apply (filter_imply F).
+    intros y Hy.
+    apply Ho'.
+    apply Hy.
+Qed.
 
 (** *** Continuity *)
 

@@ -164,7 +164,7 @@ Qed.
 (** *** Order on filters *)
 
 Definition filter_le {X : UU} (F G : Filter (X := X)) :=
-  ∀ A : X -> hProp, F A -> G A.
+  ∀ A : X -> hProp, G A -> F A.
 
 Lemma istrans_filter_le {X : UU} :
   ∀ F G H : Filter (X := X),
@@ -172,7 +172,7 @@ Lemma istrans_filter_le {X : UU} :
 Proof.
   intros X.
   intros F G H Hfg Hgh A Fa.
-  apply Hgh, Hfg, Fa.
+  apply Hfg, Hgh, Fa.
 Qed.
 Lemma isrefl_filter_le {X : UU} :
   ∀ F : Filter (X := X), filter_le F F.
@@ -187,8 +187,8 @@ Proof.
   apply subtypeEquality_prop.
   apply funextfun ; intros A.
   apply uahp.
-  now apply Hle.
   now apply Hge.
+  now apply Hle.
 Qed.
 
 Definition PartialOrder_filter_le (X : UU) : PartialOrder (hSetpair Filter (isasetFilter X)).
@@ -247,16 +247,20 @@ Lemma filterlim_comp {X Y Z : UU} :
 Proof.
   intros X Y Z.
   intros f g F G H Hf Hg A Fa.
-  apply Hg, Hf, Fa.
+  specialize (Hg _ Fa).
+  specialize (Hf _ Hg).
+  apply Hf.
 Qed.
 
 Lemma filterlim_decr_1 {X Y : UU} :
   ∀ (f : X -> Y) (F F' : Filter (X := X)) (G : Filter (X := Y)),
-    filter_le F F' -> filterlim f F' G -> filterlim f F G.
+    filter_le F' F -> filterlim f F G -> filterlim f F' G.
 Proof.
   intros X Y.
   intros f F F' G Hf Hle A Ha.
-  apply Hle, Hf, Ha.
+  specialize (Hle _ Ha).
+  specialize (Hf _ Hle).
+  apply Hf.
 Qed.
 
 Lemma filterlim_incr_2 {X Y : UU} :
@@ -265,7 +269,9 @@ Lemma filterlim_incr_2 {X Y : UU} :
 Proof.
   intros X Y.
   intros f F G G' Hg Hle A Ha.
-  apply Hg, Hle, Ha.
+  specialize (Hg _ Ha).
+  specialize (Hle _ Hg).
+  exact Hle.
 Qed.
 
 (** ** Some usefull filters *)
@@ -424,7 +430,7 @@ Proof.
 Defined.
 
 Goal ∀ {X Y : UU} (F : Filter (X := X × Y)),
-    filter_le (filter_prod (filter_pr1 F) (filter_pr2 F)) F.
+    filter_le F (filter_prod (filter_pr1 F) (filter_pr2 F)).
 Proof.
   intros X Y F.
   intros A.
@@ -438,7 +444,7 @@ Proof.
 Qed.
 
 Goal ∀ {X Y : UU} (F : Filter (X := X)) (G : Filter (X := Y)),
-    filter_le F (filter_pr1 (filter_prod F G)).
+    filter_le (filter_pr1 (filter_prod F G)) F.
 Proof.
   intros X Y F G.
   intros A Fa.
@@ -450,7 +456,7 @@ Proof.
   - easy.
 Qed.
 Goal ∀ {X Y : UU} (F : Filter (X := X)) (G : Filter (X := Y)),
-    filter_le G (filter_pr2 (filter_prod F G)).
+    filter_le (filter_pr2 (filter_prod F G)) G.
 Proof.
   intros X Y F G.
   intros A Fa.
@@ -501,7 +507,7 @@ Defined.
 
 (** *** The smallest filter *)
 
-Definition filter_bot {X : UU} (x0 : X) : Filter (X := X).
+Definition filter_top {X : UU} (x0 : X) : Filter (X := X).
 Proof.
   intros X x0.
   simple refine (mkFilter _ _ _ _ _).
@@ -523,8 +529,8 @@ Proof.
     apply x0.
 Defined.
 
-Lemma filter_bot_correct {X : UU} :
-  ∀ (x0 : X) (F : Filter), filter_le (filter_bot x0) F.
+Lemma filter_top_correct {X : UU} :
+  ∀ (x0 : X) (F : Filter), filter_le F (filter_top x0).
 Proof.
   intros X x0 F A Ha.
   apply filter_forall, Ha.
@@ -560,8 +566,8 @@ Proof.
 Defined.
 
 Lemma filter_intersection_glb {X : UU} (FF : Filter (X := X) -> hProp) (Hff : ¬ (∀ F : Filter, ¬ FF F)) :
-  (∀ F : Filter, FF F -> filter_le (filter_intersection FF Hff) F)
-× (∀ F : Filter, (∀ G : Filter, FF G -> filter_le F G) -> filter_le F (filter_intersection FF Hff)).
+  (∀ F : Filter, FF F -> filter_le F (filter_intersection FF Hff))
+× (∀ F : Filter, (∀ G : Filter, FF G -> filter_le G F) -> filter_le (filter_intersection FF Hff) F).
 Proof.
   split.
   - intros F Hf A Ha.
@@ -636,7 +642,7 @@ Lemma generated_filter_correct {X : UU} :
          ¬ (∀ x : X, ¬ finite_intersection L' x)),
    (∀ A : X -> hProp, L A -> (generated_filter L Hl) A)
    × (∀ F : Filter,
-      (∀ A : X -> hProp, L A -> F A) -> filter_le (generated_filter L Hl) F).
+      (∀ A : X -> hProp, L A -> F A) -> filter_le F (generated_filter L Hl)).
 Proof.
   intros L Hl.
   split.
@@ -677,7 +683,7 @@ Qed.
 
 Lemma ex_filter_le {X : UU} :
   ∀ (F : Filter) (A : X -> hProp),
-    (Σ G : Filter, filter_le F G × G A)
+    (Σ G : Filter, filter_le G F × G A)
     <-> (∀ B : X -> hProp, F B -> ¬ (∀ x : X, A x -> B x -> ∅)).
 Proof.
   intros X.
