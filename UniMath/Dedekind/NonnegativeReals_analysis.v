@@ -5,6 +5,7 @@ Require Export UniMath.Dedekind.NonnegativeReals.
 Require Export UniMath.Dedekind.NonnegativeRationals.
 Require Import UniMath.Bourbaki.MetricSpace.
 Require Import UniMath.Bourbaki.NormedSpace.
+Require Import UniMath.Bourbaki.Filters.
 Require Export UniMath.Dedekind.Complements.
 
 (** ** NonnegativeReals is a NonnegativeRig *)
@@ -460,3 +461,31 @@ Definition ex_lim {X : UU} (f : X -> NonnegativeReals) (F : Filter) : hProp
   := hProppair (Σ l : NonnegativeReals, is_lim f F l) (isaprop_ex_lim f F).
 Definition Lim_seq {X : UU} (f : X -> NonnegativeReals) (F : Filter) (Lu : ex_lim f F) : NonnegativeReals
   := pr1 Lu.
+
+Lemma is_lim_seq_equiv :
+  ∀ (f : nat -> NonnegativeReals) (l : NonnegativeReals),
+    is_lim f filter_nat l <-> is_lim_seq f l.
+Proof.
+  intros f l.
+  split.
+  - intros H e He.
+    generalize (pr1 (is_lim_aux _ _ _) H e He).
+    apply hinhfun.
+    intros (N,Hf).
+    exists N.
+    intros n Hn.
+    split.
+    now apply_pr2 Hf.
+    now apply Hf.
+  - intros H.
+    apply (pr2 (is_lim_aux _ _ _)).
+    intros e He.
+    generalize (H e He).
+    apply hinhfun.
+    intros (N,Hf).
+    exists N.
+    intros n Hn.
+    split.
+    now apply_pr2 Hf.
+    now apply Hf.
+Qed.
