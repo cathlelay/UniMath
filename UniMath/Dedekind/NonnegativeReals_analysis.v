@@ -283,13 +283,13 @@ Proof.
         apply Dcuts_plus_le_r.
 Defined.
 
-Definition ball (x eps y : NonnegativeReals) :=
+Definition NR_ball (x eps y : NonnegativeReals) :=
   x < y + eps ∧ y < x + eps.
 
-Lemma ball_correct :
+Lemma NR_ball_correct :
   ∀ x eps y : NonnegativeReals,
     0 < eps ->
-    (ball x eps y <-> MetricSpace.ball (M := NR_MetricSpace) x eps y).
+    (NR_ball x eps y <-> MetricSpace.ball (M := NR_MetricSpace) x eps y).
 Proof.
   intros x eps y.
   split.
@@ -317,13 +317,13 @@ Proof.
       apply Dcuts_max_le_l.
 Qed.
 
-Definition base_of_neighborhood_ball (x : NonnegativeReals) : Topology.base_of_neighborhood (T := metric_topology (M := NR_MetricSpace)) x.
+Definition base_of_neighborhood_NR_ball (x : NonnegativeReals) : Topology.base_of_neighborhood (T := metric_topology (M := NR_MetricSpace)) x.
 Proof.
   intros x.
   generalize (is_base_of_neighborhood_ball (M := NR_MetricSpace) x) ; intro is.
   simple refine (tpair _ _ _).
   intros A.
-  apply (∃ eps : NonnegativeReals, 0 < eps × ∀ y : NonnegativeReals, A y <-> ball x eps y).
+  apply (∃ eps : NonnegativeReals, 0 < eps × ∀ y : NonnegativeReals, A y <-> NR_ball x eps y).
   split.
   - intros P HP.
     apply (pr1 is).
@@ -334,12 +334,12 @@ Proof.
     apply funextfun ; intros y.
     apply uahp.
     + intros Py.
-      apply ball_correct.
+      apply NR_ball_correct.
       exact He.
       now apply HP.
     + intros H.
       apply_pr2 HP.
-      apply_pr2 ball_correct.
+      apply_pr2 NR_ball_correct.
       exact He.
       exact H.
   - intros P HP.
@@ -355,29 +355,29 @@ Proof.
       split.
       exact He.
       split.
-      apply_pr2 ball_correct.
+      apply_pr2 NR_ball_correct.
       exact He.
-      apply ball_correct.
+      apply NR_ball_correct.
       exact He.
     + apply H.
 Defined.
-Definition locally (x : NonnegativeReals) : Filter (X := NonnegativeReals).
+Definition NR_locally (x : NonnegativeReals) : Filter (X := NonnegativeReals).
 Proof.
   intros x.
   simple refine (Topology.locally_base (T := metric_topology (M := NR_MetricSpace)) _ _).
   apply x.
-  apply base_of_neighborhood_ball.
+  apply base_of_neighborhood_NR_ball.
 Defined.
 
-Definition is_filter_lim (F : Filter (X := NonnegativeReals)) (x : NonnegativeReals) :=
-  Topology.is_filter_lim_base (T := metric_topology (M := NR_MetricSpace)) F x (base_of_neighborhood_ball x).
+Definition is_NR_filter_lim (F : Filter (X := NonnegativeReals)) (x : NonnegativeReals) :=
+  Topology.is_filter_lim_base (T := metric_topology (M := NR_MetricSpace)) F x (base_of_neighborhood_NR_ball x).
 
-Definition is_lim {X : UU} (f : X -> NonnegativeReals) (F : Filter) (x : NonnegativeReals) :=
-  Topology.is_lim_base (T := metric_topology (M := NR_MetricSpace)) f F x (base_of_neighborhood_ball x).
+Definition is_NR_lim {X : UU} (f : X -> NonnegativeReals) (F : Filter) (x : NonnegativeReals) :=
+  Topology.is_lim_base (T := metric_topology (M := NR_MetricSpace)) f F x (base_of_neighborhood_NR_ball x).
 
-Lemma is_lim_aux {X : UU} (f : X -> NonnegativeReals) (F : Filter) (x : NonnegativeReals) :
-  is_lim f F x <->
-  (∀ eps : NonnegativeReals, 0 < eps -> F (λ y : X, ball x eps (f y))).
+Lemma is_NR_lim_aux {X : UU} (f : X -> NonnegativeReals) (F : Filter) (x : NonnegativeReals) :
+  is_NR_lim f F x <->
+  (∀ eps : NonnegativeReals, 0 < eps -> F (λ y : X, NR_ball x eps (f y))).
 Proof.
   intros X f F x.
   generalize (is_lim_aux (M := NR_MetricSpace) f F x).
@@ -386,7 +386,7 @@ Proof.
   - intros Hf e He.
     eapply filter_imply.
     intros y Hy.
-    refine (pr2 (ball_correct _ _ _ _) _).
+    refine (pr2 (NR_ball_correct _ _ _ _) _).
     exact He.
     apply Hy.
     refine (pr1 H _ (e,,He)).
@@ -400,15 +400,15 @@ Proof.
     intros (e,He).
     eapply filter_imply.
     intros y Hy.
-    refine (pr1 (ball_correct _ _ _ _) _).
+    refine (pr1 (NR_ball_correct _ _ _ _) _).
     exact He.
     apply Hy.
     apply Hf.
     exact He.
 Qed.
 
-Lemma is_lim_unique_aux {X : UU} (f : X -> NonnegativeReals) (F : Filter) (l l' : NonnegativeReals) :
-  is_lim f F l -> is_lim f F l' -> l < l' -> empty.
+Lemma is_NR_lim_unique_aux {X : UU} (f : X -> NonnegativeReals) (F : Filter) (l l' : NonnegativeReals) :
+  is_NR_lim f F l -> is_NR_lim f F l' -> l < l' -> empty.
 Proof.
   intros X f F l l' Hl Hl' Hlt.
   assert (Hlt0 : 0 < l' - l).
@@ -416,9 +416,9 @@ Proof.
   assert (Hlt0' : 0 < (l' - l) / 2).
   { now apply ispositive_Dcuts_half. }
   apply (filter_notempty F).
-  generalize (filter_and _ _ _ (pr1 (is_lim_aux _ _ _) Hl _ Hlt0') (pr1 (is_lim_aux _ _ _) Hl' _ Hlt0')).
+  generalize (filter_and _ _ _ (pr1 (is_NR_lim_aux _ _ _) Hl _ Hlt0') (pr1 (is_NR_lim_aux _ _ _) Hl' _ Hlt0')).
   apply filter_imply.
-  unfold ball.
+  unfold NR_ball.
   intros x ((_,H),(H0,_)).
   apply (isirrefl_Dcuts_gt_rel ((l + l') / 2)).
   apply istrans_Dcuts_gt_rel with (f x).
@@ -435,18 +435,18 @@ Proof.
     reflexivity.
 Qed.
 
-Lemma is_lim_unique {X : UU} (f : X -> NonnegativeReals) (F : Filter) (l l' : NonnegativeReals) :
-  is_lim f F l -> is_lim f F l' -> l = l'.
+Lemma is_NR_lim_unique {X : UU} (f : X -> NonnegativeReals) (F : Filter) (l l' : NonnegativeReals) :
+  is_NR_lim f F l -> is_NR_lim f F l' -> l = l'.
 Proof.
   intros X f F l l' Hl Hl'.
   apply istight_apNonnegativeReals.
   intros [ | ].
-  - now apply (is_lim_unique_aux f F).
-  - now apply (is_lim_unique_aux f F).
+  - now apply (is_NR_lim_unique_aux f F).
+  - now apply (is_NR_lim_unique_aux f F).
 Qed.
 
 Lemma isaprop_ex_lim {X : UU} :
-  ∀ (f : X -> NonnegativeReals) (F : Filter), isaprop (Σ l : NonnegativeReals, is_lim f F l).
+  ∀ (f : X -> NonnegativeReals) (F : Filter), isaprop (Σ l : NonnegativeReals, is_NR_lim f F l).
 Proof.
   intros X f F.
   apply isaproptotal2'.
@@ -455,21 +455,21 @@ Proof.
   apply impred_isaprop ; intro P.
   apply isapropimpl.
   apply pr2.
-  apply is_lim_unique.
+  apply is_NR_lim_unique.
 Qed.
 Definition ex_lim {X : UU} (f : X -> NonnegativeReals) (F : Filter) : hProp
-  := hProppair (Σ l : NonnegativeReals, is_lim f F l) (isaprop_ex_lim f F).
+  := hProppair (Σ l : NonnegativeReals, is_NR_lim f F l) (isaprop_ex_lim f F).
 Definition Lim_seq {X : UU} (f : X -> NonnegativeReals) (F : Filter) (Lu : ex_lim f F) : NonnegativeReals
   := pr1 Lu.
 
-Lemma is_lim_seq_equiv :
+Lemma is_NR_lim_seq_equiv :
   ∀ (f : nat -> NonnegativeReals) (l : NonnegativeReals),
-    is_lim f filter_nat l <-> is_lim_seq f l.
+    is_NR_lim f filter_nat l <-> is_lim_seq f l.
 Proof.
   intros f l.
   split.
   - intros H e He.
-    generalize (pr1 (is_lim_aux _ _ _) H e He).
+    generalize (pr1 (is_NR_lim_aux _ _ _) H e He).
     apply hinhfun.
     intros (N,Hf).
     exists N.
@@ -478,7 +478,7 @@ Proof.
     now apply_pr2 Hf.
     now apply Hf.
   - intros H.
-    apply (pr2 (is_lim_aux _ _ _)).
+    apply (pr2 (is_NR_lim_aux _ _ _)).
     intros e He.
     generalize (H e He).
     apply hinhfun.

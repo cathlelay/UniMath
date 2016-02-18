@@ -3,5 +3,6 @@ Fields.v
 Complements.v
 NonnegativeRationals.v
 NonnegativeReals.v
+NonnegativeReals_analysis.v
 Reals.v
 DecidableDedekindCuts.v
