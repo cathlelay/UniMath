@@ -141,11 +141,14 @@ Defined.
 Local Definition from_cobase_eqrel : eqrel cobase.
 Proof.
 exists from_cobase_rel.
-repeat split.
-- intros x y z H1 H2.
-  exact (pathscomp0 H1 H2).
-- intros x y H.
-  exact (pathsinv0 H).
+abstract (
+repeat split;
+[ intros x y z H1 H2 ;
+  exact (pathscomp0 H1 H2)
+|
+  intros x y H;
+  exact (pathsinv0 H)
+]).
 Defined.
 
 Lemma rel0_impl a b (Hab : rel0 a b) : from_cobase_eqrel a b.
@@ -204,14 +207,16 @@ abstract (intro f; apply subtypeEquality;
                [now apply issurjsetquotpr | now apply pr2 | ];
              intro y; destruct y as [u fu]; destruct f as [f Hf];
              now apply (toforallpaths _ _ _ (Hf u) fu)]).
-Qed.
+Defined.
 
 End colimits.
+
+Opaque from_colimHSET.
 
 Lemma ColimsHSET : Colims HSET.
 Proof.
 now intros g d; apply ColimCoconeHSET.
-Qed.
+Defined.
 
 (* Direct construction of Coproducts in HSET *)
 Lemma CoproductsHSET : Coproducts HSET.
@@ -237,7 +242,7 @@ Defined.
 Lemma CoproductsHSET_from_Colims : Coproducts HSET.
 Proof.
 exact (Coproducts_from_Colims _ has_homsets_HSET ColimsHSET).
-Qed.
+Defined.
 
 Lemma InitialHSET : Initial HSET.
 Proof.
@@ -245,13 +250,13 @@ apply (mk_Initial emptyHSET).
 apply mk_isInitial; intro a.
 simple refine (tpair _ _ _).
 - simpl; intro e; induction e.
-- intro f; apply funextfun; intro e; induction e.
+- abstract (intro f; apply funextfun; intro e; induction e).
 Defined.
 
 Lemma InitialHSET_from_Colims : Initial HSET.
 Proof.
 now apply Initial_from_Colims, ColimsHSET.
-Qed.
+Defined.
 
 Section limits.
 
@@ -272,6 +277,7 @@ Proof.
               apply (pr2 (dob D t))]).
 Defined.
 
+(* TODO: clean *)
 Lemma LimConeHSET : LimCone D.
 Proof.
   simple refine (mk_LimCone _ _ _ _ ).
@@ -318,14 +324,14 @@ Proof.
            set (p' := toforallpaths _ _ _ (p u)).
            apply p'.
        }
-Qed.
+Defined.
 
 End limits.
 
 Lemma LimsHSET : Lims HSET.
 Proof.
 now intros g d; apply LimConeHSET.
-Qed.
+Defined.
 
 (* Direct construction of Products in HSET *)
 Lemma ProductsHSET : Products HSET.
@@ -351,7 +357,7 @@ Defined.
 Lemma ProductsHSET_from_Lims : Products HSET.
 Proof.
 exact (Products_from_Lims _ has_homsets_HSET LimsHSET).
-Qed.
+Defined.
 
 Lemma TerminalHSET : Terminal HSET.
 Proof.
@@ -364,7 +370,7 @@ Defined.
 Lemma TerminalHSET_from_Lims : Terminal HSET.
 Proof.
 now apply Terminal_from_Lims, LimsHSET.
-Qed.
+Defined.
 
 (*
 Lemma PullbacksHSET : Pullbacks HSET.

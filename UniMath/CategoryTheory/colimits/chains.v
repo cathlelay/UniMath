@@ -77,7 +77,7 @@ Definition mapchain {C D : precategory} (F : functor C D)
 Definition initChain {C : precategory} (InitC : Initial C) (F : functor C C) : chain C.
 Proof.
 exists (λ n, iter_functor F n InitC).
-intros m n Hmn; destruct Hmn; simpl.
+intros m n Hmn. destruct Hmn. simpl.
 induction m; simpl.
 - exact (InitialArrow InitC _).
 - exact (# F IHm).
@@ -120,8 +120,9 @@ Definition shiftCocone : cocone FFchain L.
 Proof.
 simple refine (mk_cocone _ _).
 - intro n; apply (coconeIn (colimCocone CC) (S n)).
-- intros m n e; destruct e.
-  apply (coconeInCommutes (colimCocone CC) (S m) _ (idpath _)).
+- abstract (
+  intros m n e; destruct e ;
+  apply (coconeInCommutes (colimCocone CC) (S m) _ (idpath _))).
 Defined.
 
 Definition unshiftCocone (x : C) : cocone FFchain x -> cocone Fchain x.
@@ -132,10 +133,11 @@ simple refine (mk_cocone _ _).
   destruct n as [|n]; simpl.
   + apply InitialArrow.
   + apply (coconeIn cc _).
-- simpl; intros m n e; destruct e; simpl.
-  destruct m as [|m].
-  + apply InitialArrowUnique.
-  + apply (coconeInCommutes cc m _ (idpath _)).
+- abstract (
+  simpl; intros m n e; destruct e; simpl;
+  destruct m as [|m] ;
+  try apply InitialArrowUnique ;
+  try apply (coconeInCommutes cc m _ (idpath _))).
 Defined.
 
 Definition shiftIsColimCocone : isColimCocone FFchain L shiftCocone.
@@ -146,11 +148,14 @@ simple refine (tpair _ _ _).
   * apply colimArrow, (unshiftCocone _ cc).
   * simpl; intro n.
     apply (colimArrowCommutes CC x (unshiftCocone x cc) (S n)).
-+ simpl; intros p.
-  apply subtypeEquality.
-  * intro f; apply impred; intro; apply hsC.
-  * apply colimArrowUnique; simpl; intro n.
-    destruct n as [|n]; [ apply InitialArrowUnique | apply (pr2 p) ].
++ abstract (
+  simpl; intros p ;
+  apply subtypeEquality ;
+  [
+   intro f; apply impred; intro; apply hsC
+  |
+   apply colimArrowUnique; simpl; intro n ;
+    destruct n as [|n]; [ apply InitialArrowUnique | apply (pr2 p) ]]).
 Defined.
 
 Definition shiftColimCocone : ColimCocone FFchain :=
@@ -242,14 +247,13 @@ destruct n as [|n].
   apply cancel_postcomposition, maponpaths, (colimArrowCommutes CC).
 Qed.
 
-Definition ad_mor : algebra_mor F α_alg Aa := tpair _ _ ad_is_algebra_mor.
+Local Definition ad_mor : algebra_mor F α_alg Aa := tpair _ _ ad_is_algebra_mor.
 
 End algebra_mor.
 
-Lemma colimAlgIsInitial : isInitial (precategory_FunctorAlg F hsC) α_alg.
+Lemma colimAlgIsInitial_subproof (Aa : FunctorAlg F hsC)
+        (Fa' : algebra_mor F α_alg Aa) : Fa' = ad_mor Aa.
 Proof.
-apply mk_isInitial; intros Aa.
-exists (ad_mor Aa); simpl; intro Fa'.
 apply (algebra_mor_eq _ hsC); simpl.
 apply colimArrowUnique; simpl; intro n.
 destruct Fa' as [f hf]; simpl.
@@ -264,119 +268,15 @@ induction n as [|n IHn]; simpl.
   now eapply pathscomp0; [apply (colimArrowCommutes shiftColimCocone)|].
 Qed.
 
+Lemma colimAlgIsInitial : isInitial (precategory_FunctorAlg F hsC) α_alg.
+Proof.
+apply mk_isInitial.
+intros Aa.
+exists (ad_mor Aa).
+apply colimAlgIsInitial_subproof.
+Defined.
+
 Definition colimAlgInitial : Initial (precategory_FunctorAlg F hsC) :=
   mk_Initial _ colimAlgIsInitial.
 
 End colim_initial_algebra.
-
-Section polynomial_functors.
-
-Require Import UniMath.CategoryTheory.limits.FunctorsPointwiseProduct.
-Require Import UniMath.CategoryTheory.limits.FunctorsPointwiseCoproduct.
-Require Import UniMath.CategoryTheory.limits.products.
-Require Import UniMath.CategoryTheory.limits.coproducts.
-Require Import UniMath.CategoryTheory.limits.terminal.
-
-Variables (C : precategory) (hsC : has_homsets C) (InitC : Initial C).
-Variables (F : functor C C).
-
-(* "good" functors *)
-Let good F := @omega_cocont C C F.
-
-(* TODO: Prove that polynomial functors are good *)
-(* good(F), good(G) |- good(F * G) *)
-(* good(F), good(G) |- good(F + G) *)
-(*                  |- good(constant_functor A) *)
-(*                  |- good(identity_functor) *)
-
-Section constant_functor.
-
-Variable (x : C).
-
-Let Fx : functor C C := constant_functor C C x.
-
-Lemma goodConstantFunctor : good Fx.
-Proof.
-intros c L ccL HcL y ccy; simpl.
-simple refine (tpair _ _ _).
-- simple refine (tpair _ _ _).
-  + apply (coconeIn ccy 0).
-  + simpl; intro n; rewrite id_left.
-    destruct ccy as [f Hf]; simpl in *.
-    induction n; [apply idpath|].
-    now rewrite IHn, <- (Hf n (S n) (idpath _)), id_left.
-- simpl; intro p; apply subtypeEquality.
-  + intros f; apply impred; intro; apply hsC.
-  + now simpl; destruct p as [p H]; rewrite <- (H 0), id_left.
-Defined.
-
-End constant_functor.
-
-Section identity_functor.
-
-Let Fid : functor C C := functor_identity C.
-
-Lemma goodIdentityFunctor : good Fid.
-Proof.
-intros c L ccL HcL.
-apply (preserves_colimit_identity hsC _ _ _ HcL).
-Defined.
-
-End identity_functor.
-
-End polynomial_functors.
-
-(*
-(* WIP below of here *)
-Section lists.
-
-(* TODO: Move *)
-
-Variable A : HSET.
-
-(* F(X) = A * X *)
-Definition streamFunctor : functor HSET HSET :=
-  product_functor HSET HSET ProductsHSET
-                  (constant_functor HSET HSET A)
-                  (functor_identity HSET).
-
-(* F(X) = 1 + (A * X) *)
-
-(*
-Definition listFunctor : functor HSET HSET :=
-  coproduct_functor HSET HSET CoproductsHSET
-                    (constant_functor HSET HSET (TerminalObject TerminalHSET))
-                    streamFunctor.
-*)
-
-(* Let ColimCoconeF F := ColimCocone *)
-(*          (Fchain F (InitialObject InitialHSET) *)
-(*             (InitialArrow InitialHSET (F (InitialObject InitialHSET)))). *)
-
-Lemma listFunctor_omega_cocontinuous : good listFunctor.
-Proof.
-unfold listFunctor, streamFunctor.
-apply goodCoproduct; [ apply goodConstant |].
-apply goodProduct; [ apply goodConstant | apply goodIdentity].
-Defined.
-
-Lemma listFunctor_Initial :
-  Initial (precategory_FunctorAlg listFunctor has_homsets_HSET).
-Proof.
-simple refine (colimAlgInitial _ _ _ _ _ _).
-- apply InitialHSET.
-- apply ColimCoconeHSET.
-- apply listFunctor_omega_cocontinuous.
-Defined.
-
-
-(* Get recursion/iteration scheme: *)
-
-(*    x : X           f : A × X -> X *)
-(* ------------------------------------ *)
-(*       iter x f : List A -> X *)
-
-(* Get induction as well? *)
-
-End lists.
-*)

@@ -86,19 +86,17 @@ Proof.
   now apply Hirrefl.
 Qed.
 
-Local Lemma isEffectiveOrder_hnnq : isEffectiveOrder hnnq_ge hnnq_gt.
+Local Lemma isEffectiveOrder_hnnq : isEffectiveOrder hnnq_le hnnq_lt.
 Proof.
-  split ; [ | split ; [ | repeat split]].
-  - exact ispreorder_hnnq_ge.
-  - exact isStrongOrder_hnnq_gt.
-  - intros x y.
-    now apply hqgthtogeh.
+  split ; [ split | repeat split ].
+  - exact ispreorder_hnnq_le.
+  - exact isStrongOrder_hnnq_lt.
   - easy.
   - easy.
   - intros x y z.
-    now apply hqgthgehtrans.
+    now apply hqlthlehtrans.
   - intros x y z.
-    now apply hqgehgthtrans.
+    now apply hqlehlthtrans.
 Qed.
 
 (** ** hnnq is a half field *)

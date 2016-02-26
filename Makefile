@@ -7,14 +7,14 @@ include build/Makefile-configuration
 endif
 endif
 ############################################
-# The packages, listed in reverse order by dependency:
-PACKAGES += SubstitutionSystems
-PACKAGES += Tactics
-PACKAGES += Dedekind
-PACKAGES += Bourbaki
-PACKAGES += Ktheory
-PACKAGES += CategoryTheory
+# The packages, listed in order by dependency:
 PACKAGES += Foundations
+PACKAGES += CategoryTheory
+PACKAGES += Ktheory
+PACKAGES += Bourbaki
+PACKAGES += Dedekind
+PACKAGES += Tactics
+PACKAGES += SubstitutionSystems
 ############################################
 # other user options; see also build/Makefile-configuration-template
 BUILD_COQ ?= yes

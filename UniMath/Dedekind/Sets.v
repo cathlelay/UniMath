@@ -191,17 +191,16 @@ Qed.
 (** ** Effectively Ordered *)
 (** An alternative of total orders *)
 
-Definition isEffectiveOrder {X : UU} (ge gt : hrel X) :=
-  (ispreorder ge)
-    × (isStrongOrder gt)
-    × (forall x y : X, gt x y -> ge x y)
-    × (forall x y : X, (¬ gt x y) <-> (ge y x))
-    × (forall x y z : X, gt x y -> ge y z -> gt x z)
-    × (forall x y z : X, ge x y -> gt y z -> gt x z).
+Definition isEffectiveOrder {X : UU} (le lt : hrel X) :=
+  dirprod ((ispreorder le) × (isStrongOrder lt))
+          ((∀ x y : X, (¬ lt x y) <-> (le y x))
+          × (∀ x y z : X, lt x y -> le y z -> lt x z)
+          × (∀ x y z : X, le x y -> lt y z -> lt x z)).
+
 Definition EffectiveOrder (X : UU) :=
-  Σ ge gt : hrel X, isEffectiveOrder ge gt.
-Definition pairEffectiveOrder {X : UU} (ge gt : hrel X) (is : isEffectiveOrder ge gt) : EffectiveOrder X :=
-  (ge,,gt,,is).
+  Σ le lt : hrel X, isEffectiveOrder le lt.
+Definition pairEffectiveOrder {X : UU} (le lt : hrel X) (is : isEffectiveOrder le lt) : EffectiveOrder X :=
+  (le,,lt,,is).
 
 Definition EffectivelyOrderedSet :=
   Σ X : hSet, EffectiveOrder X.
@@ -210,32 +209,32 @@ Definition pairEffectivelyOrderedSet {X : hSet} (is : EffectiveOrder X) : Effect
 Definition pr1EffectivelyOrderedSet : EffectivelyOrderedSet -> hSet := pr1.
 Coercion pr1EffectivelyOrderedSet : EffectivelyOrderedSet >-> hSet.
 
-Definition EOge {X : EffectivelyOrderedSet} : po X :=
-  let R := pr2 X in
-  popair (pr1 R) (pr1 (pr2 (pr2 R))).
-Definition EOge_rel {X : EffectivelyOrderedSet} : hrel X :=
-  pr1 EOge.
-Arguments EOge_rel {!X} x y: simpl never.
 Definition EOle {X : EffectivelyOrderedSet} : po X :=
-  po_reverse (@EOge X).
+  let R := pr2 X in
+  popair (pr1 R) (pr1 (pr1 (pr2 (pr2 R)))).
 Definition EOle_rel {X : EffectivelyOrderedSet} : hrel X :=
   pr1 EOle.
 Arguments EOle_rel {!X} x y: simpl never.
+Definition EOge {X : EffectivelyOrderedSet} : po X :=
+  po_reverse (@EOle X).
+Definition EOge_rel {X : EffectivelyOrderedSet} : hrel X :=
+  pr1 EOge.
+Arguments EOge_rel {!X} x y: simpl never.
 
-Definition EOgt {X : EffectivelyOrderedSet} : StrongOrder (pr1 X) :=
-  let R := pr2 X in
-  pairStrongOrder (pr1 (pr2 R)) (pr1 (pr2 (pr2 (pr2 R)))).
-Definition EOgt_rel {X : EffectivelyOrderedSet} : hrel X :=
-  pr1 EOgt.
-Arguments EOgt_rel {!X} x y: simpl never.
 Definition EOlt {X : EffectivelyOrderedSet} : StrongOrder (pr1 X) :=
-  StrongOrder_reverse (@EOgt X).
+  let R := pr2 X in
+  pairStrongOrder (pr1 (pr2 R)) (pr2 (pr1 (pr2 (pr2 R)))).
 Definition EOlt_rel {X : EffectivelyOrderedSet} : hrel X :=
   pr1 EOlt.
 Arguments EOlt_rel {!X} x y: simpl never.
+Definition EOgt {X : EffectivelyOrderedSet} : StrongOrder (pr1 X) :=
+  StrongOrder_reverse (@EOlt X).
+Definition EOgt_rel {X : EffectivelyOrderedSet} : hrel X :=
+  pr1 EOgt.
+Arguments EOgt_rel {!X} x y: simpl never.
 
 Definition PreorderedSetEffectiveOrder (X : EffectivelyOrderedSet) : PreorderedSet :=
-  PreorderedSetPair _ (@EOge X).
+  PreorderedSetPair _ (@EOle X).
 
 Delimit Scope eo_scope with eo.
 
@@ -250,14 +249,10 @@ Context {X : EffectivelyOrderedSet}.
 
 Open Scope eo_scope.
 
-Definition not_EOgt_ge :
-  ∀ x y : X, (¬ (x > y)) <-> (y >= x)
-  := (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))).
 Lemma not_EOlt_le :
   ∀ x y : X, (¬ (x < y)) <-> (y <= x).
 Proof.
-  intros x y.
-  apply not_EOgt_ge.
+  exact (pr1 (pr2 (pr2 (pr2 (pr2 X))))).
 Qed.
 Lemma EOge_le:
   ∀ x y : X, (x >= y) <-> (y <= x).
@@ -269,23 +264,6 @@ Lemma EOgt_lt:
 Proof.
   now split.
 Qed.
-
-Definition EOgt_ge :
-  forall x y : X, x > y -> x >= y
-  := (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))).
-Lemma EOlt_le :
-  forall x y : X, x < y -> x <= y.
-Proof.
-  intros x y.
-  now apply EOgt_ge.
-Qed.
-
-Definition isrefl_EOge:
-  forall x : X, x >= x
-  := isrefl_po EOge.
-Definition istrans_EOge:
-  ∀ x y z : X, x >= y -> y >= z -> x >= z
-  := istrans_po EOge.
 
 Definition isrefl_EOle:
   forall x : X, x <= x
@@ -308,28 +286,27 @@ Definition istrans_EOlt:
   ∀ x y z : X, x < y -> y < z -> x < z
   := istrans_StrongOrder EOlt.
 
-Definition istrans_EOgt_ge:
-  ∀ x y z : X, x > y -> y >= z -> x > z
-  := (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))).
-Definition istrans_EOge_gt:
-  ∀ x y z : X, x >= y -> y > z -> x > z
-  := (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))).
+Lemma EOlt_le :
+  ∀ x y : X, x < y -> x <= y.
+Proof.
+  intros x y Hxy.
+  apply not_EOlt_le.
+  intros H.
+  refine (isirrefl_EOlt _ _).
+  refine (istrans_EOlt _ _ _ _ _).
+  exact Hxy.
+  exact H.
+Qed.
 
-Definition istrans_EOlt_le:
+Lemma istrans_EOlt_le:
   ∀ x y z : X, x < y -> y <= z -> x < z.
 Proof.
-  intros x y z Hlt Hle.
-  refine (istrans_EOge_gt _ _ _ _ _).
-  apply Hle.
-  apply Hlt.
+  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))).
 Qed.
-Definition istrans_EOle_lt:
+Lemma istrans_EOle_lt:
   ∀ x y z : X, x <= y -> y < z -> x < z.
 Proof.
-  intros x y z Hle Hlt.
-  refine (istrans_EOgt_ge _ _ _ _ _).
-  apply Hlt.
-  apply Hle.
+  exact (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))).
 Qed.
 
 Lemma EOlt_noteq :
@@ -353,13 +330,13 @@ End eo_pty.
 
 (** ** Constructive Total Effective Order *)
 
-Definition isConstructiveTotalEffectiveOrder {X : UU} (ap ge gt : hrel X) :=
+Definition isConstructiveTotalEffectiveOrder {X : UU} (ap le lt : hrel X) :=
   istightap ap
-  × isEffectiveOrder ge gt
-  × (isantisymm ge)
-  × (∀ x y : X, ap x y <-> (gt x y) ⨿ (gt y x)).
+  × isEffectiveOrder le lt
+  × (isantisymm le)
+  × (∀ x y : X, ap x y <-> (lt x y) ⨿ (lt y x)).
 Definition ConstructiveTotalEffectiveOrder X :=
-  Σ ap gt ge : hrel X, isConstructiveTotalEffectiveOrder ap gt ge.
+  Σ ap lt le : hrel X, isConstructiveTotalEffectiveOrder ap lt le.
 Definition ConstructiveTotalEffectivellyOrderedSet :=
   Σ X : hSet, ConstructiveTotalEffectiveOrder X.
 
