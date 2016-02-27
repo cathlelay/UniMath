@@ -435,7 +435,7 @@ Lemma isdecrel_ltNonnegativeRationals :
   ∀ x y : NonnegativeRationals, (x < y) ⨿ ¬ (x < y).
 Proof.
   intros x y.
-  apply isdecrelhqgth.
+  apply isdecrelhqlth.
 Qed.
 
 Lemma le_eqorltNonnegativeRationals :
@@ -459,7 +459,7 @@ Proof.
     + now apply fromempty, Hneq, Heq.
     + exact Hlt.
   - right.
-    apply neghqlehtogth.
+    apply neghqgehtolth.
     exact Hlt.
 Qed.
 Lemma eq0orgt0NonnegativeRationals :
@@ -520,8 +520,7 @@ Proof.
   intros x y.
   split.
   - now apply neghqgehtolth.
-  - change (x < y -> ¬ (x >= y)).
-    now apply (hqlthtoneghqgeh (pr1 x) (pr1 y)).
+  - now apply hqlthtoneghqgeh.
 Qed.
 
 Definition ltNonnegativeRationals_noteq :
@@ -621,8 +620,7 @@ Definition iscomm_plusNonnegativeRationals:
 Lemma plusNonnegativeRationals_ltcompat_r :
   ∀ x y z : NonnegativeRationals, (y < z) <-> (y + x < z + x).
 Proof.
-  intros (x,Hx) (y,Hy) (z,Hz).
-  change ((y < z)%hq <-> (y + x < z + x)%hq).
+  intros x y z.
   split.
   now apply hqlthandplusr.
   now apply hqlthandplusrinv.
@@ -676,8 +674,8 @@ Lemma plusNonnegativeRationals_ltcompat :
 Proof.
   intros x x' y y' Hx Hy.
   apply istrans_ltNonnegativeRationals with (x + y').
-  now apply plusNonnegativeRationals_ltcompat_l.
-  now apply plusNonnegativeRationals_ltcompat_r.
+  now apply hqlthandplusl, Hy.
+  now apply hqlthandplusr, Hx.
 Qed.
 Lemma plusNonnegativeRationals_le_lt_ltcompat :
   ∀ x x' y y' : NonnegativeRationals,
@@ -685,8 +683,8 @@ Lemma plusNonnegativeRationals_le_lt_ltcompat :
 Proof.
   intros x x' y y' Hx Hy.
   apply istrans_lt_le_ltNonnegativeRationals with (x + y').
-  now apply plusNonnegativeRationals_ltcompat_l.
-  now apply plusNonnegativeRationals_lecompat_r.
+  now apply hqlthandplusl, Hy.
+  now apply hqlehandplusr, Hx.
 Qed.
 Lemma plusNonnegativeRationals_lt_le_ltcompat :
   ∀ x x' y y' : NonnegativeRationals,
@@ -694,8 +692,8 @@ Lemma plusNonnegativeRationals_lt_le_ltcompat :
 Proof.
   intros x x' y y' Hx Hy.
   apply istrans_le_lt_ltNonnegativeRationals with (x + y').
-  now apply plusNonnegativeRationals_lecompat_l.
-  now apply plusNonnegativeRationals_ltcompat_r.
+  now apply hqlehandplusl, Hy.
+  now apply hqlthandplusr, Hx.
 Qed.
 
 Lemma plusNonnegativeRationals_le_r :

@@ -10,52 +10,6 @@ Require Export UniMath.Dedekind.Complements.
 
 (** ** NonnegativeReals is a NonnegativeRig *)
 
-Lemma isldistr_minus_multNonnegativeReals :
-  ∀ x y z : NonnegativeReals, x * (y - z) = x * y - x * z.
-Proof.
-  intros x y z.
-  apply (plusNonnegativeReals_eqcompat_l (x * z)).
-  rewrite <- isldistr_plus_multNonnegativeReals.
-  rewrite !Dcuts_minus_plus_max.
-  apply Dcuts_eq_is_eq.
-  intros r.
-  split.
-  - apply hinhuniv.
-    intros ((rx,ryz)) ; simpl ; intros (->,(Xr)).
-    apply hinhfun.
-    intros [Yr | Zr].
-    + left.
-      apply hinhpr.
-      now exists (rx,ryz).
-    + right.
-      apply hinhpr.
-      now exists (rx,ryz).
-  - apply hinhuniv.
-    intros [ | ].
-    + apply hinhuniv.
-      intros ((rx,ry)) ; simpl ; intros (->,(Xr,Yr)).
-      apply hinhpr.
-      exists (rx,ry).
-      repeat split.
-      exact Xr.
-      apply hinhpr.
-      now left.
-    + apply hinhuniv.
-      intros ((rx,rz)) ; simpl ; intros (->,(Xr,Zr)).
-      apply hinhpr.
-      exists (rx,rz).
-      repeat split.
-      exact Xr.
-      apply hinhpr.
-      now right.
-Qed.
-Lemma isrdistr_minus_multNonnegativeReals :
-  ∀ x y z : NonnegativeReals, (x - y) * z = x * z - y * z.
-Proof.
-  intros x y z.
-  now rewrite iscomm_multNonnegativeReals, isldistr_minus_multNonnegativeReals, !(iscomm_multNonnegativeReals z).
-Qed.
-
 Definition minNonnegativeReals (x y : NonnegativeReals) : NonnegativeReals.
 Proof.
   intros x y.
@@ -110,7 +64,7 @@ Proof.
         exact (pr2 H).
 Defined.
 
-Transparent EffectivelyOrdered_NonnegativeReals.
+Transparent Dcuts_le_rel.
 
 Lemma minNonnegativeReals_le_l :
   ∀ x y : NonnegativeReals, minNonnegativeReals x y <= x.
@@ -166,28 +120,21 @@ Qed.
 Definition NR_NonnegativeRig : NonnegativeRig.
 Proof.
   exists (commrigtorig (pr1 NonnegativeReals)).
-  exists apNonnegativeReals, (pr1 geNonnegativeReals), (pr1 gtNonnegativeReals).
+  exists apNonnegativeReals, (pr1 leNonnegativeReals), (pr1 ltNonnegativeReals).
   split ; [split ; [ | split ; [ | split]] | repeat split].
   - exact (pr2 (pr2 Dcuts)).
-  - exact iseo_Dcuts_ge_gt_rel.
+  - exact iseo_Dcuts_le_lt_rel.
   - intros x y Hle Hge.
     apply isantisymm_leNonnegativeReals.
-    split.
-    exact Hge.
-    exact Hle.
-  - intros x y.
-    split ; intros [H | H].
-    now right.
-    now left.
-    now right.
-    now left.
+    now split.
+  - easy.
   - intros a b c ; apply plusNonnegativeReals_ltcompat_r.
   - intros a b c ; apply plusNonnegativeReals_ltcompat_l.
   - intros a b c d.
     change (b < a -> d < c -> (a * d + b * c) < (a * c + b * d)).
     intros Hab Hcd.
     rewrite (minusNonnegativeReals_plus_r (a - b) a b).
-    2: now apply Dcuts_lt_le, Hab.
+    2: now apply lt_leNonnegativeReals, Hab.
     2: reflexivity.
     rewrite !isrdistr_plus_multNonnegativeReals, !isassoc_plusNonnegativeReals.
     rewrite (iscomm_plusNonnegativeReals (b * d)).
@@ -195,9 +142,9 @@ Proof.
     apply multNonnegativeReals_ltcompat_r.
     now apply ispositive_minusNonnegativeReals.
     exact Hcd.
-  - intros x.
-    apply (isnonnegative_NonnegativeReals x).
-  - apply NonnegativeRationals_to_NonnegativeReals_lt, ispositive_oneNonnegativeRationals.
+  - apply (isnonnegative_NonnegativeReals).
+  - apply ispositive_apNonnegativeReals.
+    exact isnonzeroNonnegativeReals.
   - intros x y.
     apply hinhpr.
     exists (minNonnegativeReals x y) ; repeat split.
@@ -207,15 +154,15 @@ Proof.
     now apply minNonnegativeReals_gtcompat.
   - intros x y H.
     apply hinhpr.
-    exists (minusNonnegativeReals x y) ; split.
+    exists (minusNonnegativeReals y x) ; split.
     now apply ispositive_minusNonnegativeReals.
     rewrite iscomm_plusNonnegativeReals.
     apply minusNonnegativeReals_plus_r.
-    apply Dcuts_lt_le, H.
+    apply lt_leNonnegativeReals, H.
     reflexivity.
 Defined.
 
-Definition NR_MetricSpace : MetricSet (NR := NonnegativeRig_to_NonnegativeAddMonoid NR_NonnegativeRig).
+Definition NR_MetricSpace : MetricSet (NonnegativeRig_to_NonnegativeAddMonoid NR_NonnegativeRig).
 Proof.
   simple refine (tpair _ _ _).
   exact Dcuts.
@@ -420,18 +367,18 @@ Proof.
   apply filter_imply.
   unfold NR_ball.
   intros x ((_,H),(H0,_)).
-  apply (isirrefl_Dcuts_gt_rel ((l + l') / 2)).
-  apply istrans_Dcuts_gt_rel with (f x).
-  - rewrite (minusNonnegativeReals_plus_r (l' - l) l' l), (iscomm_plusNonnegativeReals _ l), <- isassoc_plusNonnegativeReals, !isdistr_Dcuts_half_plus, <-double_Dcuts_half.
-    exact H.
-    now apply Dcuts_lt_le.
-    reflexivity.
+  apply (isirrefl_Dcuts_lt_rel ((l + l') / 2)).
+  apply istrans_Dcuts_lt_rel with (f x).
   - apply_pr2 (plusNonnegativeReals_ltcompat_l ((l' - l) / 2)).
     rewrite <- isdistr_Dcuts_half_plus.
     rewrite (iscomm_plusNonnegativeReals l), isassoc_plusNonnegativeReals, (iscomm_plusNonnegativeReals l).
     rewrite <- (minusNonnegativeReals_plus_r (l' - l) l' l), isdistr_Dcuts_half_plus, <- double_Dcuts_half.
     exact H0.
-    now apply Dcuts_lt_le.
+    now apply lt_leNonnegativeReals.
+    reflexivity.
+  - rewrite (minusNonnegativeReals_plus_r (l' - l) l' l), (iscomm_plusNonnegativeReals _ l), <- isassoc_plusNonnegativeReals, !isdistr_Dcuts_half_plus, <-double_Dcuts_half.
+    exact H.
+    now apply lt_leNonnegativeReals.
     reflexivity.
 Qed.
 
