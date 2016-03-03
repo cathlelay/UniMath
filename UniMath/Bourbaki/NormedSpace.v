@@ -748,3 +748,114 @@ Proof.
   rewrite (grinvop (X := X)).
   apply isrefl_NnRle.
 Qed.
+
+(** ** Riemann integral *)
+
+Section pointed_subdivision.
+
+Context {NR : NonnegativeMonoid} {M : MetricSet NR}.
+
+Definition is_pointed_subdivision (a b : M) (n : nat) (lx ly : nat -> M) :=
+  lx O = a × lx n = b
+  × (∀ k : nat, (k < n)%nat -> (dist (lx k) (ly k) + dist (ly k) (lx (S k)) = dist (lx k) (lx (S k)))%addmonoid).
+
+Definition pointed_subdivision (a b : M) :=
+  Σ (n : nat) (lx ly : nat -> M), is_pointed_subdivision a b n lx ly.
+
+Definition pointed_subdivision_Chasles (a b c : M) :
+  pointed_subdivision a b -> pointed_subdivision b c -> pointed_subdivision a c.
+Proof.
+  intros a b c l1 l2.
+
+  exists (pr1 l1 + pr1 l2)%nat.
+  simple refine (tpair _ _ _).
+  { intros k.
+    case (natlthorgeh k (pr1 l1)) ; intros Hk.
+    apply (pr1 (pr2 l1) k).
+    apply (pr1 (pr2 l2) (k - pr1 l1)%nat). }
+   simple refine (tpair _ _ _).
+  { intros k.
+    case (natlthorgeh k (pr1 l1)) ; intros Hk.
+    apply (pr1 (pr2 (pr2 l1)) k).
+    apply (pr1 (pr2 (pr2 l2)) (k - pr1 l1)%nat). }
+
+  repeat split.
+  - rewrite <- (pr1 (pr2 (pr2 (pr2 l1)))).
+    case natlthorgeh ; intros H.
+    + reflexivity.
+    + apply nat0gehtois0 in H.
+      generalize (pr1 (pr2 (pr2 (pr2 (pr2 l1))))).
+      pattern (pr1 l1) at 2 3.
+      rewrite H.
+      intros ->.
+      apply (pr1 (pr2 (pr2 (pr2 l2)))).
+  - case natlthorgeh ; intros H.
+    apply fromempty.
+    revert H.
+    apply natgehtonegnatlth.
+    now apply natgehplusnmn.
+    rewrite natpluscomm.
+    rewrite plusminusnmm.
+    apply (pr1 (pr2 (pr2 (pr2 (pr2 l2))))).
+  - intros k Hk.
+    case natlthorgeh ; intros Hk1.
+    + case natlthorgeh ; intros Hk2.
+      * now apply (pr2 (pr2 (pr2 (pr2 (pr2 l1))))).
+      * assert (pr1 l1 = S k).
+        { apply isantisymmnatgeh.
+          now apply natgthtogehsn, Hk1.
+          now apply Hk2. }
+        pattern (pr1 l1) at 8 10.
+        rewrite H, minuseq0.
+        rewrite (pr1 (pr2 (pr2 (pr2 l2)))).
+        pattern b at 20 24.
+        rewrite <- (pr1 (pr2 (pr2 (pr2 (pr2 l1))))).
+        pattern (pr1 l1) at 9 12.
+        rewrite H.
+        now apply (pr2 (pr2 (pr2 (pr2 (pr2 l1))))).
+        apply isreflnatleh.
+    + case natlthorgeh ; intros Hk2.
+      * apply fromempty.
+        revert Hk2.
+        apply natgehtonegnatlth.
+        now apply natgehtogehs.
+      * assert (S k - pr1 l1 = S (k - pr1 l1))%nat.
+        { revert Hk1.
+          generalize (pr1 l1) k.
+          clear.
+          induction n ; intros k H ; simpl.
+          now rewrite natminuseqn.
+          destruct k.
+          apply fromempty ; revert H.
+          now apply negnatgeh0sn.
+          now apply IHn. }
+        rewrite H.
+        apply (pr2 (pr2 (pr2 (pr2 (pr2 l2))))).
+        apply natlthandpluslinv with (pr1 l1).
+        now rewrite natpluscomm, minusplusnmm.
+Defined.
+
+End pointed_subdivision.
+
+Section Riemann_sum.
+
+Context {NR : NonnegativeRig}
+        {K : absrng NR}.
+Context {V : module K}.
+
+Definition Riemann_sum_aux (f : K -> V) (lx ly : nat -> K) : nat -> V :=
+  fix Rsum n :=
+    match n with
+    | O => 0%addmonoid
+    | S n => (Rsum n + scal (lx (S n) - lx n)%rng (f (ly n)))%addmonoid
+    end.
+Definition Riemann_sum {a b : K} (f : K -> V) (s : pointed_subdivision (M := metric_norm (X := absrng_to_NormedModule K)) a b) : V :=
+  Riemann_sum_aux f (pr1 (pr2 s)) (pr1 (pr2 (pr2 s))) (pr1 s).
+
+End Riemann_sum.
+
+Section Riemann_integral.
+
+Context {NR : NonnegativeMonoid} {M : MetricSet NR}.
+
+End Riemann_integral.
