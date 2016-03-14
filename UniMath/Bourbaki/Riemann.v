@@ -30,6 +30,7 @@ Definition is_unit_interval {X : setwith2binop} (le lt : hrel X) (addinv : unop 
     × (∀ x y : X, addinv (op2 x y) = op1 (op2 (addinv x) y) (addinv y))
     × let x0 := unel_is H0 in
       let x1 := unel_is H1 in
+      Σ (div : X -> ∀ y : X, lt x0 y -> X),
       (lt x0 x1) × (∀ x : X, le x0 x × le x x1)
       × (x1 = addinv x0) × (∀ x : X, addinv (addinv x) = x)
       × (∀ x y z : X, le x (addinv y) -> op2 (op1 x y) z = op1 (op2 x z) (op2 y z))
@@ -40,9 +41,8 @@ Definition is_unit_interval {X : setwith2binop} (le lt : hrel X) (addinv : unop 
       × (∀ x y z : X, lt x0 x -> lt y z -> lt (op2 x y) (op2 x z))
       × (∀ x y z : X, lt (op2 x y) (op2 x z) -> lt y z)
       × (∀ x y : X, lt x y -> lt (addinv y) (addinv x))
-      × Σ (div : X -> ∀ y : X, lt x0 y -> X),
-      (∀ (x y : X) (Hy : lt x0 y), le x y -> op2 y (div x y Hy) = x)
-        × (∀ (x y : X) (Hy : lt x0 y), le y x -> (div x y Hy) = x1).
+      × (∀ (x y : X) (Hy : lt x0 y), le x y -> op2 y (div x y Hy) = x)
+      × (∀ (x y : X) (Hy : lt x0 y), le y x -> (div x y Hy) = x1).
 
 Definition unit_interval :=
   Σ {X : setwith2binop} (le lt : hrel X) (addinv : unop X) (cst : nat -> X), is_unit_interval le lt addinv cst.
@@ -69,12 +69,10 @@ Definition UIaddinv : unop X := pr1 (pr2 (pr2 (pr2 X))).
 Definition UImult : binop X := op2.
 Definition UIdiv : X -> ∀ y : X, UIlt UIzero y -> X.
 Proof.
-  set (X0 := pr2 (pr2 (pr2 (pr2 (pr2 X))))).
-  set (X1 := pr2 (pr2 (pr2 (pr2 (pr2 X0))))).
-  set (X2 := pr2 (pr2 (pr2 (pr2 (pr2 X1))))).
-  set (X3 := pr2 (pr2 (pr2 (pr2 (pr2 X2))))).
-
-
+  set (X0 := pr2 (pr2 (pr2 (pr2 (pr2 X))))) ; clearbody X0.
+  set (X1 := pr2 (pr2 (pr2 (pr2 (pr2 X0))))) ; clearbody X1.
+  unfold UIzero.
+  destruct (unel UIaddmonoid) as (x0,Hx0).
 Defined.
 
 Lemma UIlt_zero_one : UIlt UIzero UIone.
