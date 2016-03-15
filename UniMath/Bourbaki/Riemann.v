@@ -23,6 +23,13 @@ Qed.
 (** ** Unit interval *)
 (** Inspired by the alea library by C. Paulin *)
 
+Fixpoint natmult {X : monoid} (n : nat) (x : X) : X :=
+  match n with
+    | O => unel X
+    | S O => x
+    | S m => op (natmult m x) x
+  end.
+
 Definition is_unit_interval {X : setwith2binop} (le lt : hrel X) (addinv : unop X) (cst : nat -> X) :=
   isEffectiveOrder le lt
   × Σ (H0 : isabmonoidop (op1 (X := X))) (H1 : isabmonoidop (op2 (X := X))),
@@ -61,18 +68,19 @@ Definition UIaddmonoid : abmonoid :=
 Definition UImultmonoid : abmonoid :=
   setwithbinop2 X ,, (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))).
 
-Definition UIzero : X := unel UIaddmonoid.
-Definition UIone : X := unel UImultmonoid.
+Definition UIzero : X := unel_is (pr2 UIaddmonoid).
+Definition UIone : X := unel_is (pr2 UImultmonoid).
 
 Definition UIplus : binop X := op1.
 Definition UIaddinv : unop X := pr1 (pr2 (pr2 (pr2 X))).
 Definition UImult : binop X := op2.
 Definition UIdiv : X -> ∀ y : X, UIlt UIzero y -> X.
 Proof.
-  set (X0 := pr2 (pr2 (pr2 (pr2 (pr2 X))))) ; clearbody X0.
-  set (X1 := pr2 (pr2 (pr2 (pr2 (pr2 X0))))) ; clearbody X1.
-  unfold UIzero.
-  destruct (unel UIaddmonoid) as (x0,Hx0).
+  set (X0 := pr2 (pr2 (pr2 (pr2 (pr2 X))))).
+  set (X1 := pr2 (pr2 (pr2 (pr2 (pr2 X0))))).
+  intros x y Hy.
+  apply (pr1 X1 x y).
+  apply Hy.
 Defined.
 
 Lemma UIlt_zero_one : UIlt UIzero UIone.
