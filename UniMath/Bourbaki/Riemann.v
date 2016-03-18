@@ -30,29 +30,26 @@ Fixpoint natmult {X : monoid} (n : nat) (x : X) : X :=
     | S m => op (natmult m x) x
   end.
 
-Definition is_unit_interval {X : setwith2binop} (le lt : hrel X) (addinv : unop X) (cst : nat -> X) :=
+Definition is_unit_interval {X : setwith2binop} (le lt : hrel X) (H0 : isabmonoidop (op1 (X := X))) (addinv : unop X) (H1 : isabmonoidop (op2 (X := X))) (div : X -> ∀ y : X, lt (unel_is H0) y -> X) (cst : nat -> X) :=
   isEffectiveOrder le lt
-  × Σ (H0 : isabmonoidop (op1 (X := X))) (H1 : isabmonoidop (op2 (X := X))),
-  (∀ x y : X, le y (addinv x) -> op1 (addinv (op1 x y)) x = addinv y)
-    × (∀ x y : X, addinv (op2 x y) = op1 (op2 (addinv x) y) (addinv y))
-    × let x0 := unel_is H0 in
-      let x1 := unel_is H1 in
-      Σ (div : X -> ∀ y : X, lt x0 y -> X),
-      (lt x0 x1) × (∀ x : X, le x0 x × le x x1)
-      × (x1 = addinv x0) × (∀ x : X, addinv (addinv x) = x)
-      × (∀ x y z : X, le x (addinv y) -> op2 (op1 x y) z = op1 (op2 x z) (op2 y z))
-      × (∀ n : nat, cst n = addinv (natmult (X := setwithbinop1 X ,, pr1 H0) n (cst n)))
-      × (∀ x : X, lt x0 x -> ∃ n : nat, le (cst n) x)
-      × (∀ x y z : X, le x (addinv y) -> lt y z -> lt (op1 x y) (op1 x z))
-      × (∀ x y z : X, lt (op1 x y) (op1 x z) -> lt y z)
-      × (∀ x y z : X, lt x0 x -> lt y z -> lt (op2 x y) (op2 x z))
-      × (∀ x y z : X, lt (op2 x y) (op2 x z) -> lt y z)
-      × (∀ x y : X, lt x y -> lt (addinv y) (addinv x))
-      × (∀ (x y : X) (Hy : lt x0 y), le x y -> op2 y (div x y Hy) = x)
-      × (∀ (x y : X) (Hy : lt x0 y), le y x -> (div x y Hy) = x1).
+  × (∀ x y : X, le y (addinv x) -> op1 (addinv (op1 x y)) x = addinv y)
+  × (∀ x y : X, addinv (op2 x y) = op1 (op2 (addinv x) y) (addinv y))
+  × (lt (unel_is H0) (unel_is H1)) × (∀ x : X, le (unel_is H0) x × le x (unel_is H1))
+  × ((unel_is H1) = addinv (unel_is H0)) × (∀ x : X, addinv (addinv x) = x)
+  × (∀ x y z : X, le x (addinv y) -> op2 (op1 x y) z = op1 (op2 x z) (op2 y z))
+  × (∀ n : nat, cst n = addinv (natmult (X := setwithbinop1 X ,, pr1 H0) n (cst n)))
+  × (∀ x : X, lt (unel_is H0) x -> ∃ n : nat, le (cst n) x)
+  × (∀ x y z : X, le x (addinv y) -> lt y z -> lt (op1 x y) (op1 x z))
+  × (∀ x y z : X, lt (op1 x y) (op1 x z) -> lt y z)
+  × (∀ x y z : X, lt (unel_is H0) x -> lt y z -> lt (op2 x y) (op2 x z))
+  × (∀ x y z : X, lt (op2 x y) (op2 x z) -> lt y z)
+  × (∀ x y : X, lt x y -> lt (addinv y) (addinv x))
+  × (∀ (x y : X) (Hy : lt (unel_is H0) y), le x y -> op2 y (div x y Hy) = x)
+  × (∀ (x y : X) (Hy : lt (unel_is H0) y), le y x -> (div x y Hy) = (unel_is H1)).
 
 Definition unit_interval :=
-  Σ {X : setwith2binop} (le lt : hrel X) (addinv : unop X) (cst : nat -> X), is_unit_interval le lt addinv cst.
+  Σ (X : setwith2binop) (le lt : hrel X) (H0 : isabmonoidop (op1 (X := X))) (H1 : isabmonoidop (op2 (X := X))) (addinv : unop X) (div : X -> ∀ y : X, lt (unel_is H0) y -> X) (cst : nat -> X), is_unit_interval le lt H0 addinv H1 div  cst.
+
 Definition pr1unit_interval : unit_interval -> setwith2binop := pr1.
 Coercion pr1unit_interval : unit_interval >-> setwith2binop.
 
@@ -64,32 +61,34 @@ Definition UIle : hrel X := pr1 (pr2 X).
 Definition UIlt : hrel X := pr1 (pr2 (pr2 X)).
 
 Definition UIaddmonoid : abmonoid :=
-  setwithbinop1 X ,, (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))).
+  setwithbinop1 X ,, (pr1 (pr2 (pr2 (pr2 X)))).
 Definition UImultmonoid : abmonoid :=
-  setwithbinop2 X ,, (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))).
+  setwithbinop2 X ,, (pr1 (pr2 (pr2 (pr2 (pr2 X))))).
 
-Definition UIzero : X := unel_is (pr2 UIaddmonoid).
-Definition UIone : X := unel_is (pr2 UImultmonoid).
+Definition UIzero : X := unel UIaddmonoid.
+Definition UIone : X := unel UImultmonoid.
 
 Definition UIplus : binop X := op1.
-Definition UIaddinv : unop X := pr1 (pr2 (pr2 (pr2 X))).
+Definition UIaddinv : unop X := pr1 (pr2 (pr2 (pr2 (pr2 (pr2 X))))).
 Definition UImult : binop X := op2.
-Definition UIdiv : X -> ∀ y : X, UIlt UIzero y -> X.
-Proof.
-  set (X0 := pr2 (pr2 (pr2 (pr2 (pr2 X))))).
-  set (X1 := pr2 (pr2 (pr2 (pr2 (pr2 X0))))).
-  intros x y Hy.
-  apply (pr1 X1 x y).
-  apply Hy.
-Defined.
+Definition UIdiv : X -> ∀ y : X, UIlt UIzero y -> X :=
+  pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))).
+
+Definition UIminus : binop X :=
+  λ x y : X, UIaddinv (UIplus (UIaddinv x) y).
+Definition UImax : binop X :=
+  λ x y : X, UIplus (UIminus x y) y.
+Definition UImin : binop X :=
+  λ x y : X, UIaddinv (UIplus (UIminus y x) (UIaddinv y)).
 
 Lemma UIlt_zero_one : UIlt UIzero UIone.
 Admitted.
 Lemma isirrefl_UIlt : isirrefl UIlt.
 Admitted.
 
-
 End unit_interval.
+
+Check UIdiv.
 
 (** ** Pointed Subdivision *)
 
@@ -103,6 +102,7 @@ Definition Sequence_first {X : UU} (l : Sequence X) : unit ⨿ X :=
   Sequence_fun l O.
 Definition Sequence_last {X : UU} (l : Sequence X) : unit ⨿ X :=
   Sequence_fun l (pred (length l)).
+
 
 Section pointed_subdivision.
 
@@ -119,6 +119,28 @@ Definition pointed_subdivision :=
 Definition ps_lx (s : pointed_subdivision) : Sequence X := pr1 s.
 Definition ps_ly (s : pointed_subdivision) : (nat -> X) := pr1 (pr2 s).
 Definition ps_size (s : pointed_subdivision) : nat := length (pr1 s).
+Definition Sequence_step (s : Sequence X) : X.
+Proof.
+  intros (n,lx).
+  induction n.
+  - apply UIzero.
+  - destruct n.
+    + apply UIzero.
+    + apply UImax.
+      * apply IHn.
+        intros m.
+        apply lx.
+        apply dni_lastelement.
+        apply m.
+      * apply UIminus.
+        apply lx.
+        apply lastelement.
+        apply lx.
+        apply dni_lastelement.
+        apply lastelement.
+Defined.
+Definition ps_step (s : pointed_subdivision) : X :=
+  Sequence_step (ps_lx s).
 
 Lemma ps_lx_O (s : pointed_subdivision) : Sequence_first (ps_lx s) = ii2 UIzero.
 Proof.
@@ -160,7 +182,9 @@ Proof.
   intros p s1 s2.
 
   set (f1 := λ x : X, UImult p x).
-  set (f2 := λ x : X, UImult ())
+  set (f2 := λ x : X, UImult (UIaddinv p) x).
+
+
 
   intros a b c l1 l2 Habc.
 
