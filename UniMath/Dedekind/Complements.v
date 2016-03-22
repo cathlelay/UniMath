@@ -238,55 +238,64 @@ Proof.
     apply pathsinv0, nattohzandS.
 Qed.
 
-Lemma isarchnat :
-  isarchrig natcommrig natgth.
+Lemma nattorig_nat :
+  ∀ n : nat, nattorig (X := natcommrig) n = n.
 Proof.
-  intros x y Hy0.
-  apply hinhpr.
-  exists (S (x / y)).
-  rewrite <- nattorig_natmult.
-  assert (∀ n, nattorig (X := natcommrig) n = n).
-  { induction n.
-    reflexivity.
-    rewrite nattorigS, IHn.
-    reflexivity. }
-  rewrite X.
-  change (((S (x / y)) * y) > x)%nat.
-  simpl mul.
-  pattern x at 2.
-  rewrite (natdivremrule x y), natpluscomm.
-  apply natgthandplusr, lthnatrem.
-  apply natgthtoneq, Hy0.
-  apply natgthtoneq, Hy0.
+  induction n.
+  reflexivity.
+  rewrite nattorigS, IHn.
+  reflexivity.
+Qed.
+
+Lemma isarchnat :
+  isarchrig (X := natcommrig) natgth.
+Proof.
+  repeat split.
+  - intros y1 y2 Hy.
+    apply natgthchoice2 in Hy.
+    destruct Hy as [Hy | Hy].
+    + apply hinhpr.
+      exists 1%nat.
+      rewrite !nattorig_nat.
+      apply Hy.
+    + rewrite Hy.
+      apply hinhpr.
+      exists 2%nat.
+      rewrite nattorig_nat.
+      simpl.
+      rewrite <- plus_n_Sm, multsnm, natmultl1.
+      apply natgthsnn.
+  - intros x.
+    apply hinhpr.
+    exists (S x).
+    rewrite nattorig_nat.
+    apply natgthsnn.
+  - destruct x.
+    apply hinhpr.
+    now exists 1%nat.
+    apply hinhpr.
+    now exists 0%nat.
 Defined.
 
-Definition isarchhz : isarchrng hz hzgth.
+Definition isarchhz : isarchrng (X := hz) hzgth.
 Proof.
-  simple refine (isarchrigtorng_gt _ _ _ _ _ _ _ _).
-  - intros n.
-    apply hinhpr.
-    exists 1%nat.
-    now rewrite natpluscomm.
-  - apply ex_partal_minus_imply_weak.
-    + reflexivity.
-    + intros n m k.
-      apply istransnatgth.
-    + split ; intros x y z.
-      apply natgthandplusl.
-      apply natgthandplusr.
-    + apply isarchnat.
-    + intros x y H.
-      apply hinhpr.
-      exists (x - y)%nat.
-      split.
-      now apply minusgth0.
-      rewrite natpluscomm, minusplusnmm.
-      reflexivity.
-      now apply natgthtogeh.
-  - now apply paths_refl.
+  simple refine (isarchrigtorng _ _ _ _ _).
   - intros n m k.
     apply istransnatgth.
-  - apply isarchnat.
+  - assert (setquot_aux (X := rigaddabmonoid natcommrig) natgth = natgth).
+    { apply funextfun ; intro n.
+      apply funextfun ; intro m.
+      apply uahp.
+      - apply hinhuniv.
+        intros (c).
+        now apply natgthandplusrinv.
+      - intros H.
+        apply hinhpr.
+        exists O.
+        rewrite !natplusr0.
+        apply H. }
+    rewrite X.
+    apply isarchnat.
 Defined.
 
 Lemma isarchhq :
