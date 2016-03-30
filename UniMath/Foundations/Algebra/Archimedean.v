@@ -1,6 +1,4 @@
-(** * Archimedean property
-
-*)
+(** * Archimedean property *)
 
 
 
@@ -17,6 +15,7 @@ Unset Kernel Term Sharing.
 Require Export UniMath.Foundations.Algebra.Rigs_and_Rings .
 Require Export UniMath.Foundations.Algebra.DivisionRig .
 Require Export UniMath.Foundations.Algebra.Domains_and_Fields .
+Require Export UniMath.Foundations.Algebra.ConstructiveStructures.
 
 (** ** The standard function from the natural numbers to a monoid *)
 
@@ -401,7 +400,7 @@ Proof.
     exact Hop1.
     exact Hm.
     rewrite rigcomm1.
-    change op1 with (op (X := rigaddabmonoid X)).
+    change BinaryOperations.op1 with (BinaryOperations.op (X := rigaddabmonoid X)).
     rewrite natmult_op, assocax, <- natmult_mult.
     apply (pr1 Hop1).
     exact Hn.
@@ -437,7 +436,7 @@ Proof.
     exact Hop1.
     exact Hm.
     rewrite rigcomm1.
-    change op1 with (op (X := rigaddabmonoid X)).
+    change BinaryOperations.op1 with (BinaryOperations.op (X := rigaddabmonoid X)).
     rewrite natmult_op, <- natmult_mult.
     apply (pr1 Hop1).
     exact Hn.
@@ -453,7 +452,7 @@ Proof.
   - generalize (isarchrig_1 _ H _ _ Hy) (isarchrig_3 _ H x).
     apply hinhfun2.
     intros m n.
-    exists (max 1 (pr1 n) * (pr1 m)).
+    exists (max 1 (pr1 n) * (pr1 m))%nat.
     apply isarchrig_isarchmonoid_1_aux.
     exact Hr1.
     exact Hr.
@@ -463,7 +462,7 @@ Proof.
   - generalize (isarchrig_1 _ H _ _ Hy) (isarchrig_2 _ H x).
     apply hinhfun2.
     intros m n.
-    exists (max 1 (pr1 n) * (pr1 m)).
+    exists (max 1 (pr1 n) * (pr1 m))%nat.
     apply isarchrig_isarchmonoid_2_aux.
     exact Hr1.
     exact Hr.
@@ -527,7 +526,7 @@ Proof.
   - intros y1 y2 Hy.
     assert (R (y1 - y2)%rng 0%rng).
     abstract (apply (pr2 (isinvbinophrelgr (rngaddabgr X) Hop1)) with y2 ;
-               change op with (@op1 X) ;
+               change BinaryOperations.op with (@BinaryOperations.op1 X) ;
                rewrite rngassoc1, rnglinvax1, rnglunax1, rngrunax1 ;
                exact Hy).
     generalize (isarchrng_1 _ H _ X0).
@@ -770,9 +769,54 @@ Proof.
       rewrite <- (nattorig_natmult (X := X)), (rngassoc2 X).
       exact Hm.
       exact Hn.
+  - simple refine (setquotunivprop _ _ _).
+    intros x.
+    apply (hinhfun (X := Σ n : nat, commrngfracgt X S Hop1 Hop2 Hs
+     (setquotpr (eqrelcommrngfrac X S) (nattorng n,, unel S))
+     (setquotpr (eqrelcommrngfrac X S) x))).
+    intros (n,Hn).
+    exists n.
+    unfold nattorng, nattorig.
+    change 1%rig with (setquotpr (eqrelcommrngfrac X S)
+                                (1%rng,, unel S)).
+    rewrite (natmult_commrngfrac (X := X) (S := S) n).
+    exact Hn.
+    generalize (isarchrng_1 _ Hr _ (Hs (pr1 (pr2 x)) (pr2 (pr2 x)))) (isarchrng_2 _ Hr (pr1 x)%rng).
+    apply hinhfun2.
+    intros (m,Hm) (n,Hn).
+    exists (max 1 n * m)%nat.
+    destruct n ; simpl max.
+    + apply hinhpr ; simpl.
+      exists (pr2 x).
+      apply (isrngmultgttoisrrngmultgt X).
+      exact Hop1.
+      exact Hop2.
+      apply Hs.
+      apply (pr2 (pr2 x)).
+      eapply Htra.
+      exact Hm.
+      eapply Htra.
+      exact H0.
+      rewrite (rngrunax2 X).
+      exact Hn.
+    + apply hinhpr ; simpl.
+      exists (pr2 x).
+      change (n * m + m)%nat with (Datatypes.S n * m)%nat.
+      unfold nattorng.
+      apply (isrngmultgttoisrrngmultgt X).
+      exact Hop1.
+      exact Hop2.
+      apply Hs.
+      apply (pr2 (pr2 x)).
+      rewrite (rngrunax2 X), (nattorig_natmult (X := X)), natmult_mult.
+      eapply Htra.
+      apply (natmult_binophrel (X := rngaddabgr X) R).
+      exact Htra.
+      exact Hop1.
+      rewrite <- (nattorig_natmult (X := X)).
+      exact Hm.
+      exact Hn.
 Qed.
-
-
 
 (** ** Archimedean property in a field *)
 
@@ -811,70 +855,81 @@ Proof.
   apply (isarchrng_2 R H x).
 Defined.
 
-Theorem isarchfldfrac ( X : intdom ) ( is : isdeceq X )  { R : hrel X } ( is0 : @isbinophrel ( rngaddabgr X ) R ) ( is1 : isrngmultgt X R ) ( is2 : R 1%rng 0%rng ) ( nc : neqchoice R ) ( asy : isasymm R ) ( tra : istrans R ) :
+Theorem isarchfldfrac ( X : intdom ) ( is : isdeceq X )  { R : hrel X } ( is0 : @isbinophrel ( rngaddabgr X ) R ) ( is1 : isrngmultgt X R ) ( is2 : R 1%rng 0%rng ) ( nc : neqchoice R ) ( irr : isirrefl R ) ( tra : istrans R ) :
   isarchrng R -> isarchfld (X := fldfrac X is ) (fldfracgt _  is is0 is1 is2 nc).
 Proof.
   intros.
+  apply isarchrng_isarchfld.
+  unfold fldfracgt.
+  generalize (isarchcommrngfrac (X := X) (S := rngpossubmonoid X is1 is2) R is0 is1 (λ (c : X) (r : (rngpossubmonoid X is1 is2) c), r) is2 tra X0).
+  intros.
+  assert (H_f : ∀ n x, (weqfldfracgt_f X is is0 is1 is2 nc (nattorng n * x)%rng) = (nattorng n * weqfldfracgt_f X is is0 is1 is2 nc x)%rng).
+  { clear -irr.
+    intros n x.
+    unfold nattorng.
+    rewrite (nattorig_natmult (X := fldfrac X is)), (nattorig_natmult (X := commrngfrac X (@rngpossubmonoid X R is1 is2))).
+    induction n.
+    - refine (pr2 (pr1 (isrngfunweqfldfracgt_f _ _ _ _ _ _ _))).
+      exact irr.
+    - rewrite !natmultS, <- IHn.
+      refine (pr1 (pr1 (isrngfunweqfldfracgt_f _ _ _ _ _ _ _)) _ _).
+      exact irr. }
+  assert (H_0 : (weqfldfracgt_f X is is0 is1 is2 nc 0%rng) = 0%rng).
+  { refine (pr2 (pr1 (isrngfunweqfldfracgt_f _ _ _ _ _ _ _))).
+    exact irr. }
+  assert (H_1 : (weqfldfracgt_f X is is0 is1 is2 nc 1%rng) = 1%rng).
+  { refine (pr2 (pr2 (isrngfunweqfldfracgt_f _ _ _ _ _ _ _))).
+    exact irr. }
+  split.
+  - intros x Hx.
+    eapply hinhfun.
+    2: apply (isarchrng_1 _ X1 (weqfldfracgt_f X is is0 is1 is2 nc x)).
+    intros (n,Hn).
+    exists n.
+    rewrite H_f, H_1.
+    exact Hn.
+    rewrite H_0 in Hx.
+    exact Hx.
+  - intros x.
+    eapply hinhfun.
+    2: apply (isarchrng_2 _ X1 (weqfldfracgt_f X is is0 is1 is2 nc x)).
+    intros (n,Hn).
+    exists n.
+    rewrite <- (rngrunax2 _ (nattorng n)), H_f, H_1, rngrunax2.
+    exact Hn.
+Defined.
+
+(** ** Archimedean property in a constructive field *)
+
+Definition isarchCF {X : ConstructiveField} (R : hrel X) :=
+  ∀ x : X, ∃ n : nat, R (nattorng n) x.
+
+Lemma isarchCF_isarchrng {X : ConstructiveField} (R : hrel X) :
+  ∀ (Hadd : isbinophrel (X := rigaddabmonoid X) R) ( Hmult : isrngmultgt X R)
+    (Hirr : isirrefl R),
+    (∀ x : X, R x 0%CF -> (x ≠ 0)%CF) ->
+    isarchCF R -> isarchrng R.
+Proof.
+  intros X R Hadd Hmult Hirr H0 H.
+  split.
+  - intros x Hx.
+    generalize (H (CFinv x (H0 _ Hx))).
+    apply hinhfun.
+    intros (n,Hn).
+    exists n.
+    change 1%rng with (1%CF : X).
+    rewrite <- (islinv_CFinv x (H0 x Hx)).
+    apply isrngmultgttoisrrngmultgt.
+    exact Hadd.
+    exact Hmult.
+    exact Hx.
+    exact Hn.
+  - exact H.
+Defined.
+Lemma isarchrng_isarchCF {X : ConstructiveField} (R : hrel X) :
+    isarchrng R -> isarchCF R.
+Proof.
+  intros X R H.
   intros x.
-  set ( P := fun z => ∃ n : nat, fldfracgt X is is0 is1 is2 nc (nattorng n) z) .
-  set ( P' := fun z' => ∃ n : nat, commrngfracgt X ( rngpossubmonoid X is1 is2 ) is0 is1 ( fun c r => r )  ( weqfldfracgt_f X is is0 is1 is2 nc ( tofldfrac X is (nattorng n) ) ) z' )  .
-  assert ( e : forall z : fldfrac X is , P z = P' ( weqfldfracgt_f X is is0 is1 is2 nc z ) ) .
-  { intro zz.
-    unfold P, P'.
-    apply maponpaths.
-    apply maponpaths.
-    apply funextfun ; intro z.
-    unfold fldfracgt.
-    simpl.
-    assert ((weqfldfracgt_f X is is0 is1 is2 nc (nattorng z)) = (weqfldfracgt_f X is is0 is1 is2 nc (tofldfrac X is (nattorng z)))).
-    { apply maponpaths.
-      clear.
-      induction z.
-      reflexivity.
-      unfold nattorng in IHz |-*.
-      rewrite !nattorigS, IHz.
-      apply pathsinv0.
-      refine (pathscomp0 _ _).
-      apply isbinop1funtofldfrac.
-      rewrite isunital2funtofldfrac.
-      reflexivity. }
-    rewrite <- X1.
-    reflexivity. }
-
-  cut ( forall z', P' z' ) .
-  { intros int.
-    change ( P x ) .
-    rewrite ( e x ) .
-    apply int . }
-
-  apply setquotunivprop.
-  intros x0x1 . destruct x0x1 as [ x0 x1 ] .
-  unfold P' .  simpl . unfold weqfldfracgtint_f . simpl.
-  destruct ( nc 1%rng 0%rng (nonzeroax X) ) as [ gt0 | lt0 ] . simpl.
-  - generalize (isarchrng_1 _ X0 (pr1 x1) (pr2 x1)) (isarchrng_2 _ X0 x0).
-    apply hinhfun2.
-    intros (m,Hm) (n,Hn).
-    exists (max 1 n * m).
-    apply hinhpr.
-    simple refine ( tpair _ _ _ ) .
-    simple refine ( tpair _ _ _ ) .  exact ( 1%rng : ( pr1 X ) ) . exact is2 .  simpl .
-    repeat (rewrite ( rngrunax2 X _ )) .
-    destruct n.
-    + simpl.
-      eapply tra.
-      exact Hm.
-      eapply tra.
-      exact is2.
-      exact Hn.
-    + eapply tra.
-      unfold nattorng.
-      rewrite (nattorig_natmult (X := X)), natmult_mult.
-      apply natmult_binophrel.
-      exact tra.
-      exact is0.
-      rewrite <- nattorig_natmult.
-      exact Hm.
-      exact Hn.
-  - apply fromempty.
-    apply ( asy _ _ is2 lt0 ) .
+  apply (isarchrng_2 R H x).
 Defined.
