@@ -783,7 +783,7 @@ Proof.
         apply hinhpr.
         now left.
         intros x Hx.
-        apply (Hx (0 ,, paths_refl _)).
+        apply (Hx (O ,, paths_refl _)).
       * apply hinhpr.
         exists (singletonSequence A).
         split.
@@ -791,7 +791,7 @@ Proof.
         apply hinhpr.
         now right.
         intros x Hx.
-        apply (Hx (0 ,, paths_refl _)).
+        apply (Hx (O ,, paths_refl _)).
 Qed.
 
 (** *** Filter defined by a base *)

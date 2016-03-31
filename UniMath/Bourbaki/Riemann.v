@@ -4,7 +4,8 @@
 Require Export UniMath.Foundations.Algebra.Rigs_and_Rings.
 Require Export UniMath.Bourbaki.Filters.
 Require Import UniMath.Bourbaki.NormedSpace.
-(* Require Import UniMath.Foundations.Algebra.ConstructiveStructures.*)
+Require Import UniMath.Foundations.Algebra.Apartness.
+Require Import UniMath.Foundations.Algebra.ConstructiveStructures.
 Require Import UniMath.Foundations.Algebra.Archimedean.
 Require Import UniMath.Dedekind.Sets.
 
@@ -23,32 +24,26 @@ Qed.
 (** ** Unit interval *)
 (** Inspired by the alea library by C. Paulin *)
 
-Fixpoint natmult {X : monoid} (n : nat) (x : X) : X :=
-  match n with
-    | O => unel X
-    | S O => x
-    | S m => op (natmult m x) x
-  end.
-
-Definition is_unit_interval {X : setwith2binop} (le lt : hrel X) (H0 : isabmonoidop (op1 (X := X))) (addinv : unop X) (H1 : isabmonoidop (op2 (X := X))) (div : X -> ∀ y : X, lt (unel_is H0) y -> X) (cst : nat -> X) :=
+Definition is_unit_interval {X : setwith2binop} (le lt : hrel X) (H0 : isabmonoidop (BinaryOperations.op1 (X := X))) (addinv : unop X) (H1 : isabmonoidop (BinaryOperations.op2 (X := X))) (div : X -> ∀ y : X, lt (unel_is H0) y -> X) (cst : nat -> X) :=
   isEffectiveOrder le lt
-  × (∀ x y : X, le y (addinv x) -> op1 (addinv (op1 x y)) x = addinv y)
-  × (∀ x y : X, addinv (op2 x y) = op1 (op2 (addinv x) y) (addinv y))
+  × isantisymm le
+  × (∀ x y : X, le y (addinv x) -> BinaryOperations.op1 (addinv (BinaryOperations.op1 x y)) x = addinv y)
+  × (∀ x y : X, addinv (BinaryOperations.op2 x y) = BinaryOperations.op1 (BinaryOperations.op2 (addinv x) y) (addinv y))
   × (lt (unel_is H0) (unel_is H1)) × (∀ x : X, le (unel_is H0) x × le x (unel_is H1))
   × ((unel_is H1) = addinv (unel_is H0)) × (∀ x : X, addinv (addinv x) = x)
-  × (∀ x y z : X, le x (addinv y) -> op2 (op1 x y) z = op1 (op2 x z) (op2 y z))
+  × (∀ x y z : X, le x (addinv y) -> BinaryOperations.op2 (BinaryOperations.op1 x y) z = BinaryOperations.op1 (BinaryOperations.op2 x z) (BinaryOperations.op2 y z))
   × (∀ n : nat, cst n = addinv (natmult (X := setwithbinop1 X ,, pr1 H0) n (cst n)))
   × (∀ x : X, lt (unel_is H0) x -> ∃ n : nat, le (cst n) x)
-  × (∀ x y z : X, le x (addinv y) -> lt y z -> lt (op1 x y) (op1 x z))
-  × (∀ x y z : X, lt (op1 x y) (op1 x z) -> lt y z)
-  × (∀ x y z : X, lt (unel_is H0) x -> lt y z -> lt (op2 x y) (op2 x z))
-  × (∀ x y z : X, lt (op2 x y) (op2 x z) -> lt y z)
+  × (∀ x y z : X, le x (addinv y) -> lt y z -> lt (BinaryOperations.op1 x y) (BinaryOperations.op1 x z))
+  × (∀ x y z : X, lt (BinaryOperations.op1 x y) (BinaryOperations.op1 x z) -> lt y z)
+  × (∀ x y z : X, lt (unel_is H0) x -> lt y z -> lt (BinaryOperations.op2 x y) (BinaryOperations.op2 x z))
+  × (∀ x y z : X, lt (BinaryOperations.op2 x y) (BinaryOperations.op2 x z) -> lt y z)
   × (∀ x y : X, lt x y -> lt (addinv y) (addinv x))
-  × (∀ (x y : X) (Hy : lt (unel_is H0) y), le x y -> op2 y (div x y Hy) = x)
+  × (∀ (x y : X) (Hy : lt (unel_is H0) y), le x y -> BinaryOperations.op2 y (div x y Hy) = x)
   × (∀ (x y : X) (Hy : lt (unel_is H0) y), le y x -> (div x y Hy) = (unel_is H1)).
 
 Definition unit_interval :=
-  Σ (X : setwith2binop) (le lt : hrel X) (H0 : isabmonoidop (op1 (X := X))) (H1 : isabmonoidop (op2 (X := X))) (addinv : unop X) (div : X -> ∀ y : X, lt (unel_is H0) y -> X) (cst : nat -> X), is_unit_interval le lt H0 addinv H1 div  cst.
+  Σ (X : setwith2binop) (le lt : hrel X) (H0 : isabmonoidop (BinaryOperations.op1 (X := X))) (H1 : isabmonoidop (BinaryOperations.op2 (X := X))) (addinv : unop X) (div : X -> ∀ y : X, lt (unel_is H0) y -> X) (cst : nat -> X), is_unit_interval le lt H0 addinv H1 div  cst.
 
 Definition pr1unit_interval : unit_interval -> setwith2binop := pr1.
 Coercion pr1unit_interval : unit_interval >-> setwith2binop.
@@ -68,11 +63,20 @@ Definition UImultmonoid : abmonoid :=
 Definition UIzero : X := unel UIaddmonoid.
 Definition UIone : X := unel UImultmonoid.
 
-Definition UIplus : binop X := op1.
-Definition UIaddinv : unop X := pr1 (pr2 (pr2 (pr2 (pr2 (pr2 X))))).
-Definition UImult : binop X := op2.
+Local Lemma UIaux_1 :
+  Σ (addinv : unop X) (div : X -> ∀ y : X, UIlt UIzero y -> X) (cst : nat -> X),
+  is_unit_interval UIle UIlt (pr2 UIaddmonoid) addinv (pr2 UImultmonoid) div cst.
+Proof.
+  exact (pr2 (pr2 (pr2 (pr2 (pr2 X))))).
+Qed.
+
+Definition UIplus : binop X := BinaryOperations.op1.
+Definition UIaddinv : unop X := pr1 UIaux_1.
+Definition UImult : binop X := BinaryOperations.op2.
 Definition UIdiv : X -> ∀ y : X, UIlt UIzero y -> X :=
-  pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))).
+  pr1 (pr2 UIaux_1).
+Definition UIcst : nat -> X :=
+  pr1 (pr2 (pr2 UIaux_1)).
 
 Definition UIminus : binop X :=
   λ x y : X, UIaddinv (UIplus (UIaddinv x) y).
@@ -81,10 +85,236 @@ Definition UImax : binop X :=
 Definition UImin : binop X :=
   λ x y : X, UIaddinv (UIplus (UIminus y x) (UIaddinv y)).
 
-Lemma UIlt_zero_one : UIlt UIzero UIone.
-Admitted.
+Lemma is_unit_interval_UI :
+  is_unit_interval UIle UIlt (pr2 UIaddmonoid) UIaddinv (pr2 UImultmonoid) UIdiv UIcst.
+Proof.
+  exact (pr2 (pr2 (pr2 UIaux_1))).
+Qed.
+
+Lemma isEffectiveOrder_UIle_UIlt : isEffectiveOrder UIle UIlt.
+Proof.
+  exact (pr1 is_unit_interval_UI).
+Qed.
+Lemma isrefl_UIle : isrefl UIle.
+Proof.
+  exact (pr2 (pr1 (pr1 isEffectiveOrder_UIle_UIlt))).
+Qed.
 Lemma isirrefl_UIlt : isirrefl UIlt.
-Admitted.
+Proof.
+  exact (pr2 (pr2 (pr1 isEffectiveOrder_UIle_UIlt))).
+Qed.
+Lemma isantisymm_UIle : isantisymm UIle.
+Proof.
+  exact (pr1 (pr2 is_unit_interval_UI)).
+Qed.
+Lemma not_UIlt_UIle :
+  ∀ x y : X, ¬ UIlt x y <-> UIle y x.
+Proof.
+  exact (pr1 (pr2 isEffectiveOrder_UIle_UIlt)).
+Qed.
+
+Lemma UIplus_addinv :
+  ∀ x y : X,
+    UIle y (UIaddinv x) -> UIplus (UIaddinv (UIplus x y)) x = UIaddinv y.
+Proof.
+  exact (pr1 (pr2 (pr2 is_unit_interval_UI))).
+Qed.
+
+Lemma UImult_addinv:
+  ∀ x y : X, UIaddinv (UImult x y) = UIplus (UImult (UIaddinv x) y) (UIaddinv y).
+Proof.
+  exact (pr1 (pr2 (pr2 (pr2 is_unit_interval_UI)))).
+Qed.
+Lemma UIlt_zero_one : UIlt UIzero UIone.
+Proof.
+  exact (pr1 (pr2 (pr2 (pr2 (pr2 is_unit_interval_UI))))).
+Qed.
+Lemma UIge_zero :
+  ∀ x : X, UIle UIzero x.
+Proof.
+  intros x.
+  apply (pr1 (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 is_unit_interval_UI))))) x)).
+Qed.
+Lemma UIle_one :
+  ∀ x : X, UIle x UIone.
+Proof.
+  intros x.
+  apply (pr2 (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 is_unit_interval_UI))))) x)).
+Qed.
+Local Lemma UIaux_2 :
+  UIone = UIaddinv UIzero
+  × (∀ x : X, UIaddinv (UIaddinv x) = x)
+  × (∀ x y z : X,
+       UIle x (UIaddinv y) → (UImult (UIplus x y) z) = UIplus (UImult x z) (UImult y z))
+  × (∀ n : nat, UIcst n = UIaddinv (natmult (X := UIaddmonoid) n (UIcst n)))
+  × (∀ x : X, UIlt UIzero x
+              → ∃ n : nat, UIle (UIcst n) x)
+  × (∀ x y z : X,
+       UIle x (UIaddinv y)
+       → UIlt y z → UIlt (UIplus x y) (UIplus x z))
+  × (∀ x y z : X, UIlt (UIplus x y) (UIplus x z) → UIlt y z)
+  × (∀ x y z : X,
+       UIlt UIzero x
+       → UIlt y z → UIlt (UImult x y) (UImult x z))
+  × (∀ x y z : X, UIlt (UImult x y) (UImult x z) → UIlt y z)
+  × (∀ x y : X,
+       UIlt x y → UIlt (UIaddinv y) (UIaddinv x))
+  × (∀ (x y : X) (Hy : UIlt UIzero y),
+       UIle x y → UImult y (UIdiv x y Hy) = x)
+  × (∀ (x y : X) (Hy : UIlt UIzero y),
+       UIle y x → UIdiv x y Hy = UIone).
+Proof.
+  exact (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 is_unit_interval_UI)))))).
+Qed.
+Lemma UIaddinv_zero :
+  UIone = UIaddinv UIzero.
+Proof.
+  exact (pr1 UIaux_2).
+Qed.
+Lemma isinvol_UIaddinv :
+  ∀ x : X, UIaddinv (UIaddinv x) = x.
+Proof.
+  exact (pr1 (pr2 UIaux_2)).
+Qed.
+Lemma isldistr_UIplus_mult :
+  ∀ x y z : X,
+    UIle x (UIaddinv y) → (UImult (UIplus x y) z) = UIplus (UImult x z) (UImult y z).
+Proof.
+  exact (pr1 (pr2 (pr2 UIaux_2))).
+Qed.
+Lemma UIcst_carac :
+  ∀ n : nat, UIcst n = UIaddinv (natmult (X := UIaddmonoid) n (UIcst n)).
+Proof.
+  exact (pr1 (pr2 (pr2 (pr2 UIaux_2)))).
+Qed.
+Lemma isarch_UI :
+  ∀ x : X, UIlt UIzero x → ∃ n : nat, UIle (UIcst n) x.
+Proof.
+  exact (pr1 (pr2 (pr2 (pr2 (pr2 UIaux_2))))).
+Qed.
+Lemma UIplus_ltcompat_l :
+  ∀ x y z : X,
+    UIle x (UIaddinv y)
+    → UIlt y z → UIlt (UIplus x y) (UIplus x z).
+Proof.
+  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 UIaux_2)))))).
+Qed.
+Lemma UIplus_ltcompat_l' :
+  ∀ x y z : X, UIlt (UIplus x y) (UIplus x z) → UIlt y z.
+Proof.
+  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 UIaux_2))))))).
+Qed.
+Lemma UIplus_lecompat_l :
+  ∀ x y z : X,
+    UIle y z → UIle (UIplus x y) (UIplus x z).
+Proof.
+  intros x y z H.
+  apply not_UIlt_UIle.
+  intros H0.
+  apply (pr2 (not_UIlt_UIle _ _)) in H.
+  apply H ; revert H0.
+  apply UIplus_ltcompat_l'.
+Qed.
+Lemma UIplus_lecompat_l' :
+  ∀ x y z : X,
+    UIle x (UIaddinv z)
+    → UIle (UIplus x y) (UIplus x z) → UIle y z.
+Proof.
+  intros x y z H0 H.
+  apply not_UIlt_UIle.
+  intros H1.
+  apply (pr2 (not_UIlt_UIle _ _)) in H.
+  apply H ; revert H1.
+  apply UIplus_ltcompat_l.
+  exact H0.
+Qed.
+Lemma UIplus_eqcompat_l' :
+  ∀ x y z : X,
+    UIle x (UIaddinv y)
+    → UIle x (UIaddinv z)
+    → (UIplus x y) = (UIplus x z) → y = z.
+Proof.
+  intros x y z Hy Hz H.
+  apply isantisymm_UIle.
+  apply UIplus_lecompat_l' with x.
+  exact Hz.
+  rewrite H.
+  apply isrefl_UIle.
+  apply UIplus_lecompat_l' with x.
+  exact Hy.
+  rewrite H.
+  apply isrefl_UIle.
+Qed.
+
+Lemma UImult_ltcompat_l :
+  ∀ x y z : X,
+    UIlt UIzero x
+    → UIlt y z → UIlt (UImult x y) (UImult x z).
+Proof.
+  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 UIaux_2)))))))).
+Qed.
+Lemma UImult_ltcompat_l' :
+  ∀ x y z : X, UIlt (UImult x y) (UImult x z) → UIlt y z.
+Proof.
+  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 UIaux_2))))))))).
+Qed.
+Lemma UIaddinv_lt :
+  ∀ x y : X,
+    UIlt x y → UIlt (UIaddinv y) (UIaddinv x).
+Proof.
+  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 UIaux_2)))))))))).
+Qed.
+Lemma UIaddinv_le :
+  ∀ x y : X,
+    UIle x y → UIle (UIaddinv y) (UIaddinv x).
+Proof.
+  intros x y H.
+  apply not_UIlt_UIle ; intro H0.
+  apply (pr2 (not_UIlt_UIle _ _)) in H.
+  apply H.
+  rewrite <- (isinvol_UIaddinv y), <- (isinvol_UIaddinv x).
+  now apply UIaddinv_lt.
+Qed.
+Lemma UIdiv_carac_1 :
+  ∀ (x y : X) (Hy : UIlt UIzero y),
+    UIle x y → UImult y (UIdiv x y Hy) = x.
+Proof.
+  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 UIaux_2))))))))))).
+Qed.
+Lemma UIdiv_carac_2 :
+  ∀ (x y : X) (Hy : UIlt UIzero y),
+       UIle y x → UIdiv x y Hy = UIone.
+Proof.
+  exact (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 UIaux_2))))))))))).
+Qed.
+
+Lemma UIminus_diag :
+  ∀ x y : X, UIle x y -> UIminus x y = UIzero.
+Proof.
+  intros x y H.
+  unfold UIminus.
+  apply UIaddinv_le in H.
+  apply UIplus_addinv in H.
+  rewrite isinvol_UIaddinv in H.
+  rewrite <- H.
+
+
+  rewrite <- (isinvol_UIaddinv UIzero), <- UIaddinv_zero.
+  rewrite <- H.
+  rewrite (commax UIaddmonoid).
+  apply UIplus_eqcompat_l' with y.
+  rewrite isinvol_UIaddinv.
+  admit.
+  rewrite <- UIaddinv_zero.
+  apply UIle_one.
+  rewrite (commax UIaddmonoid).
+  rewrite UIplus_addinv.
+
+Qed.
+Lemma islabsorb_UIone_mult :
+  ∀ x : X, UImult x UIzero = UIzero.
+Proof.
+Qed.
 
 End unit_interval.
 
@@ -167,10 +397,10 @@ Proof.
   apply ii2_injectivity in H0.
   apply ii2_injectivity in H1.
   apply fromempty.
-  apply (isirrefl_UIlt (lx (● 0)%stn)).
-  pattern (lx (● 0)%stn) at 1.
+  apply (isirrefl_UIlt (lx (● O)%stn)).
+  pattern (lx (● O)%stn) at 1.
   rewrite H0.
-  pattern (lx (● 0)%stn) at 1.
+  pattern (lx (● O)%stn) at 1.
   rewrite H1.
   exact UIlt_zero_one.
   easy.
@@ -184,21 +414,44 @@ Proof.
   set (f1 := λ x : X, UImult p x).
   set (f2 := λ x : X, UImult (UIaddinv p) x).
 
-
-
-  intros a b c l1 l2 Habc.
-
-  exists (ps_size l1 + ps_size l2)%nat.
   simple refine (tpair _ _ _).
-  { intros k.
-    case (natlthorgeh k (ps_size l1)) ; intros Hk.
-    apply (ps_lx l1 k).
-    apply (ps_lx l2 (k - ps_size l1)%nat). }
-   simple refine (tpair _ _ _).
-  { intros k.
-    case (natlthorgeh k (ps_size l1)) ; intros Hk.
-    apply (ps_ly l1 k).
-    apply (ps_ly l2 (k - ps_size l1)%nat). }
+  exists ((ps_size s1 - 1) + ps_size s2)%nat.
+  intros k.
+  apply (invmap (weqfromcoprodofstn _ _)) in k.
+  destruct k as [k | k].
+  apply f1.
+  apply (pr2 (ps_lx s1)).
+  simple refine (tpair _ _ _).
+  apply (pr1 k).
+  apply natlthlehtrans with (1 := pr2 k).
+  apply natminuslehn.
+  apply f2.
+  apply (pr2 (ps_lx s2)).
+  apply k.
+
+  simple refine (tpair _ _ _).
+  intros k.
+  destruct (natlthorgeh k (ps_size s1)) as [Hk | Hk].
+  apply f1.
+  apply (ps_ly s1).
+  apply k.
+  apply f2.
+  apply (ps_ly s2).
+  apply (k - ps_size s1)%nat.
+
+  repeat split.
+  - generalize (ps_lx_O s1).
+    unfold Sequence_first, Sequence_fun ; simpl ; intros H.
+    destruct natlthorgeh as [H0 | H0].
+    destruct natlthorgeh as [H1 | H1].
+    unfold invmap ; simpl.
+    unfold weqccontrhfiber ; simpl.
+    destruct natgthorleh as [H2 | H2] ; simpl.
+    assert (UIzero = f1 UIzero).
+    { apply pathsinv0.
+      Search
+
+  Search nat coprod.
 
   repeat split.
   - rewrite <- (ps_lx_O l1).
