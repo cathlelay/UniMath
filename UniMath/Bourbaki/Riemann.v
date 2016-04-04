@@ -217,6 +217,12 @@ Lemma UIaddinv_zero :
 Proof.
   exact (pr1 (pr2 is_addcompl_UIaddinv)).
 Qed.
+Lemma UIaddinv_one :
+  UIaddinv UIone = UIzero.
+Proof.
+  rewrite <- UIaddinv_zero.
+  apply isinvol_UIaddinv.
+Qed.
 Lemma UIplus_addinv :
   ∀ x y : X,
     UIle y (UIaddinv x) -> UIplus (UIaddinv (UIplus x y)) x = UIaddinv y.
@@ -246,59 +252,48 @@ Lemma is_troncdiv_UIdiv :
 Proof.
   exact (pr1 (pr2 UIaux_2)).
 Qed.
+Lemma UImult_UIdiv :
+  ∀ (x y : X) (Hy : UIlt UIzero y),
+    UIle x y → UImult y (UIdiv x y Hy) = x.
+Proof.
+  exact (pr1 is_troncdiv_UIdiv).
+Qed.
+Lemma UIdiv_eq_one :
+  ∀ (x y : UImultmonoid) (Hy : UIlt UIzero y),
+    UIle y x → UIdiv x y Hy = UIone.
+Proof.
+  exact (pr2 is_troncdiv_UIdiv).
+Qed.
+
 Lemma is_invSn_UIcst :
   is_invSn (X := UIaddmonoid) UIle UIlt UIcst UIaddinv.
 Proof.
   exact (pr1 (pr2 (pr2 UIaux_2))).
 Qed.
+Lemma UIcst_addinv :
+  ∀ n : nat, UIcst n = UIaddinv (natmult (X := UIaddmonoid) n (UIcst n)).
+Proof.
+  exact (pr1 is_invSn_UIcst).
+Qed.
+Lemma isarchUI :
+  ∀ x : X, UIlt UIzero x → ∃ n : nat, UIle (UIcst n) x.
+Proof.
+  exact (pr2 is_invSn_UIcst).
+Qed.
 
+Lemma isrdistr_UIplus_mult :
+  ∀ x y z : X,
+    UIle x (UIaddinv y) → (UImult (UIplus x y) z) = UIplus (UImult x z) (UImult y z).
+Proof.
+  exact (pr1 (pr2 (pr2 (pr2 UIaux_2)))).
+Qed.
 
 Lemma UImult_addinv:
   ∀ x y : X, UIaddinv (UImult x y) = UIplus (UImult (UIaddinv x) y) (UIaddinv y).
 Proof.
-  exact (pr1 (pr2 (pr2 (pr2 is_unit_interval_UI)))).
-Qed.
-Local Lemma UIaux_2 :
-  UIone = UIaddinv UIzero
-  × (∀ x : X, UIaddinv (UIaddinv x) = x)
-  × (∀ x y z : X,
-       UIle x (UIaddinv y) → (UImult (UIplus x y) z) = UIplus (UImult x z) (UImult y z))
-  × (∀ n : nat, UIcst n = UIaddinv (natmult (X := UIaddmonoid) n (UIcst n)))
-  × (∀ x : X, UIlt UIzero x
-              → ∃ n : nat, UIle (UIcst n) x)
-  × (∀ x y z : X,
-       UIle x (UIaddinv y)
-       → UIlt y z → UIlt (UIplus x y) (UIplus x z))
-  × (∀ x y z : X, UIlt (UIplus x y) (UIplus x z) → UIlt y z)
-  × (∀ x y z : X,
-       UIlt UIzero x
-       → UIlt y z → UIlt (UImult x y) (UImult x z))
-  × (∀ x y z : X, UIlt (UImult x y) (UImult x z) → UIlt y z)
-  × (∀ x y : X,
-       UIlt x y → UIlt (UIaddinv y) (UIaddinv x))
-  × (∀ (x y : X) (Hy : UIlt UIzero y),
-       UIle x y → UImult y (UIdiv x y Hy) = x)
-  × (∀ (x y : X) (Hy : UIlt UIzero y),
-       UIle y x → UIdiv x y Hy = UIone).
-Proof.
-  exact (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 is_unit_interval_UI)))))).
-Qed.
-Lemma isldistr_UIplus_mult :
-  ∀ x y z : X,
-    UIle x (UIaddinv y) → (UImult (UIplus x y) z) = UIplus (UImult x z) (UImult y z).
-Proof.
-  exact (pr1 (pr2 (pr2 UIaux_2))).
-Qed.
-Lemma UIcst_carac :
-  ∀ n : nat, UIcst n = UIaddinv (natmult (X := UIaddmonoid) n (UIcst n)).
-Proof.
-  exact (pr1 (pr2 (pr2 (pr2 UIaux_2)))).
-Qed.
-Lemma isarch_UI :
-  ∀ x : X, UIlt UIzero x → ∃ n : nat, UIle (UIcst n) x.
-Proof.
   exact (pr1 (pr2 (pr2 (pr2 (pr2 UIaux_2))))).
 Qed.
+
 Lemma UIplus_ltcompat_l :
   ∀ x y z : X,
     UIle x (UIaddinv y)
@@ -353,23 +348,11 @@ Proof.
   apply isrefl_UIle.
 Qed.
 
-Lemma UImult_ltcompat_l :
-  ∀ x y z : X,
-    UIlt UIzero x
-    → UIlt y z → UIlt (UImult x y) (UImult x z).
-Proof.
-  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 UIaux_2)))))))).
-Qed.
-Lemma UImult_ltcompat_l' :
-  ∀ x y z : X, UIlt (UImult x y) (UImult x z) → UIlt y z.
-Proof.
-  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 UIaux_2))))))))).
-Qed.
 Lemma UIaddinv_lt :
   ∀ x y : X,
     UIlt x y → UIlt (UIaddinv y) (UIaddinv x).
 Proof.
-  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 UIaux_2)))))))))).
+  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 UIaux_2)))))))).
 Qed.
 Lemma UIaddinv_le :
   ∀ x y : X,
@@ -382,17 +365,96 @@ Proof.
   rewrite <- (isinvol_UIaddinv y), <- (isinvol_UIaddinv x).
   now apply UIaddinv_lt.
 Qed.
-Lemma UIdiv_carac_1 :
-  ∀ (x y : X) (Hy : UIlt UIzero y),
-    UIle x y → UImult y (UIdiv x y Hy) = x.
+
+Lemma UImult_ltcompat_l :
+  ∀ x y z : X,
+    UIlt UIzero x
+    → UIlt y z → UIlt (UImult x y) (UImult x z).
 Proof.
-  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 UIaux_2))))))))))).
+  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 UIaux_2))))))))).
 Qed.
-Lemma UIdiv_carac_2 :
-  ∀ (x y : X) (Hy : UIlt UIzero y),
-       UIle y x → UIdiv x y Hy = UIone.
+Lemma UImult_ltcompat_l' :
+  ∀ x y z : X, UIlt (UImult x y) (UImult x z) → UIlt y z.
 Proof.
-  exact (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 UIaux_2))))))))))).
+  exact (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 UIaux_2))))))))).
+Qed.
+Lemma UImult_lecompat_l :
+  ∀ x y z : X,
+    UIle y z → UIle (UImult x y) (UImult x z).
+Proof.
+  intros x y z H.
+  apply not_UIlt_UIle ; intros H0.
+  apply (pr2 (not_UIlt_UIle _ _)) in H.
+  apply H ; revert H0.
+  apply UImult_ltcompat_l'.
+Qed.
+Lemma UImult_lecompat_l' :
+  ∀ x y z : X,
+    UIlt UIzero x
+    → UIle (UImult x y) (UImult x z) → UIle y z.
+Proof.
+  intros x y z Hpos H.
+  apply not_UIlt_UIle ; intros H0.
+  apply (pr2 (not_UIlt_UIle _ _)) in H.
+  apply H ; revert H0.
+  now apply UImult_ltcompat_l.
+Qed.
+
+Lemma UImult_addinv_l :
+  ∀ x y : X, UImult (UIaddinv x) y = UIminus y (UImult x y).
+Proof.
+  intros x y.
+  unfold UIminus.
+  pattern y at 2 ;
+    rewrite <- (lunax UImultmonoid y).
+  rewrite UImult_addinv, UIaddinv_one.
+Qed.
+Lemma isrdistr_UIminus_UImult :
+  ∀ x y z : X, UImult (UIminus x y) z = UIminus (UImult x z) (UImult y z).
+Proof.
+  intros x y z.
+  unfold UIminus.
+  apply (UIplus_eqcompat_l' (UImult (UIaddinv x) z)).
+  { eapply istrans_UIle.
+    apply UImult_lecompat_l.
+    apply UIle_one.
+    rewrite (runax UImultmonoid).
+    apply UIaddinv_le.
+    eapply istrans_UIle.
+    apply UImult_lecompat_l.
+    apply UIle_one.
+    rewrite (runax UImultmonoid).
+    pattern x at 2 ;
+      rewrite <- (isinvol_UIaddinv x).
+    apply UIaddinv_le.
+    pattern (UIaddinv x) at 1.
+    rewrite <- (runax UIaddmonoid).
+    apply UIplus_lecompat_l.
+    apply UIge_zero. }
+  { eapply istrans_UIle.
+    apply UImult_lecompat_l.
+    apply UIle_one.
+    rewrite (runax UImultmonoid).
+    apply UIaddinv_le.
+    pattern x at 2 ;
+      rewrite <- (runax UImultmonoid x).
+    change (UIle (UIaddinv (UIplus (UIaddinv (UImult x z)) (UImult y z))) (UImult x UIone)).
+    rewrite <- (isinvol_UIaddinv (UImult x UIone)).
+    apply UIaddinv_le.
+    rewrite <- (runax UIaddmonoid (UIaddinv _)).
+    eapply istrans_UIle.
+    rewrite commax.
+    apply UIplus_lecompat_l.
+    apply UIaddinv_le.
+    apply UImult_lecompat_l.
+    apply (UIle_one z).
+    rewrite (commax UIaddmonoid).
+    apply UIplus_lecompat_l.
+    apply UIge_zero. }
+  rewrite <- isrdistr_UIplus_mult.
+  rewrite (commax UIaddmonoid), UIplus_addinv.
+  rewrite (commax UIaddmonoid).
+  UIplus_addinv.
 Qed.
 
 Lemma islabsorb_UIone_mult :
