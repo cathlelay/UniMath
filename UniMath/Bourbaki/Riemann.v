@@ -28,11 +28,15 @@ Definition is_min {X : hSet} (le : hrel X) (min : binop X) :=
   (iscomm min)
     × (∀ x y, le (min x y) x)
     × (∀ x y, le x y -> min x y = x).
+Definition is_max {X : hSet} (le : hrel X) (max : binop X) :=
+  (iscomm max)
+    × (∀ x y, le x (max x y))
+    × (∀ x y, le y x -> max x y = x).
 
 Definition is_addcompl {X : abmonoid} (x1 : X) (le : hrel X) (addcompl : unop X) (min : binop X) :=
   (addcompl 0%addmonoid = x1)
     × (∀ x : X, addcompl (addcompl x) = x)
-    × (∀ x y : X, (x + addcompl (x + y))%addmonoid = min x (addcompl y)).
+    × (∀ x y : X, (x + addcompl (x + y))%addmonoid = addcompl (min (addcompl x) y)).
 
 Definition is_troncdiv {X : abmonoid} (x0 : X) (le lt : hrel X) (div : X -> ∀ y : X, lt x0 y -> X) (min : binop X) :=
   (∀ (x y : X) (Hy : lt x0 y), (y * div x y Hy)%multmonoid = min x y).
@@ -118,10 +122,8 @@ Definition UIaddcompl : unop X := pr1 UI_aux_1.
 Definition UIdiv : X -> ∀ y : X, UIlt UIzero y -> X := pr1 (pr2 UI_aux_1).
 Definition UIinvSn : nat -> X := pr1 (pr2 (pr2 UI_aux_1)).
 
-Definition UIminus : binop X :=
-  λ x y : X, UIaddcompl (UIplus (UIaddcompl x) y).
-Definition UImax : binop X :=
-  λ x y : X, UIplus (UIminus x y) y.
+Definition UImax : binop X := λ x y : X, UIaddcompl (UImin (UIaddcompl x) (UIaddcompl y)).
+Definition UIminus : binop X := λ x y : X, UIaddcompl (UIplus (UIaddcompl x) y).
 
 Lemma is_unit_interval_UI :
   is_unit_interval UIle UIlt UImin (pr2 UIaddmonoid) UIaddcompl (pr2 UImultmonoid) UIdiv UIinvSn.
@@ -203,7 +205,37 @@ Qed.
 Lemma is_min_UImin :
   is_min UIle UImin.
 Proof.
+  exact (pr1 (pr2 (pr2 is_unit_interval_UI))).
+Qed.
 
+Lemma iscomm_UImin :
+  ∀ x y : X, UImin x y = UImin y x.
+Proof.
+  exact (pr1 is_min_UImin).
+Qed.
+Lemma UImin_le_l :
+  ∀ x y : X, UIle (UImin x y) x.
+Proof.
+  exact (pr1 (pr2 is_min_UImin)).
+Qed.
+Lemma UImin_le_r :
+  ∀ x y : X, UIle (UImin x y) y.
+Proof.
+  intros x y.
+  rewrite iscomm_UImin.
+  now apply UImin_le_l.
+Qed.
+Lemma UImin_eq_l :
+  ∀ x y : X, UIle x y → UImin x y = x.
+Proof.
+  exact (pr2 (pr2 is_min_UImin)).
+Qed.
+Lemma UImin_eq_r :
+  ∀ x y : X, UIle y x → UImin x y = y.
+Proof.
+  intros x y.
+  rewrite iscomm_UImin.
+  now apply UImin_eq_l.
 Qed.
 
 Local Lemma UI_aux_2 :
@@ -228,105 +260,25 @@ Proof.
   exact (pr2 (pr2 (pr2 (pr2 (pr2 is_unit_interval_UI))))).
 Qed.
 
+(** addition *)
 
-(** addition and addcompl *)
-
-Lemma is_addcompl_UIaddcompl :
-  is_addcompl (X := UIaddmonoid) UIone UIle UIaddcompl.
-Proof.
-  exact (pr1 UIaux_2).
-Qed.
-Lemma isinvol_UIaddcompl :
-  ∀ x : X, UIaddcompl (UIaddcompl x) = x.
-Proof.
-  exact (pr1 is_addcompl_UIaddcompl).
-Qed.
-Lemma UIaddcompl_zero :
-  UIaddcompl UIzero = UIone.
-Proof.
-  exact (pr1 (pr2 is_addcompl_UIaddcompl)).
-Qed.
-Lemma UIaddcompl_one :
-  UIaddcompl UIone = UIzero.
-Proof.
-  rewrite <- UIaddcompl_zero.
-  apply isinvol_UIaddcompl.
-Qed.
-Lemma UIplus_addcompl :
-  ∀ x y : X,
-    UIle y (UIaddcompl x) -> UIplus (UIaddcompl (UIplus x y)) x = UIaddcompl y.
-Proof.
-  exact (pr2 (pr2 (pr2 is_addcompl_UIaddcompl))).
-Qed.
-Lemma UIplus_eq_one :
-  ∀ x y : X,
-    UIle (UIaddcompl x) y -> UIplus x y = UIone.
-Proof.
-  exact (pr1 (pr2 (pr2 is_addcompl_UIaddcompl))).
-Qed.
-
-Lemma UImin_aux :
-  ∀ x y : X, UImin x y = UIaddcompl (UIplus (UIminus y x) (UIaddcompl y)).
+Lemma iscomm_UIplus :
+  ∀ x y : X, UIplus x y = UIplus y x.
 Proof.
   intros x y.
+  apply (commax UIaddmonoid).
 Qed.
-
-Lemma UIminus_eq_zero :
-  ∀ x y : X, UIle x y -> UIminus x y = UIzero.
+Lemma islunit_UIplus :
+  ∀ x : X, UIplus UIzero x = x.
 Proof.
-  intros x y H.
-  unfold UIminus.
-  rewrite <- (isinvol_UIaddcompl UIzero), UIaddcompl_zero.
-  apply maponpaths.
-  apply UIplus_eq_one.
-  now rewrite isinvol_UIaddcompl.
+  intros x.
+  apply (lunax UIaddmonoid).
 Qed.
-
-Lemma is_troncdiv_UIdiv :
-  is_troncdiv (X := UImultmonoid) UIzero UIle UIlt UIdiv.
+Lemma isrunit_UIplus :
+  ∀ x : X, UIplus x UIzero = x.
 Proof.
-  exact (pr1 (pr2 UIaux_2)).
-Qed.
-Lemma UImult_UIdiv :
-  ∀ (x y : X) (Hy : UIlt UIzero y),
-    UIle x y → UImult y (UIdiv x y Hy) = x.
-Proof.
-  exact (pr1 is_troncdiv_UIdiv).
-Qed.
-Lemma UIdiv_eq_one :
-  ∀ (x y : UImultmonoid) (Hy : UIlt UIzero y),
-    UIle y x → UIdiv x y Hy = UIone.
-Proof.
-  exact (pr2 is_troncdiv_UIdiv).
-Qed.
-
-Lemma is_invSn_UIinvSn :
-  is_invSn (X := UIaddmonoid) UIle UIlt UIinvSn UIaddcompl.
-Proof.
-  exact (pr1 (pr2 (pr2 UIaux_2))).
-Qed.
-Lemma UIinvSn_addcompl :
-  ∀ n : nat, UIinvSn n = UIaddcompl (natmult (X := UIaddmonoid) n (UIinvSn n)).
-Proof.
-  exact (pr1 is_invSn_UIinvSn).
-Qed.
-Lemma isarchUI :
-  ∀ x : X, UIlt UIzero x → ∃ n : nat, UIle (UIinvSn n) x.
-Proof.
-  exact (pr2 is_invSn_UIinvSn).
-Qed.
-
-Lemma isrdistr_UIplus_mult :
-  ∀ x y z : X,
-    UIle x (UIaddcompl y) → (UImult (UIplus x y) z) = UIplus (UImult x z) (UImult y z).
-Proof.
-  exact (pr1 (pr2 (pr2 (pr2 UIaux_2)))).
-Qed.
-
-Lemma UImult_addcompl:
-  ∀ x y : X, UIaddcompl (UImult x y) = UIplus (UImult (UIaddcompl x) y) (UIaddcompl y).
-Proof.
-  exact (pr1 (pr2 (pr2 (pr2 (pr2 UIaux_2))))).
+  intros x.
+  apply (runax UIaddmonoid).
 Qed.
 
 Lemma UIplus_ltcompat_l :
@@ -334,12 +286,12 @@ Lemma UIplus_ltcompat_l :
     UIle x (UIaddcompl y)
     → UIlt y z → UIlt (UIplus x y) (UIplus x z).
 Proof.
-  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 UIaux_2)))))).
+  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 UI_aux_2)))))).
 Qed.
 Lemma UIplus_ltcompat_l' :
   ∀ x y z : X, UIlt (UIplus x y) (UIplus x z) → UIlt y z.
 Proof.
-  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 UIaux_2))))))).
+  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 UI_aux_2))))))).
 Qed.
 Lemma UIplus_lecompat_l :
   ∀ x y z : X,
@@ -383,11 +335,54 @@ Proof.
   apply isrefl_UIle.
 Qed.
 
+Lemma UIplus_le_r :
+  ∀ x y : X, UIle x (UIplus x y).
+Proof.
+  intros x y.
+  pattern x at 1.
+  rewrite <- (isrunit_UIplus x).
+  apply UIplus_lecompat_l.
+  apply UIge_zero.
+Qed.
+
+(** addcompl *)
+
+Lemma is_addcompl_UIaddcompl :
+  is_addcompl (X := UIaddmonoid) UIone UIle UIaddcompl UImin.
+Proof.
+  exact (pr1 UI_aux_2).
+Qed.
+Lemma isinvol_UIaddcompl :
+  ∀ x : X, UIaddcompl (UIaddcompl x) = x.
+Proof.
+  exact (pr1 (pr2 is_addcompl_UIaddcompl)).
+Qed.
+Lemma UIaddcompl_zero :
+  UIaddcompl UIzero = UIone.
+Proof.
+  exact (pr1 is_addcompl_UIaddcompl).
+Qed.
+Lemma UIaddcompl_one :
+  UIaddcompl UIone = UIzero.
+Proof.
+  rewrite <- UIaddcompl_zero.
+  apply isinvol_UIaddcompl.
+Qed.
+
 Lemma UIaddcompl_lt :
   ∀ x y : X,
     UIlt x y → UIlt (UIaddcompl y) (UIaddcompl x).
 Proof.
-  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 UIaux_2)))))))).
+  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 UI_aux_2)))))))).
+Qed.
+Lemma UIaddcompl_lt' :
+  ∀ x y : X,
+    UIlt (UIaddcompl y) (UIaddcompl x) -> UIlt x y.
+Proof.
+  intros x y H.
+  apply UIaddcompl_lt in H.
+  rewrite !isinvol_UIaddcompl in H.
+  exact H.
 Qed.
 Lemma UIaddcompl_le :
   ∀ x y : X,
@@ -395,12 +390,185 @@ Lemma UIaddcompl_le :
 Proof.
   intros x y H.
   apply not_UIlt_UIle ; intro H0.
-  apply (pr2 (not_UIlt_UIle _ _)) in H.
-  apply H.
-  rewrite <- (isinvol_UIaddcompl y), <- (isinvol_UIaddcompl x).
-  now apply UIaddcompl_lt.
+  apply UIaddcompl_lt' in H0.
+  revert H0.
+  now apply (pr2 (not_UIlt_UIle _ _)).
+Qed.
+Lemma UIaddcompl_le' :
+  ∀ x y : X,
+    UIle (UIaddcompl y) (UIaddcompl x) → UIle x y.
+Proof.
+  intros x y H.
+  apply UIaddcompl_le in H.
+  rewrite !isinvol_UIaddcompl in H.
+  exact H.
+Qed.
+Lemma UIaddcompl_eq :
+  ∀ x y : X, UIaddcompl x = UIaddcompl y -> x = y.
+Proof.
+  intros x y H.
+  now rewrite <- isinvol_UIaddcompl, <- H, isinvol_UIaddcompl.
 Qed.
 
+(** maximum *)
+
+Lemma iscomm_UImax :
+  ∀ x y : X, UImax x y = UImax y x.
+Proof.
+  intros x y.
+  unfold UImax.
+  now rewrite iscomm_UImin.
+Qed.
+Lemma UImax_ge_l :
+  ∀ x y : X, UIle x (UImax x y).
+Proof.
+  intros x y.
+  unfold UImax.
+  apply UIaddcompl_le' ; rewrite isinvol_UIaddcompl.
+  apply UImin_le_l.
+Qed.
+Lemma UImax_ge_r :
+  ∀ x y : X, UIle y (UImax x y).
+Proof.
+  intros x y.
+  rewrite iscomm_UImax.
+  now apply UImax_ge_l.
+Qed.
+Lemma UImax_eq_l :
+  ∀ x y : X, UIle y x → UImax x y = x.
+Proof.
+  intros x y H.
+  unfold UImax.
+  rewrite UImin_eq_l.
+  apply isinvol_UIaddcompl.
+  now apply UIaddcompl_le.
+Qed.
+Lemma UImax_eq_r :
+  ∀ x y : X, UIle x y → UImax x y = y.
+Proof.
+  intros x y.
+  rewrite iscomm_UImax.
+  now apply UImax_eq_l.
+Qed.
+
+Lemma UImax_carac :
+  ∀ x y : X, UImax x y = UIplus (UIminus x y) y.
+Proof.
+  intros x y.
+  rewrite iscomm_UImax.
+  unfold UIminus, UImax.
+  pattern x at 1 ;
+    rewrite <- (isinvol_UIaddcompl x), <- (pr2 (pr2 is_addcompl_UIaddcompl)), isinvol_UIaddcompl.
+  rewrite iscomm_UIplus.
+  apply (maponpaths (λ x, UIplus x _)), maponpaths.
+  apply iscomm_UIplus.
+Qed.
+
+Lemma UIplus_addcompl :
+  ∀ x y : X,
+    UIle x (UIaddcompl y) -> UIplus x (UIaddcompl (UIplus x y)) = UIaddcompl y.
+Proof.
+  intros x y H.
+  rewrite <- (UImax_eq_l (UIaddcompl y) x), UImax_carac.
+  unfold UIminus.
+  now rewrite isinvol_UIaddcompl, !(iscomm_UIplus x).
+  exact H.
+Qed.
+
+Lemma UIplus_eq_one :
+  ∀ x y : X,
+    UIle (UIaddcompl y) x -> UIplus x y = UIone.
+Proof.
+  intros x y H.
+  apply UIaddcompl_eq.
+  rewrite UIaddcompl_one.
+  apply (UIplus_eqcompat_l' x).
+  rewrite ?isinvol_UIaddcompl.
+  apply UIplus_le_r.
+  rewrite UIaddcompl_zero.
+  apply UIle_one.
+  rewrite isrunit_UIplus.
+  pattern x at 3.
+  rewrite <- (UImax_eq_r (UIaddcompl y) x), UImax_carac.
+  unfold UIminus.
+  now rewrite isinvol_UIaddcompl, !(iscomm_UIplus x).
+  exact H.
+Qed.
+
+Lemma UIminus_eq_zero :
+  ∀ x y : X, UIle x y -> UIminus x y = UIzero.
+Proof.
+  intros x y H.
+  unfold UIminus.
+  rewrite <- (isinvol_UIaddcompl UIzero), UIaddcompl_zero.
+  apply maponpaths.
+  apply UIplus_eq_one.
+  now apply UIaddcompl_le.
+Qed.
+
+(** multiplication *)
+
+(** division *)
+
+Lemma is_troncdiv_UIdiv :
+  is_troncdiv (X := UImultmonoid) UIzero UIle UIlt UIdiv UImin.
+Proof.
+  exact (pr1 (pr2 UI_aux_2)).
+Qed.
+
+Lemma UImin_divcarac :
+  ∀ (x y : X) (Hy : UIlt UIzero y),
+    UImult y (UIdiv x y Hy) = UImin x y.
+Admitted.
+
+Lemma UImult_UIdiv :
+  ∀ (x y : X) (Hy : UIlt UIzero y),
+    UIle x y → UImult y (UIdiv x y Hy) = x.
+Proof.
+  exact (pr1 is_troncdiv_UIdiv).
+Qed.
+Lemma UIdiv_eq_one :
+  ∀ (x y : UImultmonoid) (Hy : UIlt UIzero y),
+    UIle y x → UIdiv x y Hy = UIone.
+Proof.
+  exact (pr2 is_troncdiv_UIdiv).
+Qed.
+
+Lemma is_invSn_UIinvSn :
+  is_invSn (X := UIaddmonoid) UIle UIlt UIinvSn UIaddcompl.
+Proof.
+  exact (pr1 (pr2 (pr2 UIaux_2))).
+Qed.
+Lemma UIinvSn_addcompl :
+  ∀ n : nat, UIinvSn n = UIaddcompl (natmult (X := UIaddmonoid) n (UIinvSn n)).
+Proof.
+  exact (pr1 is_invSn_UIinvSn).
+Qed.
+Lemma isarchUI :
+  ∀ x : X, UIlt UIzero x → ∃ n : nat, UIle (UIinvSn n) x.
+Proof.
+  exact (pr2 is_invSn_UIinvSn).
+Qed.
+
+Lemma isrdistr_UIplus_mult :
+  ∀ x y z : X,
+    UIle x (UIaddcompl y) → (UImult (UIplus x y) z) = UIplus (UImult x z) (UImult y z).
+Proof.
+  exact (pr1 (pr2 (pr2 (pr2 UIaux_2)))).
+Qed.
+
+Lemma UImult_addcompl:
+  ∀ x y : X, UIaddcompl (UImult x y) = UIplus (UImult (UIaddcompl x) y) (UIaddcompl y).
+Proof.
+  exact (pr1 (pr2 (pr2 (pr2 (pr2 UIaux_2))))).
+Qed.
+
+
+
+
+
+
+(** multiplication *)
 Lemma UImult_ltcompat_l :
   ∀ x y z : X,
     UIlt UIzero x
@@ -507,7 +675,7 @@ Proof.
   rewrite UImult_addcompl_l, UImult_addcompl ; unfold UIminus.
   apply maponpaths.
   rewrite isrdistr_UIplus_mult.
-  rewrite (commax UIaddmonoid), !(assocax UIaddmonoid).
+  rewrite iscomm_UIplus, !(assocax UIaddmonoid).
   apply maponpaths.
   apply commax.
   apply UIaddcompl_le.
@@ -544,7 +712,7 @@ Proof.
   rewrite <- (isinvol_UIaddcompl k).
   apply UIaddcompl_lt.
   apply UIplus_ltcompat_l' with y.
-  rewrite (commax UIaddmonoid), (assocax UIaddmonoid), (UIplus_eq_one _ y).
+  rewrite iscomm_UIplus, (assocax UIaddmonoid), (UIplus_eq_one _ y).
 
 Qed.
 
