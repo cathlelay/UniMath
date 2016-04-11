@@ -420,7 +420,7 @@ End Balls.
 
 (** ** Limits in a Metric Space *)
 
-Definition locally {NR : NonnegativeMonoid} {M : MetricSet NR} (x : M) : Filter (X := M) :=
+Definition locally {NR : NonnegativeMonoid} {M : MetricSet NR} (x : M) : Filter M :=
   locally_base (T := metric_topology) x (_,,is_base_of_neighborhood_ball x).
 
 Lemma locally_ball {NR : NonnegativeMonoid} {M : MetricSet NR} (x : M) :
@@ -438,19 +438,19 @@ Qed.
 
 (** *** Limit of a filter *)
 
-Definition is_filter_lim {NR : NonnegativeMonoid} {M : MetricSet NR} (F : Filter) (x : M) :=
+Definition is_filter_lim {NR : NonnegativeMonoid} {M : MetricSet NR} (F : Filter M) (x : M) :=
   is_filter_lim_base (T := metric_topology) F x (_,,is_base_of_neighborhood_ball x).
-Definition ex_filter_lim {NR : NonnegativeMonoid} {M : MetricSet NR} (F : Filter) :=
+Definition ex_filter_lim {NR : NonnegativeMonoid} {M : MetricSet NR} (F : Filter M) :=
   ∃ (x : M), is_filter_lim F x.
 
 (** *** Limit of a function *)
 
-Definition is_lim {X : UU} {NR : NonnegativeMonoid} {M : MetricSet NR} (f : X -> M) (F : Filter) (x : M) :=
+Definition is_lim {X : UU} {NR : NonnegativeMonoid} {M : MetricSet NR} (f : X -> M) (F : Filter X) (x : M) :=
   is_lim_base (T := metric_topology) f F x (_,,is_base_of_neighborhood_ball x).
-Definition ex_lim {X : UU} {NR : NonnegativeMonoid} {M : MetricSet NR} (f : X -> M) (F : Filter) :=
+Definition ex_lim {X : UU} {NR : NonnegativeMonoid} {M : MetricSet NR} (f : X -> M) (F : Filter X) :=
   ∃ (x : M), is_lim f F x.
 
-Lemma is_lim_aux {X : UU} {NR : NonnegativeMonoid} {M : MetricSet NR} (f : X -> M) (F : Filter) (x : M) :
+Lemma is_lim_aux {X : UU} {NR : NonnegativeMonoid} {M : MetricSet NR} (f : X -> M) (F : Filter X) (x : M) :
   is_lim f F x <->
   (∀ eps : (Σ e : NR, 0 < e), F (λ y, ball x (pr1 eps) (f y))).
 Proof.

@@ -107,6 +107,22 @@ Definition mkUniformStructure {X : UU} (F : (X × X -> hProp) -> hProp)
   UniformStructure X :=
   F,, Himpl,, isfilter_finite_intersection_carac F Htrue Hand,, Hdiag,, Hsymm,, Hsquare.
 
+Lemma UniformeStructure_isfilter {X : UU}
+      (x0 : ∥ X ∥) (F : UniformStructure X) : isfilter F.
+Proof.
+  intros X x0 F.
+  repeat split.
+  - apply (pr1 (pr2 F)).
+  - apply (pr1 (pr2 (pr2 F))).
+  - intro H.
+    revert x0.
+    apply hinhuniv'.
+    exact isapropempty.
+    intros x0.
+    apply ((pr1 (pr2 (pr2 (pr2 F)))) _ H).
+    exact x0.
+Qed.
+
 (** *** Uniform Space *)
 
 Definition UniformSpace :=

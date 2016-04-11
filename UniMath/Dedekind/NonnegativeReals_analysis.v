@@ -308,7 +308,7 @@ Proof.
       exact He.
     + apply H.
 Defined.
-Definition NR_locally (x : NonnegativeReals) : Filter (X := NonnegativeReals).
+Definition NR_locally (x : NonnegativeReals) : Filter NonnegativeReals.
 Proof.
   intros x.
   simple refine (Topology.locally_base (T := metric_topology (M := NR_MetricSpace)) _ _).
@@ -316,13 +316,13 @@ Proof.
   apply base_of_neighborhood_NR_ball.
 Defined.
 
-Definition is_NR_filter_lim (F : Filter (X := NonnegativeReals)) (x : NonnegativeReals) :=
+Definition is_NR_filter_lim (F : Filter NonnegativeReals) (x : NonnegativeReals) :=
   Topology.is_filter_lim_base (T := metric_topology (M := NR_MetricSpace)) F x (base_of_neighborhood_NR_ball x).
 
-Definition is_NR_lim {X : UU} (f : X -> NonnegativeReals) (F : Filter) (x : NonnegativeReals) :=
+Definition is_NR_lim {X : UU} (f : X -> NonnegativeReals) (F : Filter _) (x : NonnegativeReals) :=
   Topology.is_lim_base (T := metric_topology (M := NR_MetricSpace)) f F x (base_of_neighborhood_NR_ball x).
 
-Lemma is_NR_lim_aux {X : UU} (f : X -> NonnegativeReals) (F : Filter) (x : NonnegativeReals) :
+Lemma is_NR_lim_aux {X : UU} (f : X -> NonnegativeReals) (F : Filter _) (x : NonnegativeReals) :
   is_NR_lim f F x <->
   (∀ eps : NonnegativeReals, 0 < eps -> F (λ y : X, NR_ball x eps (f y))).
 Proof.
@@ -354,7 +354,7 @@ Proof.
     exact He.
 Qed.
 
-Lemma is_NR_lim_unique_aux {X : UU} (f : X -> NonnegativeReals) (F : Filter) (l l' : NonnegativeReals) :
+Lemma is_NR_lim_unique_aux {X : UU} (f : X -> NonnegativeReals) (F : Filter _) (l l' : NonnegativeReals) :
   is_NR_lim f F l -> is_NR_lim f F l' -> l < l' -> empty.
 Proof.
   intros X f F l l' Hl Hl' Hlt.
@@ -382,7 +382,7 @@ Proof.
     reflexivity.
 Qed.
 
-Lemma is_NR_lim_unique {X : UU} (f : X -> NonnegativeReals) (F : Filter) (l l' : NonnegativeReals) :
+Lemma is_NR_lim_unique {X : UU} (f : X -> NonnegativeReals) (F : Filter _) (l l' : NonnegativeReals) :
   is_NR_lim f F l -> is_NR_lim f F l' -> l = l'.
 Proof.
   intros X f F l l' Hl Hl'.
@@ -393,7 +393,7 @@ Proof.
 Qed.
 
 Lemma isaprop_ex_lim {X : UU} :
-  ∀ (f : X -> NonnegativeReals) (F : Filter), isaprop (Σ l : NonnegativeReals, is_NR_lim f F l).
+  ∀ (f : X -> NonnegativeReals) (F : Filter _), isaprop (Σ l : NonnegativeReals, is_NR_lim f F l).
 Proof.
   intros X f F.
   apply isaproptotal2'.
@@ -404,9 +404,9 @@ Proof.
   apply pr2.
   apply is_NR_lim_unique.
 Qed.
-Definition ex_lim {X : UU} (f : X -> NonnegativeReals) (F : Filter) : hProp
+Definition ex_lim {X : UU} (f : X -> NonnegativeReals) (F : Filter _) : hProp
   := hProppair (Σ l : NonnegativeReals, is_NR_lim f F l) (isaprop_ex_lim f F).
-Definition Lim_seq {X : UU} (f : X -> NonnegativeReals) (F : Filter) (Lu : ex_lim f F) : NonnegativeReals
+Definition Lim_seq {X : UU} (f : X -> NonnegativeReals) (F : Filter _) (Lu : ex_lim f F) : NonnegativeReals
   := pr1 Lu.
 
 Lemma is_NR_lim_seq_equiv :

@@ -503,7 +503,7 @@ Defined.
 
 (** ** Limits in a Topological Set *)
 
-Definition locally {T : TopologicalSet} (x : T) : Filter (X := T).
+Definition locally {T : TopologicalSet} (x : T) : Filter T.
 Proof.
   intros T x.
   simple refine (mkFilter _ _ _ _ _).
@@ -520,7 +520,7 @@ Proof.
     exact Hx.
 Defined.
 
-Definition locally_base {T : TopologicalSet} (x : T) (base : base_of_neighborhood x) : Filter (X := T).
+Definition locally_base {T : TopologicalSet} (x : T) (base : base_of_neighborhood x) : Filter T.
 Proof.
   intros T x base.
   simple refine (mkFilter _ _ _ _ _).
@@ -548,17 +548,17 @@ Defined.
 
 (** *** Limit of a filter *)
 
-Definition is_filter_lim {T : TopologicalSet} (F : Filter) (x : T) :=
+Definition is_filter_lim {T : TopologicalSet} (F : Filter T) (x : T) :=
   filter_le (locally x) F.
-Definition ex_filter_lim  {T : TopologicalSet} (F : Filter) :=
+Definition ex_filter_lim  {T : TopologicalSet} (F : Filter T) :=
   ∃ (x : T), is_filter_lim F x.
 
-Definition is_filter_lim_base {T : TopologicalSet} (F : Filter) (x : T) base :=
+Definition is_filter_lim_base {T : TopologicalSet} (F : Filter T) (x : T) base :=
   filter_le (locally_base x base) F.
-Definition ex_filter_lim_base  {T : TopologicalSet} (F : Filter) :=
+Definition ex_filter_lim_base  {T : TopologicalSet} (F : Filter T) :=
   ∃ (x : T) base, is_filter_lim_base F x base.
 
-Lemma is_filter_lim_base_correct {T : TopologicalSet} (F : Filter) (x : T) base :
+Lemma is_filter_lim_base_correct {T : TopologicalSet} (F : Filter T) (x : T) base :
   is_filter_lim_base F x base <-> is_filter_lim F x.
 Proof.
   intros.
@@ -570,7 +570,7 @@ Proof.
     apply (pr2 (neighborhood_equiv _ _ _)), Hx.
     exact HP.
 Qed.
-Lemma ex_filter_lim_base_correct {T : TopologicalSet} (F : Filter (X := T)) :
+Lemma ex_filter_lim_base_correct {T : TopologicalSet} (F : Filter T) :
   ex_filter_lim_base F <-> ex_filter_lim F.
 Proof.
   intros.
@@ -588,17 +588,17 @@ Qed.
 
 (** *** Limit of a function *)
 
-Definition is_lim {X : UU} {T : TopologicalSet} (f : X -> T) (F : Filter (X := X)) (x : T) :=
+Definition is_lim {X : UU} {T : TopologicalSet} (f : X -> T) (F : Filter X) (x : T) :=
   filterlim f F (locally x).
-Definition ex_lim {X : UU} {T : TopologicalSet} (f : X -> T) (F : Filter (X := X)) :=
+Definition ex_lim {X : UU} {T : TopologicalSet} (f : X -> T) (F : Filter X) :=
   ∃ (x : T), is_lim f F x.
 
-Definition is_lim_base {X : UU} {T : TopologicalSet} (f : X -> T) (F : Filter (X := X)) (x : T) base :=
+Definition is_lim_base {X : UU} {T : TopologicalSet} (f : X -> T) (F : Filter X) (x : T) base :=
   filterlim f F (locally_base x base).
-Definition ex_lim_base {X : UU} {T : TopologicalSet} (f : X -> T) (F : Filter (X := X)) :=
+Definition ex_lim_base {X : UU} {T : TopologicalSet} (f : X -> T) (F : Filter X) :=
   ∃ (x : T) base, is_lim_base f F x base.
 
-Lemma is_lim_base_correct {X : UU} {T : TopologicalSet} (f : X -> T) (F : Filter (X := X)) (x : T) base :
+Lemma is_lim_base_correct {X : UU} {T : TopologicalSet} (f : X -> T) (F : Filter X) (x : T) base :
   is_lim_base f F x base <-> is_lim f F x.
 Proof.
   intros.
@@ -610,7 +610,7 @@ Proof.
     eapply Hx, neighborhood_equiv.
     exact HP.
 Qed.
-Lemma ex_lim_base_correct {X : UU} {T : TopologicalSet} (f : X -> T) (F : Filter) :
+Lemma ex_lim_base_correct {X : UU} {T : TopologicalSet} (f : X -> T) (F : Filter X) :
   ex_lim_base f F <-> ex_lim f F.
 Proof.
   intros.

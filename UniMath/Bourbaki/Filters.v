@@ -92,17 +92,17 @@ Proof.
   exact Hand.
 Qed.
 
-Definition Filter {X : UU} := Σ F : (X -> hProp) -> hProp, isfilter F.
-Definition pr1Filter {X : UU} (F : Filter (X := X)) : (X -> hProp) -> hProp := pr1 F.
+Definition Filter (X : UU) := Σ F : (X -> hProp) -> hProp, isfilter F.
+Definition pr1Filter (X : UU) (F : Filter X) : (X -> hProp) -> hProp := pr1 F.
 Coercion pr1Filter : Filter >-> Funclass.
 
-Definition mkFilter {X : UU} (F : (X -> hProp) -> hProp) (Himp : isfilter_imply F) (Htrue : F (λ _ : X, htrue)) (Hand : ∀ A B : X -> hProp, F A -> F B -> F (λ x : X, A x ∧ B x)) (Hempty : isfilter_notempty F) : Filter :=
+Definition mkFilter {X : UU} (F : (X -> hProp) -> hProp) (Himp : isfilter_imply F) (Htrue : F (λ _ : X, htrue)) (Hand : ∀ A B : X -> hProp, F A -> F B -> F (λ x : X, A x ∧ B x)) (Hempty : isfilter_notempty F) : Filter X :=
   F ,, Himp ,, (isfilter_finite_intersection_carac F Htrue Hand) ,, Hempty.
 
 Section Filter_pty.
 
 Context {X : UU}.
-Context (F : Filter (X := X)).
+Context (F : Filter X).
 
 Lemma filter_imply :
   isfilter_imply F.
@@ -153,7 +153,7 @@ Qed.
 
 End Filter_pty.
 
-Lemma isasetFilter (X : UU) : isaset (Filter (X := X)).
+Lemma isasetFilter (X : UU) : isaset (Filter X).
 Proof.
   intros X.
   simple refine (isaset_total2_subset (hSetpair _ _) _).
@@ -163,11 +163,11 @@ Qed.
 
 (** *** Order on filters *)
 
-Definition filter_le {X : UU} (F G : Filter (X := X)) :=
+Definition filter_le {X : UU} (F G : Filter X) :=
   ∀ A : X -> hProp, G A -> F A.
 
 Lemma istrans_filter_le {X : UU} :
-  ∀ F G H : Filter (X := X),
+  ∀ F G H : Filter X,
     filter_le F G -> filter_le G H -> filter_le F H.
 Proof.
   intros X.
@@ -175,13 +175,13 @@ Proof.
   apply Hfg, Hgh, Fa.
 Qed.
 Lemma isrefl_filter_le {X : UU} :
-  ∀ F : Filter (X := X), filter_le F F.
+  ∀ F : Filter X, filter_le F F.
 Proof.
   intros X F A Fa.
   exact Fa.
 Qed.
 Lemma isantisymm_filter_le {X : UU} :
-  ∀ F G : Filter (X := X), filter_le F G -> filter_le G F -> F = G.
+  ∀ F G : Filter X, filter_le F G -> filter_le G F -> F = G.
 Proof.
   intros X F G Hle Hge.
   apply subtypeEquality_prop.
@@ -191,7 +191,7 @@ Proof.
   now apply Hle.
 Qed.
 
-Definition PartialOrder_filter_le (X : UU) : PartialOrder (hSetpair Filter (isasetFilter X)).
+Definition PartialOrder_filter_le (X : UU) : PartialOrder (hSetpair (Filter _) (isasetFilter X)).
 Proof.
   intros X.
   simple refine (PartialOrderpair _ _).
@@ -212,7 +212,7 @@ Defined.
 
 (** *** Image of a filter *)
 
-Definition filtermap {X Y : UU} (f : X -> Y) (F : Filter (X := X)) : Filter (X := Y).
+Definition filtermap {X Y : UU} (f : X -> Y) (F : Filter X) : Filter Y.
 Proof.
   intros X Y f F.
   simple refine (mkFilter _ _ _ _ _).
@@ -228,7 +228,7 @@ Proof.
 Defined.
 
 Lemma filtermap_incr {X Y : UU} :
-  ∀ (f : X -> Y) (F G : Filter),
+  ∀ (f : X -> Y) (F G : Filter X),
     filter_le F G -> filter_le (filtermap f F) (filtermap f G).
 Proof.
   intros X Y.
@@ -238,11 +238,12 @@ Qed.
 
 (** *** Limit: filter version *)
 
-Definition filterlim {X Y : UU} (f : X -> Y) (F : Filter) (G : Filter) :=
+Definition filterlim {X Y : UU} (f : X -> Y) (F : Filter X) (G : Filter Y) :=
   filter_le (filtermap f F) G.
 
 Lemma filterlim_comp {X Y Z : UU} :
-  ∀ (f : X -> Y) (g : Y -> Z) (F G H : Filter),
+  ∀ (f : X -> Y) (g : Y -> Z)
+    (F : Filter X) (G : Filter Y) (H : Filter Z),
     filterlim f F G -> filterlim g G H -> filterlim (λ x : X, g (f x)) F H.
 Proof.
   intros X Y Z.
@@ -253,7 +254,7 @@ Proof.
 Qed.
 
 Lemma filterlim_decr_1 {X Y : UU} :
-  ∀ (f : X -> Y) (F F' : Filter (X := X)) (G : Filter (X := Y)),
+  ∀ (f : X -> Y) (F F' : Filter X) (G : Filter Y),
     filter_le F' F -> filterlim f F G -> filterlim f F' G.
 Proof.
   intros X Y.
@@ -264,7 +265,7 @@ Proof.
 Qed.
 
 Lemma filterlim_incr_2 {X Y : UU} :
-  ∀ (f : X -> Y) (F : Filter (X := X)) (G G' : Filter (X := Y)),
+  ∀ (f : X -> Y) (F : Filter X) (G G' : Filter Y),
     filter_le G G' -> filterlim f F G -> filterlim f F G'.
 Proof.
   intros X Y.
@@ -278,8 +279,8 @@ Qed.
 
 (** *** Filter on a domain *)
 
-Definition filter_dom {X : UU} (F : Filter (X := X)) (dom : X -> hProp) (Hdom : ∀ P, F P -> ¬ ¬ ∃ x, dom x ∧ P x) :
-  Filter (X := X).
+Definition filter_dom {X : UU} (F : Filter X) (dom : X -> hProp) (Hdom : ∀ P, F P -> ¬ ¬ ∃ x, dom x ∧ P x) :
+  Filter X.
 Proof.
   intros X F dom Hdom.
   simple refine (mkFilter _ _ _ _ _).
@@ -314,8 +315,8 @@ Proof.
     now apply Hx'.
 Defined.
 
-Definition filter_subtypes {X : UU} (F : Filter (X := X)) (dom : X -> hProp) (Hdom : ¬ F (λ x : X, hneg (dom x))) :
-  Filter (X := Σ x : X, dom x).
+Definition filter_subtypes {X : UU} (F : Filter X) (dom : X -> hProp) (Hdom : ¬ F (λ x : X, hneg (dom x))) :
+  Filter (Σ x : X, dom x).
 Proof.
   intros X F dom Hdom.
   simple refine (mkFilter _ _ _ _ _).
@@ -351,7 +352,7 @@ Defined.
 
 (** *** Product of filters *)
 
-Definition filter_prod {X Y : UU} (Fx : Filter (X := X)) (Fy : Filter (X := Y)) : Filter (X := X × Y).
+Definition filter_prod {X Y : UU} (Fx : Filter X) (Fy : Filter Y) : Filter (X × Y).
 Proof.
   intros X Y Fx Fy.
   simple refine (mkFilter _ _ _ _ _).
@@ -395,7 +396,7 @@ Proof.
     now apply (Ha x y).
 Defined.
 
-Definition filter_pr1 {X Y : UU} (F : Filter (X := X × Y)) : Filter (X := X).
+Definition filter_pr1 {X Y : UU} (F : Filter (X × Y)) : Filter X.
 Proof.
   intros X Y F.
   simple refine (mkFilter _ _ _ _ _).
@@ -412,7 +413,7 @@ Proof.
   - apply filter_notempty.
 Defined.
 
-Definition filter_pr2 {X Y : UU} (F : Filter (X := X × Y)) : Filter (X := Y).
+Definition filter_pr2 {X Y : UU} (F : Filter (X × Y)) : Filter Y.
 Proof.
   intros X Y F.
   simple refine (mkFilter _ _ _ _ _).
@@ -429,7 +430,7 @@ Proof.
   - apply filter_notempty.
 Defined.
 
-Goal ∀ {X Y : UU} (F : Filter (X := X × Y)),
+Goal ∀ {X Y : UU} (F : Filter (X × Y)),
     filter_le F (filter_prod (filter_pr1 F) (filter_pr2 F)).
 Proof.
   intros X Y F.
@@ -443,7 +444,7 @@ Proof.
   now apply Ha.
 Qed.
 
-Goal ∀ {X Y : UU} (F : Filter (X := X)) (G : Filter (X := Y)),
+Goal ∀ {X Y : UU} (F : Filter X) (G : Filter Y),
     filter_le (filter_pr1 (filter_prod F G)) F.
 Proof.
   intros X Y F G.
@@ -455,7 +456,7 @@ Proof.
   - now apply filter_htrue.
   - easy.
 Qed.
-Goal ∀ {X Y : UU} (F : Filter (X := X)) (G : Filter (X := Y)),
+Goal ∀ {X Y : UU} (F : Filter X) (G : Filter Y),
     filter_le (filter_pr2 (filter_prod F G)) G.
 Proof.
   intros X Y F G.
@@ -472,7 +473,7 @@ Qed.
 
 (** *** Filter on nat *)
 
-Definition filter_nat : Filter (X := nat).
+Definition filter_nat : Filter nat.
 Proof.
   simple refine (mkFilter _ _ _ _ _).
   - intros P.
@@ -507,7 +508,7 @@ Defined.
 
 (** *** The smallest filter *)
 
-Definition filter_top {X : UU} (x0 : X) : Filter (X := X).
+Definition filter_top {X : UU} (x0 : ∥ X ∥) : Filter X.
 Proof.
   intros X x0.
   simple refine (mkFilter _ _ _ _ _).
@@ -525,12 +526,14 @@ Proof.
     apply Ha.
     apply Hb.
   - simpl ; intro H.
+    revert x0.
+    apply hinhuniv'.
+    exact isapropempty.
     apply H.
-    apply x0.
 Defined.
 
 Lemma filter_top_correct {X : UU} :
-  ∀ (x0 : X) (F : Filter), filter_le F (filter_top x0).
+  ∀ (x0 : ∥ X ∥) (F : Filter X), filter_le F (filter_top x0).
 Proof.
   intros X x0 F A Ha.
   apply filter_forall, Ha.
@@ -538,13 +541,13 @@ Qed.
 
 (** *** Intersection of filters *)
 
-Definition filter_intersection {X : UU} (FF : Filter (X := X) -> hProp) (Hff : ¬ (∀ F : Filter, ¬ FF F)) : Filter (X := X).
+Definition filter_intersection {X : UU} (FF : Filter X -> hProp) (Hff : ¬ (∀ F : Filter X, ¬ FF F)) : Filter X.
 Proof.
   intros X FF Hff.
   simple refine (mkFilter _ _ _ _ _).
   - intros A.
     simple refine (hProppair _ _).
-    apply (∀ F : Filter, FF F -> F A).
+    apply (∀ F : Filter _, FF F -> F A).
     apply impred_isaprop ; intros F.
     apply isapropimpl.
     apply propproperty.
@@ -565,9 +568,9 @@ Proof.
     apply Hf, Hf'.
 Defined.
 
-Lemma filter_intersection_glb {X : UU} (FF : Filter (X := X) -> hProp) (Hff : ¬ (∀ F : Filter, ¬ FF F)) :
-  (∀ F : Filter, FF F -> filter_le F (filter_intersection FF Hff))
-× (∀ F : Filter, (∀ G : Filter, FF G -> filter_le G F) -> filter_le (filter_intersection FF Hff) F).
+Lemma filter_intersection_glb {X : UU} (FF : Filter X -> hProp) (Hff : ¬ (∀ F : Filter X, ¬ FF F)) :
+  (∀ F : Filter X, FF F -> filter_le F (filter_intersection FF Hff))
+× (∀ F : Filter X, (∀ G : Filter X, FF G -> filter_le G F) -> filter_le (filter_intersection FF Hff) F).
 Proof.
   split.
   - intros F Hf A Ha.
@@ -581,7 +584,7 @@ Qed.
 
 (** *** Filter generated by a set of subsets *)
 
-Definition generated_filter {X : UU} (L : (X -> hProp) -> hProp) (Hl : ∀ (L' : Sequence (X -> hProp)), (∀ m, L (L' m)) -> ¬ ∀ x : X, ¬ finite_intersection L' x) : Filter (X := X).
+Definition generated_filter {X : UU} (L : (X -> hProp) -> hProp) (Hl : ∀ (L' : Sequence (X -> hProp)), (∀ m, L (L' m)) -> ¬ ∀ x : X, ¬ finite_intersection L' x) : Filter X.
 Proof.
   intros X L Hl.
   simple refine (mkFilter _ _ _ _ _).
@@ -641,7 +644,7 @@ Lemma generated_filter_correct {X : UU} :
          (∀ m, L (L' m)) ->
          ¬ (∀ x : X, ¬ finite_intersection L' x)),
    (∀ A : X -> hProp, L A -> (generated_filter L Hl) A)
-   × (∀ F : Filter,
+   × (∀ F : Filter X,
       (∀ A : X -> hProp, L A -> F A) -> filter_le F (generated_filter L Hl)).
 Proof.
   intros L Hl.
@@ -665,7 +668,7 @@ Proof.
 Qed.
 
 Lemma generated_filter_inv {X : UU} :
-   ∀ (L : (X -> hProp) -> hProp) (F : Filter),
+   ∀ (L : (X -> hProp) -> hProp) (F : Filter X),
    (∀ A : X -> hProp, L A -> F A) ->
    ∀ (L' : Sequence (X -> hProp)),
    (∀ m, L (L' m)) ->
@@ -682,8 +685,8 @@ Proof.
 Qed.
 
 Lemma ex_filter_le {X : UU} :
-  ∀ (F : Filter) (A : X -> hProp),
-    (Σ G : Filter, filter_le G F × G A)
+  ∀ (F : Filter X) (A : X -> hProp),
+    (Σ G : Filter X, filter_le G F × G A)
     <-> (∀ B : X -> hProp, F B -> ¬ (∀ x : X, A x -> B x -> ∅)).
 Proof.
   intros X.
@@ -796,7 +799,7 @@ Qed.
 
 (** *** Filter defined by a base *)
 
-Definition base_filter {X : UU} (x0 : X) (base : (X -> hProp) -> hProp) (Hand : ∀ A B : X -> hProp, base A -> base B -> ∃ C : X -> hProp, base C × (∀ x, C x -> A x ∧ B x)) (Hempty : ∃ A : X -> hProp, base A) (Hfalse : ¬ (base (λ _, hfalse))) : Filter (X := X).
+Definition base_filter {X : UU} (x0 : ∥ X ∥) (base : (X -> hProp) -> hProp) (Hand : ∀ A B : X -> hProp, base A -> base B -> ∃ C : X -> hProp, base C × (∀ x, C x -> A x ∧ B x)) (Hempty : ∃ A : X -> hProp, base A) (Hfalse : ¬ (base (λ _, hfalse))) : Filter X.
 Proof.
   intros X x0 base Hand Hempty Hfalse.
   simple refine (mkFilter _ _ _ _ _).
@@ -835,7 +838,8 @@ Proof.
     apply (pr2 (pr2 B')).
     now refine (pr2 (pr2 (pr2 C') _ _)).
   - intros H ; revert H.
-    apply (hinhuniv (P := hProppair _ isapropempty)).
+    apply hinhuniv'.
+    exact isapropempty.
     intros A.
     apply Hfalse.
     assert ((λ _ : X, hfalse) = (pr1 A)).

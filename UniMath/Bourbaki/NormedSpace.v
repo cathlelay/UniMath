@@ -647,21 +647,21 @@ End dist_norm.
 
 (** ** Limits in a Normed Module *)
 
-Definition locally {NR : NonnegativeRig} {K : absrng NR} {X : NormedModule K} (x : X) : Filter (X := X) :=
+Definition locally {NR : NonnegativeRig} {K : absrng NR} {X : NormedModule K} (x : X) : Filter X :=
   locally (M := metric_norm) x.
 
 (** *** Limit of a filter *)
 
-Definition is_filter_lim {NR : NonnegativeRig} {K : absrng NR} {X : NormedModule K} (F : Filter) (x : X) :=
+Definition is_filter_lim {NR : NonnegativeRig} {K : absrng NR} {X : NormedModule K} (F : Filter X) (x : X) :=
   filter_le (locally x) F.
-Definition ex_filter_lim {NR : NonnegativeRig} {K : absrng NR} {X : NormedModule K} (F : Filter) :=
+Definition ex_filter_lim {NR : NonnegativeRig} {K : absrng NR} {X : NormedModule K} (F : Filter X) :=
   ∃ (x : X), is_filter_lim F x.
 
 (** *** Limit of a function *)
 
-Definition is_lim {X : UU} {NR : NonnegativeRig} {K : absrng NR} {V : NormedModule K} (f : X -> V) (F : Filter) (x : V) :=
+Definition is_lim {X : UU} {NR : NonnegativeRig} {K : absrng NR} {V : NormedModule K} (f : X -> V) (F : Filter X) (x : V) :=
   filterlim f F (locally x).
-Definition ex_lim {X : UU} {NR : NonnegativeRig} {K : absrng NR} {V : NormedModule K} (f : X -> V) (F : Filter) :=
+Definition ex_lim {X : UU} {NR : NonnegativeRig} {K : absrng NR} {V : NormedModule K} (f : X -> V) (F : Filter X) :=
   ∃ (x : V), is_lim f F x.
 
 (** *** Continuity *)
