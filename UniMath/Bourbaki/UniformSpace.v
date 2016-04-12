@@ -14,8 +14,64 @@ Definition subset_square {X : UU} (A : X × X -> hProp) :=
   subset_prod A A.
 Definition subset_inv {X : UU} (A : X × X -> hProp) :=
   λ x : X × X, A (pr2 x ,, pr1 x).
+Fixpoint subset_pow {X : hSet} (A : X × X -> hProp) (n : nat) :=
+  match n with
+  | O => λ x : X × X, hProppair (pr1 x = pr2 x) (pr2 X _ _)
+  | S n => subset_prod A (subset_pow A n)
+  end.
 
-(** *** Uniform Structures *)
+Lemma subset_pow_1 {X : hSet} (A : X × X -> hProp) :
+  subset_pow A 1 = A.
+Proof.
+  intros X A.
+  apply funextfun.
+  intros (x,y).
+  apply uahp.
+  - apply hinhuniv.
+    simpl.
+    intros (z,(Az,->)).
+    exact Az.
+  - intros H.
+    apply hinhpr.
+    now exists y.
+Qed.
+
+Lemma isassoc_subset_prod {X : UU} :
+  isassoc (X := tpair _ _ (Utilities.funspace_isaset isasethProp)) (subset_prod (X := X)).
+Proof.
+  intros X.
+  intros A B C.
+  apply funextfun.
+  intros x.
+  apply uahp.
+  - apply hinhuniv.
+    intros (z,(H,Hc)).
+    revert H.
+    apply hinhfun.
+    intros (y,(Ha,Hb)).
+    exists y.
+    split.
+    exact Ha.
+    apply hinhpr.
+    exists z ; split.
+    exact Hb.
+    exact Hc.
+  - apply hinhuniv.
+    intros (y,(Ha)).
+    apply hinhfun.
+    intros (z,(Hb,Hc)).
+    exists z.
+    split.
+    apply hinhpr.
+    exists y ; split.
+    exact Ha.
+    exact Hb.
+    exact Hc.
+Qed.
+
+(** *** Def 1: Uniform Space *)
+
+(** Uniform Structures *)
 
 Definition isUF_diag {X : UU} (F : (X × X -> hProp) -> hProp) :=
   ∀ P, F P -> ∀ x : X, P (x ,, x).
@@ -123,9 +179,104 @@ Proof.
     exact x0.
 Qed.
 
-(** *** Uniform Space *)
+(** Uniform Space *)
 
 Definition UniformSpace :=
   Σ (X : UU), UniformStructure X.
 Definition pr1UniformSpace : UniformSpace -> UU := pr1.
 Coercion pr1UniformSpace : UniformSpace >-> UU.
+
+(** *** Def 2: Foundamental System of Uniform Structure *)
+
+Definition isFSUS {X : UU} (F : UniformStructure X) (B : (X × X → hProp) → hProp) :=
+  ∀ (P : X × X → hProp),
+    F P → ∃ Q : X × X → hProp, B Q × (∀ x : X × X, Q x → P x).
+
+Lemma isFSUS_pow {X : hSet} (F : UniformStructure X) (B : (X × X → hProp) → hProp) :
+  isFSUS F B -> isFSUS F (λ P, ∃ (n : nat) Q, B Q × P = subset_pow Q n).
+Proof.
+  intros X F B is P Hp.
+  generalize (is P Hp) ; clear is.
+  apply hinhfun.
+  intros (Q,(Bq,Hq)).
+  exists Q ; split.
+  apply hinhpr.
+  exists 1%nat, Q.
+  now rewrite subset_pow_1.
+  exact Hq.
+Qed.
+
+Definition is_subset_symm {X : UU} (P : X × X -> hProp) :=
+  (∀ x, P x <-> subset_inv P x).
+Lemma isaprop_is_subset_symm {X : UU} (P : X × X -> hProp) :
+  isaprop (is_subset_symm P).
+Proof.
+  intros X P.
+  apply impred_isaprop ; intros x.
+  apply isapropdirprod ; apply isapropimpl, propproperty.
+Qed.
+
+Lemma is_subset_symm_and {X : UU} (F : UniformStructure X) (P : X × X -> hProp) :
+  F P -> is_subset_symm (λ x, P x ∧ subset_inv P x).
+Proof.
+  intros X F P Fp.
+  now intros (x,y) ; split ; intros (Hp,Hp') ; split.
+Qed.
+Lemma is_subset_symm_or {X : UU} (F : UniformStructure X) (P : X × X -> hProp) :
+  F P -> is_subset_symm (λ x, P x ∨ subset_inv P x).
+Proof.
+  intros X F P Fp.
+  intros (x,y) ; split ; apply hinhfun ; intros [Hp | Hp'].
+  now right.
+  now left.
+  now right.
+  now left.
+Qed.
+
+Lemma is_subset_symm_FSUS {X : UU} (F : UniformStructure X) :
+  isFSUS F (λ P, F P ∧ hProppair _ (isaprop_is_subset_symm P)).
+Proof.
+  intros X F.
+  intros P HP.
+  refine (hinhfun _ _).
+  2: apply (isUF_symm_square_imply_prod_inv F).
+  - intros (Q,(Fq,H)).
+    exists (subset_prod Q (subset_inv Q)).
+    repeat split.
+    4: apply H.
+    apply (pr1 (pr2 F)) with (2 := Fq).
+    intros (x,y) Hp.
+    apply hinhpr.
+    exists y.
+    split.
+    exact Hp.
+    apply (pr1 (pr2 (pr2 (pr2 F)))).
+    now apply (pr1 (pr2 (pr2 (pr2 (pr2 F))))).
+    apply hinhfun.
+    intros (y,(Hy,Hy')).
+    now exists y.
+    apply hinhfun.
+    intros (y,(Hy,Hy')).
+    now exists y.
+  - exact (pr1 (pr2 F)).
+  - apply isfilter_finite_intersection_htrue.
+    exact (pr1 (pr2 (pr2 F))).
+  - apply isfilter_finite_intersection_and.
+    exact (pr1 (pr2 (pr2 F))).
+  - exact (pr1 (pr2 (pr2 (pr2 F)))).
+  - exact (pr1 (pr2 (pr2 (pr2 (pr2 F))))).
+  - exact (pr2 (pr2 (pr2 (pr2 (pr2 F))))).
+  - exact HP.
+Qed.
+
+Lemma isFSUS_carac {X : UU} (F : UniformStructure X) (B : (X × X -> hProp) -> hProp) :
+  (∀ P Q, B P -> B Q -> ∃ R, B R × (∀ x : X × X, R x -> P x ∧ Q x))
+  -> (∀ P, B P -> ∀ x : X, P (x,,x))
+  -> (∀ P, B P -> ∃ Q, B Q × ∀ x, Q x -> subset_inv P x)
+  -> (∀ P, B P -> ∃ Q, B Q × ∀ x, subset_square Q x -> P x)
+  -> isFSUS F B.
+Proof.
+  intros X F B Hand Hdiag Hinv Hsqr.
+  intros P HP.
+
+Qed.
