@@ -2,6 +2,63 @@
 
 Require Export UniMath.Foundations.Basics.Sets.
 Require Export UniMath.Foundations.Combinatorics.FiniteSequences.
+Require Export UniMath.Foundations.NumberSystems.NaturalNumbers.
+Require Import UniMath.Ktheory.Utilities.
+
+Unset Automatic Introduction. (* This line has to be removed for the file to compile with Coq8.2 *)
+
+(** ** hProp *)
+
+Lemma isaproptotal2' {X : UU} (P : X -> UU) :
+  isaset X ->
+  isPredicate P ->
+  (∀ x y : X, P x -> P y -> x = y) ->
+  isaprop (Σ x : X, P x).
+Proof.
+  intros X P HX HP Heq x y ; simpl.
+  eapply iscontrweqb.
+  apply subtypeInjectivity.
+  exact HP.
+  rewrite (Heq (pr1 y) (pr1 x)).
+  apply iscontrloopsifisaset.
+  exact HX.
+  exact (pr2 y).
+  exact (pr2 x).
+Qed.
+
+Lemma hinhuniv' {P X : UU} :
+  isaprop P -> (X -> P) -> (∥ X ∥ -> P).
+Proof.
+  intros P X HP Hx.
+  apply (hinhuniv (P := hProppair _ HP)).
+  exact Hx.
+Qed.
+Lemma hinhuniv2' {P X Y : UU} :
+  isaprop P -> (X -> Y -> P) -> (∥ X ∥ -> ∥ Y ∥ -> P).
+Proof.
+  intros P X Y HP Hxy.
+  apply (hinhuniv2 (P := hProppair _ HP)).
+  exact Hxy.
+Qed.
+
+(** ** About nat *)
+
+Lemma max_le_l : ∀ n m : nat, (n ≤ max n m)%nat.
+Proof.
+  induction n ; simpl max.
+  - intros ; reflexivity.
+  - destruct m.
+    + now apply isreflnatleh.
+    + now apply IHn.
+Qed.
+Lemma max_le_r : ∀ n m : nat, (m ≤ max n m)%nat.
+Proof.
+  induction n ; simpl max.
+  - intros ; now apply isreflnatleh.
+  - destruct m.
+    + reflexivity.
+    + now apply IHn.
+Qed.
 
 (** ** More about Sequence *)
 
@@ -17,6 +74,7 @@ Definition infinite_union {X : UU} (P : (X -> hProp) -> hProp) : X -> hProp :=
 Lemma infinite_union_hfalse {X : UU} :
   infinite_union (λ _ : X -> hProp, hfalse) = (λ _ : X, hfalse).
 Proof.
+  intros X.
   apply funextfun ; intros x.
   apply uahp.
   - apply hinhuniv.
@@ -30,7 +88,7 @@ Lemma infinite_union_or {X : UU} :
     infinite_union (λ C : X -> hProp, C = A ∨ C = B)
     = (λ x : X, A x ∨ B x).
 Proof.
-  intros A B.
+  intros X A B.
   apply funextfun ; intro x.
   apply uahp.
   - apply hinhuniv.
@@ -60,6 +118,7 @@ Lemma infinite_union_hProp {X : UU} :
     (∀ (L : (X -> hProp) -> hProp), (∀ A, L A -> P A) -> P (infinite_union L))
     -> (∀ A B, P A -> P B -> P (λ x : X, A x ∨ B x)).
 Proof.
+  intros X.
   intros P Hp A B Pa Pb.
   rewrite <- infinite_union_or.
   apply Hp.
@@ -72,6 +131,7 @@ Qed.
 
 Definition finite_intersection {X : UU} (P : Sequence (X -> hProp)) : X -> hProp.
 Proof.
+  intros X P.
   intros x.
   simple refine (hProppair _ _).
   apply (∀ n, P n x).
@@ -81,6 +141,7 @@ Defined.
 Lemma finite_intersection_htrue {X : UU} :
   finite_intersection nil = (λ _ : X, htrue).
 Proof.
+  intros X.
   apply funextfun ; intros x.
   apply uahp.
   - intros _.
@@ -95,6 +156,7 @@ Lemma finite_intersection_1 {X : UU} :
   ∀ (A : X -> hProp),
     finite_intersection (singletonSequence A) = A.
 Proof.
+  intros X.
   intros A.
   apply funextfun ; intros x.
   apply uahp.
@@ -113,6 +175,7 @@ Lemma finite_intersection_and {X : UU} :
     finite_intersection (pairSequence A B)
     = (λ x : X, A x ∧ B x).
 Proof.
+  intros X.
   intros A B.
   apply funextfun ; intro x.
   apply uahp.
@@ -137,6 +200,7 @@ Lemma finite_intersection_case {X : UU} :
                             | ii2 (A,,B) => (λ x : X, A x ∧ finite_intersection B x)
                             end.
 Proof.
+  intros X.
   intros L.
   apply funextfun ; intros x.
   apply uahp.
@@ -187,7 +251,7 @@ Lemma finite_intersection_hProp {X : UU} :
     (∀ (L : Sequence (X -> hProp)), (∀ n, P (L n)) -> P (finite_intersection L))
     <-> (P (λ _, htrue) × (∀ A B, P A -> P B -> P (λ x : X, A x ∧ B x))).
 Proof.
-  intros P.
+  intros X P.
   split.
   - split.
     + rewrite <- finite_intersection_htrue.
