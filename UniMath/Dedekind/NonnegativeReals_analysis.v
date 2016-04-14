@@ -411,7 +411,7 @@ Definition Lim_seq {X : UU} (f : X -> NonnegativeReals) (F : Filter _) (Lu : ex_
 
 Lemma is_NR_lim_seq_equiv :
   ∀ (f : nat -> NonnegativeReals) (l : NonnegativeReals),
-    is_NR_lim f filter_nat l <-> is_lim_seq f l.
+    is_NR_lim f FilterNat l <-> is_lim_seq f l.
 Proof.
   intros f l.
   split.

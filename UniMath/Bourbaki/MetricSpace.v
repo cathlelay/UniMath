@@ -483,10 +483,10 @@ Definition continuous_at {NR : NonnegativeMonoid} {U V : MetricSet NR} (f : U ->
 
 Definition continuous_on {NR : NonnegativeMonoid} {U V : MetricSet NR} (dom : U -> hProp) (f : U -> V) :=
   ∀ (x : U) (Hx : dom x) H,
-    is_lim f (filter_dom (locally x) dom H) (f x).
+    is_lim f (FilterDom (locally x) dom H) (f x).
 Definition continuous_subtypes {NR : NonnegativeMonoid} {U V : MetricSet NR} (dom : U -> hProp) (f : (Σ x : U, dom x) -> V) :=
   ∀ (x : Σ x : U, dom x) H,
-    is_lim f (filter_subtypes (locally (pr1 x)) dom H) (f x).
+    is_lim f (FilterSubtype (locally (pr1 x)) dom H) (f x).
 Definition continuous {NR : NonnegativeMonoid} {U V : MetricSet NR} (f : U -> V) :=
   ∀ x : U, continuous_at f x.
 

@@ -670,20 +670,20 @@ Definition continuous_at {NR : NonnegativeRig} {K : absrng NR} {U V : NormedModu
   is_lim f (locally x) (f x).
 Definition continuous_on {NR : NonnegativeRig} {K : absrng NR} {U V : NormedModule K} (dom : U -> hProp) (f : U -> V) :=
   ∀ (x : U) (H : dom x) H,
-    is_lim f (filter_dom (locally x) dom H) (f x).
+    is_lim f (FilterDom (locally x) dom H) (f x).
 
 Definition continuous_subtypes {NR : NonnegativeRig} {K : absrng NR} {U V : NormedModule K} (dom : U -> hProp) (f : (Σ x : U, dom x) -> V) :=
   ∀ (x : Σ x : U, dom x) H,
-    is_lim f (filter_subtypes (locally (pr1 x)) dom H) (f x).
+    is_lim f (FilterSubtype (locally (pr1 x)) dom H) (f x).
 Definition continuous {NR : NonnegativeRig} {K : absrng NR} {U V : NormedModule K} (f : U -> V) :=
   ∀ x : U, continuous_at f x.
 
 (** *** Continuity for 2 variable functions *)
 
 Definition continuous2d_at {NR : NonnegativeRig} {K : absrng NR} {U V W : NormedModule K} (f : U -> V -> W) (x : U) (y : V) :=
-  is_lim (λ z : U × V, f (pr1 z) (pr2 z)) (filter_prod (locally x) (locally y)) (f x y).
+  is_lim (λ z : U × V, f (pr1 z) (pr2 z)) (FilterDirprod (locally x) (locally y)) (f x y).
 Definition continuous2d_on {NR : NonnegativeRig} {K : absrng NR} {U V W : NormedModule K} (f : U -> V -> W) (dom : U -> V -> hProp) :=
-  ∀ x y Hz, is_lim (λ z : U × V, f (pr1 z) (pr2 z)) (filter_dom (filter_prod (locally x) (locally y)) (λ z : U × V, dom (pr1 z) (pr2 z)) Hz) (f x y).
+  ∀ x y Hz, is_lim (λ z : U × V, f (pr1 z) (pr2 z)) (FilterDom (FilterDirprod (locally x) (locally y)) (λ z : U × V, dom (pr1 z) (pr2 z)) Hz) (f x y).
 Definition continuous2d {NR : NonnegativeRig} {K : absrng NR} {U V W : NormedModule K} (f : U -> V -> W) :=
   ∀ (x : U) (y : V), continuous2d_at f x y.
 
