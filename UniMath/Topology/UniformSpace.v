@@ -2,9 +2,9 @@
 (** Author: Catherine LELAY. Jan 2016 - *)
 (** Based on Bourbaky *)
 
-Require Export UniMath.Bourbaki.Complements.
-Require Import UniMath.Dedekind.Complements.
-Require Export UniMath.Bourbaki.Filters.
+Require Export UniMath.Topology.Complements.
+Require Import UniMath.Topology.Complements.
+Require Export UniMath.Topology.Filters.
 
 (** ** Definitions *)
 
@@ -164,7 +164,7 @@ Definition mkUniformStructure {X : UU} (F : (X × X -> hProp) -> hProp)
   F,, Himpl,, isfilter_finite_intersection_carac F Htrue Hand,, Hdiag,, Hsymm,, Hsquare.
 
 Lemma UniformeStructure_isfilter {X : UU}
-      (x0 : ∥ X ∥) (F : UniformStructure X) : isfilter F.
+      (x0 : ∥ X ∥) (F : UniformStructure X) : isFilter F.
 Proof.
   intros X x0 F.
   repeat split.
@@ -267,16 +267,4 @@ Proof.
   - exact (pr1 (pr2 (pr2 (pr2 (pr2 F))))).
   - exact (pr2 (pr2 (pr2 (pr2 (pr2 F))))).
   - exact HP.
-Qed.
-
-Lemma isFSUS_carac {X : UU} (F : UniformStructure X) (B : (X × X -> hProp) -> hProp) :
-  (∀ P Q, B P -> B Q -> ∃ R, B R × (∀ x : X × X, R x -> P x ∧ Q x))
-  -> (∀ P, B P -> ∀ x : X, P (x,,x))
-  -> (∀ P, B P -> ∃ Q, B Q × ∀ x, Q x -> subset_inv P x)
-  -> (∀ P, B P -> ∃ Q, B Q × ∀ x, subset_square Q x -> P x)
-  -> isFSUS F B.
-Proof.
-  intros X F B Hand Hdiag Hinv Hsqr.
-  intros P HP.
-
 Qed.

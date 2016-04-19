@@ -1,6 +1,4 @@
 Complements.v
 Filters.v
+UniformSpace.v
 Topology.v
-MetricSpace.v
-NormedSpace.v
-Riemann.v
