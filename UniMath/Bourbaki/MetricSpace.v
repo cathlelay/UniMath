@@ -314,7 +314,7 @@ Qed.
 
 Definition metric_topology : TopologicalSet.
 Proof.
-  simple refine (generated_topology _).
+  simple refine (TopologyGenerated _).
   apply (pr1 (pr1 M)).
   intros A.
   apply (∃ (x : M) (eps : Σ e : NR, 0 < e), A = ball x (pr1 eps)).
@@ -325,7 +325,7 @@ Lemma isOpen_ball :
     isOpen (T := metric_topology) (ball x (pr1 eps)).
 Proof.
   intros x eps.
-  apply generated_topology_included.
+  apply TopologyGenerated_included.
   apply hinhpr.
   now exists x, eps.
 Qed.
