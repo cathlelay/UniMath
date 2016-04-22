@@ -522,3 +522,16 @@ Proof.
     intros x Bx.
     now apply Ha', Hb'.
 Qed.
+
+(** ** Topology in a Uniform Space *)
+(** *** Prop 1 *)
+
+Require Export UniMath.Topology.Topology.
+
+Definition Topology_UniformSpace {X : UU} (F : UniformStructure X) :
+  isTopologicalSet X.
+Proof.
+  intros X F.
+  simple refine (pr2 (mkTopologicalSet _ _ _ _ _)).
+
+Defined.
