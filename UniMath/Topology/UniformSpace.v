@@ -528,48 +528,69 @@ Qed.
 
 Require Export UniMath.Topology.Topology.
 
-Definition Topology_UniformSpace {X : hSet} (F : UniformStructure X) :
+Definition Topology_UniformSpace {X : UU} (F : UniformStructure X) :
   TopologicalSet.
 Proof.
   intros X F.
   simple refine (TopologyFromNeighborhood _ _).
-  - apply (pr1 X).
+  - apply X.
   - intros x A.
-    apply (pr1 F).
-    intros xy.
-    apply A.
-    apply (pr2 xy).
+    apply (∃ U, F U × ∀ y : X, U (x ,, y) -> A y).
   - repeat split.
     + intros x A B H.
+      apply hinhfun.
+      intros (Ua,(Fa,Ha)).
+      simple refine (tpair _ _ _).
+      intros xy.
+      simple refine (hProppair _ _).
+      apply (pr1 xy = x -> B (pr2 xy)).
+      clear.
+      abstract apply isapropimpl, propproperty.
+      split.
+      revert Fa.
       apply UniformStructure_imply.
-      intros xy Ay.
-      now apply H.
+      intros (xx,y) Hb <-.
+      apply H, Ha, Hb.
+      now intros y H0 ; apply H0.
     + intros x.
       apply isfilter_finite_intersection_carac.
-      apply UniformStructure_true.
-      intros A B.
-      apply UniformStructure_and.
-    + intros x P Fp.
-      apply (UniformStructure_diag F _ Fp x).
-    + intros _ P Fp.
-      generalize (UniformStructure_square F _ Fp).
-      apply hinhfun.
-      intros (Q,(Fq,Hq)).
-      exists (λ y : X, ∃ x : X, Q (x ,, y)).
-      split.
-      apply UniformStructure_imply with Q.
-      intros (x,y) Qxy.
-      apply hinhpr.
-      now exists x.
-      exact Fq.
-      intros y.
+      * apply hinhpr.
+        exists (λ _, htrue).
+        split.
+        now apply UniformStructure_true.
+        easy.
+      * intros A B.
+        apply hinhfun2.
+        intros (Ua,(Fa,Ha)) (Ub,(Fb,Hb)).
+        exists (λ x, Ua x ∧ Ub x).
+        split.
+        now apply UniformStructure_and.
+        intros y.
+        intros (Ay,By) ; split.
+        now apply Ha.
+        now apply Hb.
+    + intros x A.
       apply hinhuniv.
-      intros (x,Qxy).
-      apply UniformStructure_imply with (2 := Fq).
-      intros (x',y') Qxy'.
-      apply Hq.
-      apply hinhpr.
-      exists x' ; split.
+      intros (Ua,(Fa,Ha)).
+      apply Ha.
       now apply UniformStructure_diag with F.
-      exact Qxy'.
+    + intros x A.
+      apply hinhuniv.
+      intros (Ua,(Fa,Ha)).
+      generalize (UniformStructure_square _ _ Fa).
+      apply hinhfun.
+      intros (Ub,(Fb,Hb)).
+      exists (λ y, Ub (x,,y)).
+      split.
+      apply hinhpr.
+      now exists Ub.
+      intros y Qy.
+      apply hinhpr.
+      exists Ub.
+      split.
+      apply Fb.
+      intros z Hz.
+      apply Ha, Hb.
+      apply hinhpr.
+      now exists y ; split.
 Defined.
