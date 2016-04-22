@@ -528,10 +528,48 @@ Qed.
 
 Require Export UniMath.Topology.Topology.
 
-Definition Topology_UniformSpace {X : UU} (F : UniformStructure X) :
-  isTopologicalSet X.
+Definition Topology_UniformSpace {X : hSet} (F : UniformStructure X) :
+  TopologicalSet.
 Proof.
   intros X F.
-  simple refine (pr2 (mkTopologicalSet _ _ _ _ _)).
-
+  simple refine (TopologyFromNeighborhood _ _).
+  - apply (pr1 X).
+  - intros x A.
+    apply (pr1 F).
+    intros xy.
+    apply A.
+    apply (pr2 xy).
+  - repeat split.
+    + intros x A B H.
+      apply UniformStructure_imply.
+      intros xy Ay.
+      now apply H.
+    + intros x.
+      apply isfilter_finite_intersection_carac.
+      apply UniformStructure_true.
+      intros A B.
+      apply UniformStructure_and.
+    + intros x P Fp.
+      apply (UniformStructure_diag F _ Fp x).
+    + intros _ P Fp.
+      generalize (UniformStructure_square F _ Fp).
+      apply hinhfun.
+      intros (Q,(Fq,Hq)).
+      exists (λ y : X, ∃ x : X, Q (x ,, y)).
+      split.
+      apply UniformStructure_imply with Q.
+      intros (x,y) Qxy.
+      apply hinhpr.
+      now exists x.
+      exact Fq.
+      intros y.
+      apply hinhuniv.
+      intros (x,Qxy).
+      apply UniformStructure_imply with (2 := Fq).
+      intros (x',y') Qxy'.
+      apply Hq.
+      apply hinhpr.
+      exists x' ; split.
+      now apply UniformStructure_diag with F.
+      exact Qxy'.
 Defined.

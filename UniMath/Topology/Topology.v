@@ -378,6 +378,61 @@ Qed.
 
 (** ** Some topologies *)
 
+(** *** Topology from neighborhood *)
+
+Definition isNeighborhood {X : UU} (B : X -> (X -> hProp) -> hProp) :=
+  (∀ x, isfilter_imply (B x))
+    × (∀ x, isfilter_finite_intersection (B x))
+    × (∀ x P, B x P -> P x)
+    × (∀ x P, B x P -> ∃ Q, B x Q × ∀ y, Q y -> B y P).
+
+Lemma isNeighborhood_neighborhood {T : TopologicalSet} :
+  isNeighborhood (neighborhood (T := T)).
+Proof.
+  intros T.
+  repeat split.
+  - intros x A B.
+    apply (neighborhood_imply x).
+  - intros x.
+    apply isfilter_finite_intersection_carac.
+    + apply (pr2 (neighborhood_isOpen _)).
+      exact (isOpen_htrue (T := T)).
+      apply tt.
+    + intros A B.
+      apply neighborhood_and.
+  - intros x P.
+    apply neighborhood_point.
+  - intros x P.
+    apply neighborhood_neighborhood.
+Qed.
+
+Definition TopologyFromNeighborhood {X : UU} (N : X -> (X -> hProp) -> hProp) (H : isNeighborhood N) : TopologicalSet.
+Proof.
+  intros X N (Himpl,(Hinter,(Hpoint,Hngh))).
+  simple refine (mkTopologicalSet _ _ _ _ _).
+  - apply X.
+  - clear -N ; intros A.
+    simple refine (hProppair _ _).
+    apply (∀ x, A x -> N x A).
+    abstract ( apply impred_isaprop ; intros x ;
+               apply isapropimpl, propproperty).
+  - intros L Hl x.
+    apply hinhuniv.
+    intros (A,(La,Ax)).
+    apply Himpl with A.
+    intros y Hy.
+    apply hinhpr.
+    now exists A.
+    now apply Hl.
+  - intros x _.
+    now apply isfilter_finite_intersection_htrue.
+  - intros A B Ha Hb x (Ax,Bx).
+    apply isfilter_finite_intersection_and.
+    apply Hinter.
+    now apply Ha.
+    now apply Hb.
+Defined.
+
 (** *** Generated Topology *)
 
 Section topologygenerated.
