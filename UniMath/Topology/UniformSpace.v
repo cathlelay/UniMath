@@ -75,6 +75,17 @@ Proof.
     exact Hc.
 Qed.
 
+Lemma isdiag_square {X : UU} (A : X × X -> hProp) :
+  (∀ x : X, A (x,,x)) -> ∀ x, A x -> subset_square A x.
+Proof.
+  intros X A Hdiag (x,y) Axy.
+  apply hinhpr.
+  exists x.
+  split.
+  now apply Hdiag.
+  exact Axy.
+Qed.
+
 (** *** Def 1: Uniform Space *)
 
 (** Uniform Structures *)
@@ -83,7 +94,7 @@ Definition isUS_diag {X : UU} (F : (X × X -> hProp) -> hProp) :=
   ∀ P, F P -> ∀ x : X, P (x ,, x).
 Definition isUS_symm {X : UU} (F : (X × X -> hProp) -> hProp) :=
   ∀ P, F P -> F (subset_inv P).
-Definition isUS_square {X : UU} (F : (X × X -> hProp) -> hProp) :=
+Definition isUS_squareroot {X : UU} (F : (X × X -> hProp) -> hProp) :=
   ∀ P, F P -> ∃ Q, F Q × ∀ x : X × X, subset_square Q x -> P x.
 
 Definition isUS_prod_inv {X : UU} (F : (X × X -> hProp) -> hProp) :=
@@ -105,9 +116,9 @@ Proof.
   now apply Hdiag.
   now destruct x.
 Qed.
-Lemma isUS_prod_inv_imply_square {X : UU} (F : (X × X -> hProp) -> hProp) :
+Lemma isUS_prod_inv_imply_squareroot {X : UU} (F : (X × X -> hProp) -> hProp) :
   (isfilter_imply (X := X × X) F) -> (∀ A B : X × X → hProp, F A → F B → F (λ x : X × X, A x ∧ B x))
-  -> (isUS_diag F) -> isUS_prod_inv F -> isUS_square F.
+  -> (isUS_diag F) -> isUS_prod_inv F -> isUS_squareroot F.
 Proof.
   intros X F Himpl Hand Hdiag H.
   intros P FP.
@@ -127,9 +138,9 @@ Proof.
     now exists y.
 Qed.
 
-Lemma isUS_symm_square_imply_prod_inv {X : UU} (F : (X × X -> hProp) -> hProp) :
+Lemma isUS_symm_squareroot_imply_prod_inv {X : UU} (F : (X × X -> hProp) -> hProp) :
   (isfilter_imply (X := X × X) F) -> (∀ A B : X × X → hProp, F A → F B → F (λ x : X × X, A x ∧ B x))
-  -> (isUS_diag F) -> isUS_symm F -> isUS_square F -> isUS_prod_inv F.
+  -> (isUS_diag F) -> isUS_symm F -> isUS_squareroot F -> isUS_prod_inv F.
 Proof.
   intros X F Himpl Hand Hdiag Hsymm Hsqr.
   intros P FP.
@@ -154,7 +165,7 @@ Definition isUniformStructure {X : UU} F :=
     × (isfilter_finite_intersection F)
     × (isUS_diag F)
     × (isUS_symm F)
-    × (isUS_square F).
+    × (isUS_squareroot F).
 
 Definition UniformStructure (X : UU) :=
   Σ (F : (X × X -> hProp) -> hProp), isUniformStructure F.
@@ -164,9 +175,9 @@ Coercion pr1UniformStructure : UniformStructure >-> Funclass.
 Definition mkUniformStructure {X : UU} (F : (X × X -> hProp) -> hProp)
            (Himpl : isfilter_imply (X := X × X) F) (Htrue : isfilter_htrue F)
            (Hand : isfilter_and F)
-           (Hdiag : isUS_diag F) (Hsymm : isUS_symm F) (Hsquare : isUS_square F) :
+           (Hdiag : isUS_diag F) (Hsymm : isUS_symm F) (Hsquareroot : isUS_squareroot F) :
   UniformStructure X :=
-  F,, Himpl,, isfilter_finite_intersection_carac F Htrue Hand,, Hdiag,, Hsymm,, Hsquare.
+  F,, Himpl,, isfilter_finite_intersection_carac F Htrue Hand,, Hdiag,, Hsymm,, Hsquareroot.
 
 Lemma UniformStructure_imply {X : UU} (F : UniformStructure X) :
   ∀ A B : X × X → hProp, (∀ x : X × X, A x → B x) → F A → F B.
@@ -204,7 +215,7 @@ Proof.
   intros X F.
   apply (pr1 (pr2 (pr2 (pr2 (pr2 F))))).
 Qed.
-Lemma UniformStructure_square {X : UU} (F : UniformStructure X) :
+Lemma UniformStructure_squareroot {X : UU} (F : UniformStructure X) :
   ∀ P, F P -> ∃ Q, F Q × ∀ x : X × X, subset_square Q x -> P x.
 Proof.
   intros X F.
@@ -214,12 +225,12 @@ Lemma UniformStructure_prod_inv {X : UU} (F : UniformStructure X) :
   ∀ P, F P -> ∃ Q, F Q × ∀ x : X × X, subset_prod Q (subset_inv Q) x -> P x.
 Proof.
   intros X F.
-  apply isUS_symm_square_imply_prod_inv.
+  apply isUS_symm_squareroot_imply_prod_inv.
   intros A B ; apply (UniformStructure_imply F).
   apply UniformStructure_and.
   intros A ; apply (UniformStructure_diag F).
   intros A ; apply (UniformStructure_symm F).
-  intros A ; apply (UniformStructure_square F).
+  intros A ; apply (UniformStructure_squareroot F).
 Qed.
 
 Lemma UniformeStructure_PreFilter {X : UU}
@@ -244,6 +255,18 @@ Proof.
                clear x0 ; intros x0 ;
                apply ((pr1 (pr2 (pr2 (pr2 F)))) _ H x0)).
 Defined.
+
+Lemma UniformStructure_square {X : UU} (F : UniformStructure X) :
+  ∀ P, F P -> F (subset_square P).
+Proof.
+  intros X F P Fp.
+  apply UniformStructure_imply with (2 := Fp).
+  intros (x,y) Pxy.
+  apply hinhpr.
+  exists x ; split.
+  now apply (UniformStructure_diag F).
+  exact Pxy.
+Qed.
 
 (** Uniform Space *)
 
@@ -444,7 +467,7 @@ Proof.
     apply Hrep.
     now apply UniformStructure_symm, Himpl.
   - intros P Hp.
-    generalize (UniformStructure_square F _ (Himpl _ Hp)).
+    generalize (UniformStructure_squareroot F _ (Himpl _ Hp)).
     apply hinhuniv ; intros (Q,(Fq,Hq)).
     generalize (Hrep _ Fq).
     apply hinhfun.
@@ -577,7 +600,7 @@ Proof.
     + intros x A.
       apply hinhuniv.
       intros (Ua,(Fa,Ha)).
-      generalize (UniformStructure_square _ _ Fa).
+      generalize (UniformStructure_squareroot _ _ Fa).
       apply hinhfun.
       intros (Ub,(Fb,Hb)).
       exists (λ y, Ub (x,,y)).
@@ -594,3 +617,51 @@ Proof.
       apply hinhpr.
       now exists y ; split.
 Defined.
+
+(** ** Complete spaces *)
+(** *** Def 1 *)
+
+Definition USsmall {X : UU} (F : UniformStructure X) (V : X × X -> hProp) (FV : F V) (A : X -> hProp) :=
+  ∀ x y : X, A x -> A y -> V (x ,, y).
+
+Lemma USsmall_square {X : UU} (F : UniformStructure X) (V : X × X -> hProp) (Fv : F V) (A B : X -> hProp) :
+  USsmall F V Fv A -> USsmall F V Fv B -> (∃ z, A z ∧ B z)
+  -> USsmall F (subset_square V) (UniformStructure_square F V Fv) (λ x , A x ∨ B x).
+Proof.
+  intros X F V Fv A B Ha Hb Hex x y.
+  apply hinhuniv2.
+  intros [Ax | Bx] [Ay | By].
+  - apply isdiag_square.
+    now apply (UniformStructure_diag F).
+    now apply Ha.
+  - revert Hex.
+    apply hinhfun.
+    intros (z,(Az,Bz)).
+    exists z ; split.
+    now apply Ha.
+    now apply Hb.
+  - revert Hex.
+    apply hinhfun.
+    intros (z,(Az,Bz)).
+    exists z ; split.
+    now apply Hb.
+    now apply Ha.
+  - apply isdiag_square.
+    now apply (UniformStructure_diag F).
+    now apply Hb.
+Qed.
+
+Definition isCauchy_filter {X : UU} (FX : UniformStructure X) (F : Filter X) :=
+  ∀ (V : X × X -> hProp) (Hv : FX V),
+  ∃ A : X -> hProp, USsmall FX V Hv A × F A.
+
+Lemma exfilterlim_cauchy {X : UU} (FX : UniformStructure X) (F : Filter X) :
+  ex_filter_lim (T := Topology_UniformSpace FX) F -> isCauchy_filter FX F.
+Proof.
+  intros X FX F Hf V Hv.
+  revert Hf.
+  apply hinhfun.
+  intros (x,Hx).
+  generalize (Hx (λ y, V (x,,y))).
+
+Qed.
