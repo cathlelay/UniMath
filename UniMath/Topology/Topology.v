@@ -406,32 +406,86 @@ Proof.
     apply neighborhood_neighborhood.
 Qed.
 
+Section TopologyFromNeighborhood.
+
+Context {X : UU}.
+Context (N : X -> (X -> hProp) -> hProp).
+Context (Himpl : ∀ x, isfilter_imply (N x))
+        (Htrue : ∀ x, isfilter_htrue (N x))
+        (Hand : ∀ x, isfilter_and (N x))
+        (Hpt : ∀ x P, N x P -> P x)
+        (H : ∀ x P, N x P -> ∃ Q, N x Q × ∀ y, Q y -> N y P).
+
+Definition topologyfromneighborhood (A : X -> hProp) :=
+  ∀ x : X, A x → N x A.
+Lemma isaprop_topologyfromneighborhood :
+  ∀ A, isaprop (topologyfromneighborhood A).
+Proof.
+  intros A.
+  apply impred_isaprop ; intros x ;
+  apply isapropimpl, propproperty.
+Qed.
+
+Lemma topologyfromneighborhood_open :
+  isSetOfOpen_union
+   (λ A : X → hProp,
+          hProppair (topologyfromneighborhood A)
+                    (isaprop_topologyfromneighborhood A)).
+Proof.
+  intros L Hl x.
+  apply hinhuniv.
+  intros (A,(La,Ax)).
+  apply Himpl with A.
+  intros y Hy.
+  apply hinhpr.
+  now exists A.
+  now apply Hl.
+Qed.
+
+End TopologyFromNeighborhood.
+
 Definition TopologyFromNeighborhood {X : UU} (N : X -> (X -> hProp) -> hProp) (H : isNeighborhood N) : TopologicalSet.
 Proof.
-  intros X N (Himpl,(Hinter,(Hpoint,Hngh))).
+  intros X N H.
   simple refine (mkTopologicalSet _ _ _ _ _).
   - apply X.
-  - clear -N ; intros A.
+  - intros A.
     simple refine (hProppair _ _).
-    apply (∀ x, A x -> N x A).
-    abstract ( apply impred_isaprop ; intros x ;
-               apply isapropimpl, propproperty).
-  - intros L Hl x.
-    apply hinhuniv.
-    intros (A,(La,Ax)).
-    apply Himpl with A.
-    intros y Hy.
-    apply hinhpr.
-    now exists A.
-    now apply Hl.
+    apply (topologyfromneighborhood N A).
+    apply isaprop_topologyfromneighborhood.
+  - apply topologyfromneighborhood_open.
+    apply (pr1 H).
   - intros x _.
-    now apply isfilter_finite_intersection_htrue.
-  - intros A B Ha Hb x (Ax,Bx).
+    apply isfilter_finite_intersection_htrue.
+    apply (pr1 (pr2 H)).
+  - intros A B Ha Hb x Hx.
     apply isfilter_finite_intersection_and.
-    apply Hinter.
-    now apply Ha.
-    now apply Hb.
+    apply (pr1 (pr2 H)).
+    now apply Ha, (pr1 Hx).
+    now apply Hb, (pr2 Hx).
 Defined.
+
+Lemma TopologyFromNeighborhood_correct {X : UU} (N : X -> (X -> hProp) -> hProp) (H : isNeighborhood N) :
+  ∀ (x : X) (P : X -> hProp),
+    N x P -> neighborhood (T := TopologyFromNeighborhood N H) x P.
+Proof.
+  intros X N  (Himpl,(Hinter,(Hpt,H))).
+  intros x P Hx.
+  apply hinhpr.
+  simple refine (tpair _ _ _).
+  simple refine (tpair _ _ _).
+  - intros y.
+    apply (N y P).
+  - simpl ; intros y Hy.
+    generalize (H _ _ Hy).
+    apply hinhuniv.
+    intros (Q,(NyQ,Hq)).
+    now apply Himpl with (2 := NyQ).
+  - split ; simpl.
+    exact Hx.
+    intros y.
+    now apply Hpt.
+Qed.
 
 (** *** Generated Topology *)
 

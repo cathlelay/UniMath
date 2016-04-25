@@ -660,8 +660,12 @@ Lemma exfilterlim_cauchy {X : UU} (FX : UniformStructure X) (F : Filter X) :
 Proof.
   intros X FX F Hf V Hv.
   revert Hf.
-  apply hinhfun.
+  apply hinhuniv.
   intros (x,Hx).
-  generalize (Hx (λ y, V (x,,y))).
+  assert (F (λ y : Topology_UniformSpace FX, V (x,, y))).
+  { apply Hx.
+    apply TopologyFromNeighborhood_correct.
+    apply hinhpr.
+    now exists V. }
 
 Qed.
