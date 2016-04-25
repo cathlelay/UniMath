@@ -6,7 +6,9 @@ Require Export UniMath.Topology.Complements.
 Require Import UniMath.Topology.Complements.
 Require Export UniMath.Topology.Filters.
 
-(** ** Definitions *)
+
+(** ** Uniform Spaces *)
+(** *** Definitions *)
 
 Definition subset_prod {X : UU} (A B : X × X -> hProp) :=
   λ x : X × X, ∃ y : X, A (pr1 x,,y) ∧ B (y ,, pr2 x).
@@ -86,9 +88,7 @@ Proof.
   exact Axy.
 Qed.
 
-(** *** Def 1: Uniform Space *)
-
-(** Uniform Structures *)
+(** Def 1: Uniform Space *)
 
 Definition isUS_diag {X : UU} (F : (X × X -> hProp) -> hProp) :=
   ∀ P, F P -> ∀ x : X, P (x ,, x).
@@ -268,14 +268,12 @@ Proof.
   exact Pxy.
 Qed.
 
-(** Uniform Space *)
-
 Definition UniformSpace :=
   Σ (X : UU), UniformStructure X.
 Definition pr1UniformSpace : UniformSpace -> UU := pr1.
 Coercion pr1UniformSpace : UniformSpace >-> UU.
 
-(** *** Def 2: Foundamental System of Uniform Structure *)
+(** Def 2: Foundamental System of Uniform Structure *)
 
 Definition isUSbase {X : UU} (F : UniformStructure X) (base : (X × X → hProp) → hProp) :=
   (∀ (P : X × X → hProp), base P -> F P)
@@ -546,8 +544,8 @@ Proof.
     now apply Ha', Hb'.
 Qed.
 
-(** ** Topology in a Uniform Space *)
-(** *** Prop 1 *)
+(** *** Topology in a Uniform Space *)
+(** Prop 1 *)
 
 Require Export UniMath.Topology.Topology.
 

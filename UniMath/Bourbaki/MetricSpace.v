@@ -1,10 +1,137 @@
 (** * Results about Metric Spaces *)
 (** Author: Catherine LELAY. Jan 2016 - *)
 
-Require Export UniMath.Foundations.Algebra.Apartness.
-Require Export UniMath.Bourbaki.Filters.
-Require Import UniMath.Bourbaki.Topology.
+Require Export UniMath.Topology.Filters.
+Require Import UniMath.Topology.Topology.
 Require Import UniMath.Dedekind.Sets.
+
+(** ** Lattice *)
+
+Definition islattice (X : setwith2binop) :=
+  (isassoc (op1 (X := X)))
+    × iscomm (op1 (X := X))
+    × isassoc (op2 (X := X))
+    × iscomm (op2 (X := X))
+    × (∀ x y : X, op1 x (op2 x y) = x)
+    × (∀ x y : X, op2 x (op1 x y) = x).
+Definition lattice := Σ X : setwith2binop, islattice X.
+Definition pr1lattice : lattice -> setwith2binop := pr1.
+Coercion pr1lattice : lattice >-> setwith2binop.
+
+
+Section lattice_pty.
+
+Context {L : lattice}.
+
+Definition Lmin : binop L := op1.
+Definition Lmax : binop L := op2.
+Definition Lle : hrel L :=
+  λ (x y : L), hProppair (Lmin x y = x) (pr2 (pr1 (pr1 L)) (Lmin x y) x).
+
+Lemma isassoc_Lmin :
+  isassoc Lmin.
+Proof.
+  exact (pr1 (pr2 L)).
+Qed.
+Lemma iscomm_Lmin :
+  iscomm Lmin.
+Proof.
+  exact (pr1 (pr2 (pr2 L))).
+Qed.
+Lemma isassoc_Lmax :
+  isassoc Lmax.
+Proof.
+  exact (pr1 (pr2 (pr2 (pr2 L)))).
+Qed.
+Lemma iscomm_Lmax :
+  iscomm Lmax.
+Proof.
+  exact (pr1 (pr2 (pr2 (pr2 (pr2 L))))).
+Qed.
+Lemma Lmin_absorb :
+  ∀ x y : L, Lmin x (Lmax x y) = x.
+Proof.
+  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 L)))))).
+Qed.
+Lemma Lmax_absorb :
+  ∀ x y : L, Lmax x (Lmin x y) = x.
+Proof.
+  exact (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 L)))))).
+Qed.
+
+Lemma Lmin_id :
+  ∀ x : L, Lmin x x = x.
+Proof.
+  intros x.
+  pattern x at 2 ; rewrite <- (Lmax_absorb x x).
+  apply Lmin_absorb.
+Qed.
+Lemma Lmax_id :
+  ∀ x : L, Lmax x x = x.
+Proof.
+  intros x.
+  pattern x at 2 ; rewrite <- (Lmin_absorb x x).
+  apply Lmax_absorb.
+Qed.
+
+Lemma isrefl_Lle :
+  isrefl Lle.
+Proof.
+  intros x.
+  apply Lmin_id.
+Qed.
+Lemma isantisymm_Lle :
+  isantisymm Lle.
+Proof.
+  intros x y Hxy Hyx.
+  rewrite <- Hxy.
+  pattern y at 2 ; rewrite <- Hyx.
+  apply iscomm_Lmin.
+Qed.
+Lemma istrans_Lle :
+  istrans Lle.
+Proof.
+  intros x y z <- <-.
+  simpl.
+  rewrite !isassoc_Lmin, Lmin_id.
+  reflexivity.
+Qed.
+
+Lemma Lmin_le_l :
+  ∀ x y : L, Lle (Lmin x y) x.
+Proof.
+  intros x y.
+  simpl.
+  rewrite iscomm_Lmin, <- isassoc_Lmin, Lmin_id.
+  reflexivity.
+Qed.
+Lemma Lmin_le_r :
+  ∀ x y : L, Lle (Lmin x y) y.
+Proof.
+  intros x y.
+  rewrite iscomm_Lmin.
+  apply Lmin_le_l.
+Qed.
+Lemma Lmax_le_l :
+  ∀ x y : L, Lle x (Lmax x y).
+Proof.
+  intros x y.
+  simpl.
+  apply Lmin_absorb.
+Qed.
+Lemma Lmax_le_r :
+  ∀ x y : L, Lle y (Lmax x y).
+Proof.
+  intros x y.
+  rewrite iscomm_Lmax.
+  apply Lmax_le_l.
+Qed.
+
+End lattice_pty.
+
+Definition islatticelt (L : lattice) (lt : hrel L) :=
+  ∀ x y : L, (¬ (lt x y)) <-> Lle y x.
+
 
 (** ** Nonnegative Monoid *)
 
