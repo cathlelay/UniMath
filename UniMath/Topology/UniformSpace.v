@@ -656,16 +656,27 @@ Definition isCauchy_filter {X : UU} (FX : UniformStructure X) (F : Filter X) :=
   ∃ A : X -> hProp, USsmall FX V Hv A × F A.
 
 Lemma exfilterlim_cauchy {X : UU} (FX : UniformStructure X) (F : Filter X) :
-  ex_filter_lim (T := Topology_UniformSpace FX) F -> isCauchy_filter FX F.
+  ex_filter_lim (T := Topology_UniformSpace FX) F
+  -> isCauchy_filter FX F.
 Proof.
   intros X FX F Hf V Hv.
   revert Hf.
   apply hinhuniv.
   intros (x,Hx).
-  assert (F (λ y : Topology_UniformSpace FX, V (x,, y))).
-  { apply Hx.
+  generalize (UniformStructure_prod_inv _ _ Hv).
+  apply hinhfun.
+  intros (Q,(Fq,Hq)).
+  exists (λ y : Topology_UniformSpace FX, Q (y,,x)).
+  split.
+  - intros y z Qy Qz.
+    apply Hq.
+    apply hinhpr.
+    now exists x.
+  - apply Hx.
     apply TopologyFromNeighborhood_correct.
     apply hinhpr.
-    now exists V. }
-
+    exists (subset_inv Q).
+    split.
+    now apply UniformStructure_symm.
+    easy.
 Qed.
