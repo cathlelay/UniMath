@@ -46,7 +46,7 @@ End po_pty.
 
 (** ** Strong Order *)
 
-Definition isStrongOrder {X : UU} (R : hrel X) := dirprod ( istrans R ) ( isirrefl R ).
+Definition isStrongOrder {X : UU} (R : hrel X) := istrans R × iscotrans R × isirrefl R.
 Definition StrongOrder (X : UU) := total2 (fun R : hrel X => isStrongOrder R ).
 Definition pairStrongOrder {X : UU} (R : hrel X) (is : isStrongOrder R) : StrongOrder X :=
   tpair (fun R : hrel X => isStrongOrder R ) R is.
@@ -60,8 +60,10 @@ Context (R : StrongOrder X).
 
 Definition istrans_StrongOrder : istrans R :=
   pr1 (pr2 R).
+Definition iscotrans_StrongOrder : iscotrans R :=
+  pr1 (pr2 (pr2 R)).
 Definition isirrefl_StrongOrder : isirrefl R :=
-  pr2 (pr2 R).
+  pr2 (pr2 (pr2 R)).
 
 End so_pty.
 
@@ -69,10 +71,11 @@ Definition isStrongOrder_quotrel {X : UU} {R : eqrel X} {L : hrel X} (is : iscom
   isStrongOrder L -> isStrongOrder (quotrel is).
 Proof.
   intros X R L is.
-  intros (Htrans,Hirrefl).
-  split.
-  now apply istransquotrel.
-  now apply isirreflquotrel.
+  intros (Htrans,(Hcotran,Hirrefl)).
+  repeat split.
+  - now apply istransquotrel.
+  - now apply iscotransquotrel.
+  - now apply isirreflquotrel.
 Defined.
 
 (** ** Reverse orderse *)
@@ -141,13 +144,20 @@ Proof.
   intros X l Hl x.
   now apply Hl.
 Qed.
+Lemma iscotrans_reverse {X : UU} (l : hrel X) :
+  iscotrans l -> iscotrans (hrel_reverse l).
+Proof.
+  intros X l Hl x y z H.
+  now apply islogeqcommhdisj, Hl.
+Qed.
 
 Lemma isStrongOrder_reverse {X : UU} (l : hrel X) :
   isStrongOrder l -> isStrongOrder (hrel_reverse l).
 Proof.
-  intros X l (Ht,Hir).
-  split.
+  intros X l (Ht,(Hcot,Hir)).
+  repeat split.
   now apply istrans_reverse.
+  now apply iscotrans_reverse.
   now apply isirrefl_reverse.
 Qed.
 Definition StrongOrder_reverse {X : UU} (l : StrongOrder X) :=
@@ -177,14 +187,6 @@ Lemma istotal_reverse {X : UU} (l : hrel X) :
   istotal l -> istotal (hrel_reverse l).
 Proof.
   intros X l Hl x y.
-  now apply Hl.
-Qed.
-
-Lemma iscotrans_reverse {X : UU} (l : hrel X) :
-  iscotrans l -> iscotrans (hrel_reverse l).
-Proof.
-  intros X l Hl x y z H.
-  apply islogeqcommhdisj.
   now apply Hl.
 Qed.
 

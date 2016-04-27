@@ -68,20 +68,30 @@ Qed.
 Local Definition hnnq_lt : hrel hnnq_set := resrel hqlth (hqleh 0).
 Local Lemma isStrongOrder_hnnq_lt : isStrongOrder hnnq_lt.
 Proof.
-  split.
-  intros x y z.
-  now apply istranshqlth.
-  intros x.
-  now apply isirreflhqlth.
+  repeat split.
+  - intros x y z.
+    now apply istranshqlth.
+  - intros x y z Hxz.
+    destruct (hqlthorgeh (pr1 x) (pr1 y)) as [Hxy|Hxy].
+    apply hinhpr ; left.
+    exact Hxy.
+    apply hinhpr ; right.
+    apply hqlehlthtrans with (pr1 x).
+    exact Hxy.
+    exact Hxz.
+  - intros x.
+    now apply isirreflhqlth.
 Qed.
 
 Local Definition hnnq_gt : hrel hnnq_set := resrel hqgth (hqleh 0).
 Local Lemma isStrongOrder_hnnq_gt : isStrongOrder hnnq_gt.
 Proof.
-  destruct isStrongOrder_hnnq_lt as [Htrans Hirrefl].
-  split.
-  intros x y z Hxy Hyz.
-  now apply Htrans with y.
+  destruct (isStrongOrder_reverse _ isStrongOrder_hnnq_lt) as [Htrans [Hcotrans Hirrefl]].
+  repeat split.
+  intros x y z.
+  now apply Htrans.
+  intros x y z.
+  now apply Hcotrans.
   intros x.
   now apply Hirrefl.
 Qed.

@@ -7,17 +7,18 @@ Require Import UniMath.Dedekind.Sets.
 
 (** ** Lattice *)
 
-Definition islattice (X : setwith2binop) :=
-  (isassoc (op1 (X := X)))
-    × iscomm (op1 (X := X))
-    × isassoc (op2 (X := X))
-    × iscomm (op2 (X := X))
-    × (∀ x y : X, op1 x (op2 x y) = x)
-    × (∀ x y : X, op2 x (op1 x y) = x).
-Definition lattice := Σ X : setwith2binop, islattice X.
-Definition pr1lattice : lattice -> setwith2binop := pr1.
+Definition islatticeop {X : hSet} (min max : binop X) :=
+  (isassoc min)
+    × (iscomm min)
+    × (isassoc max)
+    × (iscomm max)
+    × (∀ x y : X, min x (max x y) = x)
+    × (∀ x y : X, max x (min x y) = x).
+Definition islattice (X : hSet) := Σ min max : binop X, islatticeop min max.
+Definition lattice := Σ X : hSet, islattice X.
+Definition pr1lattice : lattice -> setwith2binop :=
+  λ L : lattice, pr1 L,, pr1 (pr2 L),, pr1 (pr2 (pr2 L)).
 Coercion pr1lattice : lattice >-> setwith2binop.
-
 
 Section lattice_pty.
 
@@ -26,37 +27,48 @@ Context {L : lattice}.
 Definition Lmin : binop L := op1.
 Definition Lmax : binop L := op2.
 Definition Lle : hrel L :=
-  λ (x y : L), hProppair (Lmin x y = x) (pr2 (pr1 (pr1 L)) (Lmin x y) x).
+  λ (x y : L), hProppair (Lmin x y = x) (pr2 (pr1 L) (Lmin x y) x).
+
+Local Lemma pr2lattice :
+  (isassoc Lmin)
+    × (iscomm Lmin)
+    × (isassoc Lmax)
+    × (iscomm Lmax)
+    × (∀ x y : L, Lmin x (Lmax x y) = x)
+    × (∀ x y : L, Lmax x (Lmin x y) = x).
+Proof.
+  apply (pr2 (pr2 (pr2 L))).
+Qed.
 
 Lemma isassoc_Lmin :
   isassoc Lmin.
 Proof.
-  exact (pr1 (pr2 L)).
+  exact (pr1 pr2lattice).
 Qed.
 Lemma iscomm_Lmin :
   iscomm Lmin.
 Proof.
-  exact (pr1 (pr2 (pr2 L))).
+  exact (pr1 (pr2 pr2lattice)).
 Qed.
 Lemma isassoc_Lmax :
   isassoc Lmax.
 Proof.
-  exact (pr1 (pr2 (pr2 (pr2 L)))).
+  exact (pr1 (pr2 (pr2 pr2lattice))).
 Qed.
 Lemma iscomm_Lmax :
   iscomm Lmax.
 Proof.
-  exact (pr1 (pr2 (pr2 (pr2 (pr2 L))))).
+  exact (pr1 (pr2 (pr2 (pr2 pr2lattice)))).
 Qed.
 Lemma Lmin_absorb :
   ∀ x y : L, Lmin x (Lmax x y) = x.
 Proof.
-  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 L)))))).
+  exact (pr1 (pr2 (pr2 (pr2 (pr2 pr2lattice))))).
 Qed.
 Lemma Lmax_absorb :
   ∀ x y : L, Lmax x (Lmin x y) = x.
 Proof.
-  exact (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 L)))))).
+  exact (pr2 (pr2 (pr2 (pr2 (pr2 pr2lattice))))).
 Qed.
 
 Lemma Lmin_id :
@@ -127,21 +139,86 @@ Proof.
   apply Lmax_le_l.
 Qed.
 
+Lemma Lmin_eq_l :
+  ∀ x y : L, Lle x y -> Lmin x y = x.
+Proof.
+  intros x y H.
+  apply H.
+Qed.
+Lemma Lmin_eq_r :
+  ∀ x y : L, Lle y x -> Lmin x y = y.
+Proof.
+  intros x y H.
+  rewrite iscomm_Lmin.
+  apply H.
+Qed.
+
+Lemma Lmax_eq_l :
+  ∀ x y : L, Lle y x -> Lmax x y = x.
+Proof.
+  intros x y <-.
+  rewrite iscomm_Lmin.
+  apply Lmax_absorb.
+Qed.
+Lemma Lmax_eq_r :
+  ∀ x y : L, Lle x y -> Lmax x y = y.
+Proof.
+  intros x y H.
+  rewrite iscomm_Lmax.
+  now apply Lmax_eq_l.
+Qed.
+
 End lattice_pty.
 
-Definition islatticelt (L : lattice) (lt : hrel L) :=
-  ∀ x y : L, (¬ (lt x y)) <-> Lle y x.
+Definition islatticelt (L : lattice) (lt : StrongOrder L) :=
+  (∀ x y : L, (¬ (lt x y)) <-> Lle y x)
+    × (∀ x y : L, lt x y -> Lle y x)
+    × (∀ x y z : L, lt z x -> lt z y -> lt z (Lmin x y))
+    × (∀ x y z : L, lt x z -> lt y z -> lt (Lmax x y) z).
 
+Lemma notlt_Lle (L : lattice) (lt : StrongOrder L) (Hlt : islatticelt L lt) :
+  ∀ x y : L, (¬ (lt x y)) <-> Lle y x.
+Proof.
+  intros L lt Hlt.
+  apply (pr1 Hlt).
+Qed.
+Lemma lt_Lle (L : lattice) (lt : StrongOrder L) (Hlt : islatticelt L lt) :
+  ∀ x y : L, lt x y -> Lle y x.
+Proof.
+  intros L lt Hlt.
+  apply (pr1 (pr2 Hlt)).
+Qed.
+
+Lemma Lmin_lt (L : lattice) (lt : StrongOrder L) (Hlt : islatticelt L lt) :
+  ∀ x y z : L, lt z x -> lt z y -> lt z (Lmin x y).
+Proof.
+  intros L lt Hlt.
+  apply (pr1 (pr2 (pr2 Hlt))).
+Qed.
+Lemma Lmax_lt (L : lattice) (lt : StrongOrder L) (Hlt : islatticelt L lt) :
+  ∀ x y z : L, lt x z -> lt y z -> lt (Lmax x y) z.
+Proof.
+  intros L lt Hlt.
+  apply (pr2 (pr2 (pr2 Hlt))).
+Qed.
 
 (** ** Nonnegative Monoid *)
 
-Definition is_min {X : UU} (le lt : hrel X)
-           (x y min : X) :=
-  le min x × le min y
-     × (∀ z : X, lt z x -> lt z y -> lt z min).
-Definition is_minus {X : monoid} (lt : hrel X)
-           (x y minus : X) (Hxy : lt x y) :=
-  lt 0%addmonoid minus × y = (x + minus)%addmonoid.
+Open Scope addmonoid_scope.
+
+Definition is_minus {X : monoid} (is : islattice X) (minus : binop X) :=
+  (∀ x y : X, minus x y + y = Lmax (L := _,,is) x y).
+
+Lemma minus_gt_0 {X : monoid} {is : islattice X}
+      (lt : hrel X) (is_lt : islatticelt (_,,is) lt) (is_lt' : isbinophrel lt)
+      (minus : binop X) (is0 : is_minus is minus):
+  ∀ x y : X, lt 0 (minus x y) -> lt y x.
+Proof.
+  intros.
+  apply (pr2 is_lt' _ _ y) in X0.
+  rewrite lunax, is0 in X0.
+  Print isbinophrel.
+Qed.
 
 Definition isNonnegativeMonoid {X : monoid} (ap le lt : hrel X) :=
   isConstructiveTotalEffectiveOrder ap le lt

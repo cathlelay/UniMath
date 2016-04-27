@@ -454,9 +454,11 @@ Qed.
 
 Lemma isStrongOrder_hr_lt : isStrongOrder hr_lt_rel.
 Proof.
-  split.
+  repeat split.
   - apply istransabgrfracrel.
     exact istrans_ltNonnegativeReals.
+  - apply iscotransabgrfracrel.
+    exact iscotrans_ltNonnegativeReals.
   - apply isirreflabgrfracrel.
     exact isirrefl_ltNonnegativeReals.
 Qed.
@@ -1528,13 +1530,14 @@ Qed.
 Lemma isirrefl_Rlt :
   ∀ x : Reals, ¬ (x < x).
 Proof.
-  exact (pr2 isStrongOrder_hr_lt).
+  exact (pr2 (pr2 isStrongOrder_hr_lt)).
 Qed.
 Lemma istrans_Rlt :
   ∀ x y z : Reals, x < y -> y < z -> x < z.
 Proof.
   exact (pr1 isStrongOrder_hr_lt).
 Qed.
+Check (pr1 (pr2 isStrongOrder_hr_lt)).
 Lemma iscotrans_Rlt :
   ∀ (x y z : Reals), (x < z) -> (x < y) ∨ (y < z).
 Proof.
