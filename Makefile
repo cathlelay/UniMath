@@ -12,6 +12,7 @@ PACKAGES += Foundations
 PACKAGES += CategoryTheory
 PACKAGES += Ktheory
 PACKAGES += Topology
+PACKAGES += Analysis
 PACKAGES += RealNumbers
 PACKAGES += Tactics
 PACKAGES += SubstitutionSystems

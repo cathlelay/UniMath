@@ -1,6 +1,5 @@
 DecidableDedekindCuts.v
 Reals.v
-NonnegativeReals_analysis.v
 NonnegativeReals.v
 NonnegativeRationals.v
 Complements.v

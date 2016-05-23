@@ -265,7 +265,6 @@ Proof.
   intros.
   apply (pr2 is_lt' _ _ y) in X0.
   rewrite lunax, is0 in X0.
-  Search Lmax.
   rewrite <- (Lmax_eq_l (L := _,,is) x y).
   exact X0.
   apply (notlt_Lle _ _ is_lt).
@@ -297,45 +296,50 @@ Definition isNonnegativeMonoid {X : monoid} (is : islattice X) (lt : StrongOrder
     × isinvbinophrel lt
     × (∀ x : X, Lle (L := _,,is) 0 x)
     × (∃ x0, lt 0 x0)
-    × (∀ x : X, Σ y : X, y + y = x).
+    × (∀ x : X, Σ y : X, (Lle (L := _,,is) (y + y) x) × (lt 0 x -> lt 0 y)).
 
 Definition NonnegativeMonoid :=
-  Σ (X : monoid) (is : islattice X) (lt : StrongOrder X), isNonnegativeMonoid is lt.
+  Σ (X : monoid) (is : islattice X) (lt : StrongOrder X) (le : hrel X), isNonnegativeMonoid is lt.
 
 Definition pr1NonnegativeMonoid : NonnegativeMonoid -> monoid := pr1.
 Coercion pr1NonnegativeMonoid : NonnegativeMonoid >-> monoid.
 
 Definition NnMlt (X : NonnegativeMonoid) : StrongOrder X :=
   pr1 (pr2 (pr2 X)).
-Definition NnMle (X : NonnegativeMonoid) : PartialOrder X :=
-  Lle (L := _,,(pr1 (pr2 X)))
-      ,, (istrans_Lle (L := _,,(pr1 (pr2 X)))
-                      ,, isrefl_Lle (L := _,,(pr1 (pr2 X))))
-      ,, isantisymm_Lle (L := _,,(pr1 (pr2 X))).
+Definition NnMle (X : NonnegativeMonoid) : PartialOrder X.
+Proof.
+  intros X.
+  mkpair.
+  apply (Lle (L := _,, pr1 (pr2 X))).
+  repeat split.
+  - now apply (istrans_Lle (L := _ ,, pr1 (pr2 X))).
+  - now apply (isrefl_Lle (L := _ ,, pr1 (pr2 X))).
+  - now apply (isantisymm_Lle (L := _ ,, pr1 (pr2 X))).
+Defined.
 Definition NnMap (X : NonnegativeMonoid) : tightap X.
 Proof.
   intros X.
   simple refine (tightapfromlt _ _ _ _).
-  apply NnMlt.
-  apply (pr1 (NnMle _)).
-  refine (notlt_Lle (_,,(pr1 (pr2 X))) (NnMlt X) _).
-  apply (pr1 (pr2 (pr2 (pr2 (pr2 X))))).
-  apply (pr2 (pr2 (NnMle _))).
+  - apply NnMlt.
+  - apply (pr1 (NnMle _)).
+  - apply (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))).
+  - now apply (isantisymm_Lle (L := _ ,, pr1 (pr2 X))).
 Defined.
 Definition NnMmin {X : NonnegativeMonoid} : binop X :=
   Lmin (L := _,,(pr1 (pr2 X))).
 Definition NnMmax {X : NonnegativeMonoid} : binop X :=
   Lmax (L := _,,(pr1 (pr2 X))).
 Definition NnMminus {X : NonnegativeMonoid} : binop X :=
-  (pr1 (pr1 (pr2 (pr2 (pr2 X))))).
+  (pr1 (pr1 (pr2 (pr2 (pr2 (pr2 X)))))).
 Definition NnMhalf {X : NonnegativeMonoid} : unop X :=
-  λ (x : X), pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))) x).
+  λ x : X, (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))))) x)).
 
 Local Notation "0" := (0%addmonoid).
 Local Notation "x + y" := ((x + y)%addmonoid).
+Local Notation "x - y" := (NnMminus _ x y).
 Local Notation "x ≠ y" := (NnMap _ x y).
-Local Notation "x <= y" :=  (NnMle _ x y).
 Local Notation "x < y" :=  (NnMlt _ x y).
+Local Notation "x <= y" :=  (NnMle _ x y).
 
 Lemma istight_NnMap {X : NonnegativeMonoid} : istight (NnMap X).
 Proof.
@@ -358,15 +362,7 @@ Lemma notNnMlt_le {X : NonnegativeMonoid} :
   ∀ x y : X, (¬ (x < y)) <-> (y <= x).
 Proof.
   intros X.
-  apply (notlt_Lle (_,,(pr1 (pr2 X)))).
-  apply (pr1 (pr2 (pr2 (pr2 (pr2 X))))).
-Qed.
-Lemma NnMlt_le {X : NonnegativeMonoid} :
-  ∀ x y : X, x < y -> x <= y.
-Proof.
-  intros X.
-  apply (lt_Lle (_,,(pr1 (pr2 X)))).
-  apply (pr1 (pr2 (pr2 (pr2 (pr2 X))))).
+  now apply (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))).
 Qed.
 Lemma isirrefl_NnMlt {X : NonnegativeMonoid} :
   ∀ x : X, ¬ (x < x).
@@ -374,7 +370,6 @@ Proof.
   intros X.
   apply isirrefl_StrongOrder.
 Qed.
-
 Lemma istrans_NnMlt {X : NonnegativeMonoid} :
   ∀ x y z : X, x < y -> y < z -> x < z.
 Proof.
@@ -387,6 +382,22 @@ Proof.
   intros X.
   apply iscotrans_StrongOrder.
 Qed.
+
+Lemma NnMlt_le {X : NonnegativeMonoid} :
+  ∀ x y : X, x < y -> x <= y.
+Proof.
+  intros X x y Hlt.
+  apply (pr1 (notNnMlt_le _ _)).
+  intros Hgt.
+  simple refine (isirrefl_NnMlt _ _).
+  apply X.
+  apply x.
+  simple refine (istrans_NnMlt _ _ _ _ _).
+  apply y.
+  exact Hlt.
+  exact Hgt.
+Qed.
+
 Lemma istrans_NnMlt_le {X : NonnegativeMonoid} :
   ∀ x y z : X, x < y -> y <= z -> x < z.
 Proof.
@@ -415,7 +426,7 @@ Lemma isnonnegative_NnM {X : NonnegativeMonoid} :
   ∀ x : X, 0 <= x.
 Proof.
   intros X.
-  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))).
+  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))))).
 Qed.
 Lemma isnonnegative_NnM' {X : NonnegativeMonoid} :
   ∀ x : X, ¬ (x < 0).
@@ -429,13 +440,13 @@ Lemma NnMplus_lt_l {X : NonnegativeMonoid} :
   ∀ k x y : X, x < y -> k + x < k + y.
 Proof.
   intros X k x y.
-  apply (pr1 (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))).
+  apply (pr1 (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))).
 Qed.
 Lemma NnMplus_lt_r {X : NonnegativeMonoid} :
   ∀ k x y : X, x < y -> x + k < y + k.
 Proof.
   intros X k x y.
-  apply (pr2 (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))).
+  apply (pr2 (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))).
 Qed.
 
 Lemma NnMap_lt_0 {X : NonnegativeMonoid} :
@@ -461,7 +472,7 @@ Lemma NnM_nottrivial (X : NonnegativeMonoid) :
   ∃ x0 : X, 0 < x0.
 Proof.
   intros X.
-  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))))).
+  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))))).
 Qed.
 
 Lemma NnMmin_le_l {X : NonnegativeMonoid} :
@@ -481,7 +492,7 @@ Lemma NnMmin_gt {X : NonnegativeMonoid} :
 Proof.
   intros X.
   apply (Lmin_lt (_,,(pr1 (pr2 X)))).
-  apply (pr1 (pr2 (pr2 (pr2 (pr2 X))))).
+  apply (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))).
 Qed.
 
 Lemma iscomm_NnMmin {X : NonnegativeMonoid} :
@@ -540,16 +551,29 @@ Lemma NnMminus_lt_pos {X : NonnegativeMonoid} :
 Proof.
   intros X.
   eapply minus_lt_pos.
-  apply (pr1 (pr2 (pr2 (pr2 (pr2 X))))).
-  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))).
-  exact (pr2 (pr1 (pr2 (pr2 (pr2 X))))).
+  apply (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))).
+  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))).
+  exact (pr2 (pr1 (pr2 (pr2 (pr2 (pr2 X)))))).
 Qed.
 
 Lemma NnMminus_plus {X : NonnegativeMonoid} :
   ∀ x y : X, (NnMminus x y) + y = NnMmax x y.
 Proof.
   intros X x y.
-  apply (pr2 (pr1 (pr2 (pr2 (pr2 X))))).
+  apply (pr2 (pr1 (pr2 (pr2 (pr2 (pr2 X)))))).
+Qed.
+
+Lemma NnMhalf_carac {X : NonnegativeMonoid} :
+  ∀ x : X, NnMhalf x + NnMhalf x <= x.
+Proof.
+  intros X x.
+  exact (pr1 (pr2 ((pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))))) x))).
+Qed.
+Lemma NnMhalf_pos {X : NonnegativeMonoid} :
+  ∀ x : X, 0 < x -> 0 < NnMhalf x.
+Proof.
+  intros X x.
+  exact (pr2 (pr2 ((pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))))) x))).
 Qed.
 
 (** ** Definition of metric spaces *)
@@ -642,11 +666,8 @@ Section Balls.
 Context {NR : NonnegativeMonoid}.
 Context {M : MetricSet NR}.
 
-Definition ball (x : M) (eps : NR) (y : M) : hProp.
-Proof.
-  intros.
-  apply (dist x y < eps).
-Defined.
+Definition ball (x : M) (eps : NR) (y : M) : hProp :=
+  (dist x y < eps).
 
 Lemma ball_center :
   ∀ (x : M) (eps : NR), 0 < eps -> ball x eps x.
@@ -672,13 +693,17 @@ Proof.
   apply NnMminus_lt_pos, Hy.
   intros z Hz.
   unfold ball.
-  rewrite <- (NnMmax_eq_r (dist y x) eps), iscomm_NnMmax, <- NnMminus_plus.
-  rewrite !(issymm_dist y).
-  eapply istrans_NnMle_lt.
+  eapply istrans_NnMle_lt, istrans_NnMlt_le.
+  rewrite issymm_dist.
   eapply istriangle_dist.
   apply NnMplus_lt_r.
-  rewrite (issymm_dist x y), issymm_dist.
+  rewrite issymm_dist.
   apply Hz.
+  rewrite issymm_dist.
+  rewrite NnMminus_plus.
+  rewrite NnMmax_eq_l.
+  apply isrefl_Lle.
+  rewrite issymm_dist.
   apply NnMlt_le, Hy.
 Qed.
 
@@ -689,7 +714,6 @@ Proof.
   unfold ball.
   now rewrite issymm_dist.
 Qed.
-
 
 Definition metricUniformStructure : UniformStructure M.
 Proof.
@@ -745,124 +769,46 @@ Proof.
     apply hinhpr.
     exists (NnMhalf e).
     split.
-    admit.
+    apply NnMhalf_pos, He.
     easy.
     intros (x,y).
     apply hinhuniv.
     intros (z,(Hxz,Hzy)).
     apply Ha.
-    rewrite <- (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 NR)))))))) e)).
-    eapply istrans_NnMle_lt.
+    eapply istrans_NnMle_lt, istrans_NnMlt_le.
     eapply istriangle_dist.
     eapply istrans_NnMlt.
     apply NnMplus_lt_l.
     apply Hzy.
     apply NnMplus_lt_r.
     apply Hxz.
-Admitted.
+    apply NnMhalf_carac.
+Defined.
 
 Definition metric_topology : TopologicalSet.
 Proof.
-  simple refine (TopologyGenerated _).
-  apply (pr1 (pr1 M)).
-  intros A.
-  apply (∃ (x : M) (eps : Σ e : NR, 0 < e), A = ball x (pr1 eps)).
+  refine (Topology_UniformSpace _).
+  apply metricUniformStructure.
 Defined.
 
 Lemma isOpen_ball :
   ∀ (x : M) (eps : Σ e : NR, 0 < e),
     isOpen (T := metric_topology) (ball x (pr1 eps)).
 Proof.
-  intros x eps.
-  apply TopologyGenerated_included.
+  intros x (e,He).
+  apply neighborhood_isOpen.
+  intros y Hy.
+  apply TopologyFromNeighborhood_correct.
   apply hinhpr.
-  now exists x, eps.
-Qed.
-
-Lemma is_base_of_neighborhood_ball (x : M) :
-  is_base_of_neighborhood (T := metric_topology) x
-                          (λ A : M -> hProp, ∃ (eps : Σ e : NR, 0 < e), A = ball x (pr1 eps)).
-Proof.
+  apply ball_recenter in Hy.
+  exists (λ z : M × M, ball (pr1 z) (pr1 Hy) (pr2 z)).
   split.
-  - intros P.
-    apply hinhuniv.
-    intros (eps, ->).
-    apply (pr2 (neighborhood_isOpen _)).
-    apply isOpen_ball.
-    unfold ball.
-    rewrite dist_0.
-    now apply (pr2 eps).
-  - intros P.
-    apply hinhuniv.
-    intros ((O,Ho),(Ox,Hp)).
-    simpl in Ox, Hp.
-    generalize (Ho x Ox) ; clear Ho.
-    apply hinhuniv.
-    intros (L,(Bl,Hl)).
-    assert (∃ (eps : Σ e : NR, 0 < e), ∀ y : M, ball x (pr1 eps) y -> finite_intersection L y).
-    { clear -Bl.
-      revert L Bl.
-      apply (Sequence_rect (P := λ L : Sequence (pr1 (pr1 M) -> hProp), (∀ n : stn (length L), (∃ (x0 : M) (eps : Σ e : NR, 0 < e), L n = ball x0 (pr1 eps)) × L n x) -> ∃ eps : Σ e : NR, 0 < e, ∀ y : M, ball x (pr1 eps) y -> finite_intersection L y)).
-      - intros _.
-        generalize (NnM_nottrivial NR).
-        apply hinhfun.
-        intros eps.
-        exists eps.
-        now intros y _ (n,Hn).
-      - intros L A IHl Hl.
-        generalize (Hl (lastelement _)).
-        intros (Ha,Ax).
-        revert Ha.
-        apply hinhuniv.
-        intros (xa,(epsa,Ha)).
-        simpl in Ax, Ha.
-        rewrite append_fun_compute_2 in Ax, Ha.
-        rewrite Ha in Hl, Ax |- * ; clear A Ha.
-        apply ball_recenter in Ax.
-        refine (hinhuniv2 _ _ _).
-        2: apply Ax.
-        2: apply IHl.
-        intros (e0,(e0_pos,He0)) ((e1,e1_pos),He1).
-        generalize (NnMmin_carac e0 e1).
-        apply hinhfun.
-        intros (min,(min_x,(min_y,min_pos))).
-        simpl in He1.
-        specialize (min_pos _ e0_pos e1_pos).
-        exists (min ,, min_pos).
-        intros y Hy.
-        rewrite finite_intersection_append.
-        split.
-        apply He0.
-        revert Hy.
-        now apply ball_le.
-        intros n.
-        apply He1.
-        revert Hy.
-        now apply ball_le.
-        intros n.
-        generalize (Hl (dni_lastelement n)).
-        intros (Hb,Bx).
-        split.
-        revert Hb.
-        apply hinhuniv.
-        intros (xb,(epsb,Hb)).
-        simpl in Hb.
-        rewrite append_fun_compute_1 in Hb.
-        apply hinhpr.
-        exists xb, epsb.
-        apply Hb.
-        simpl in Bx.
-        rewrite append_fun_compute_1 in Bx.
-        apply Bx. }
-    revert X.
-    apply hinhfun.
-    intros (e,He).
-    exists (ball x (pr1 e)).
-    split.
-    apply hinhpr.
-    now exists e.
-    intros t Ht.
-    now apply Hp, Hl, He.
+  apply hinhpr.
+  exists (pr1 Hy).
+  split.
+  apply (pr1 (pr2 Hy)).
+  easy.
+  apply (pr2 (pr2 Hy)).
 Qed.
 
 End Balls.
@@ -870,32 +816,29 @@ End Balls.
 (** ** Limits in a Metric Space *)
 
 Definition locally {NR : NonnegativeMonoid} {M : MetricSet NR} (x : M) : Filter M :=
-  locally_base (T := metric_topology) x (_,,is_base_of_neighborhood_ball x).
+  locally (T := metric_topology) x.
 
 Lemma locally_ball {NR : NonnegativeMonoid} {M : MetricSet NR} (x : M) :
   ∀ e : NR, 0 < e -> locally x (ball x e).
 Proof.
   intros NR M x e He.
-  apply hinhpr.
-  exists (ball x e).
-  split.
-  apply hinhpr.
-  exists (e,,He).
-  reflexivity.
-  easy.
+  apply (pr2 (neighborhood_isOpen _)).
+  simple refine (isOpen_ball _ (_,,_)).
+  exact He.
+  now apply ball_center.
 Qed.
 
 (** *** Limit of a filter *)
 
 Definition is_filter_lim {NR : NonnegativeMonoid} {M : MetricSet NR} (F : Filter M) (x : M) :=
-  is_filter_lim_base (T := metric_topology) F x (_,,is_base_of_neighborhood_ball x).
+  is_filter_lim (T := metric_topology) F x.
 Definition ex_filter_lim {NR : NonnegativeMonoid} {M : MetricSet NR} (F : Filter M) :=
   ∃ (x : M), is_filter_lim F x.
 
 (** *** Limit of a function *)
 
 Definition is_lim {X : UU} {NR : NonnegativeMonoid} {M : MetricSet NR} (f : X -> M) (F : Filter X) (x : M) :=
-  is_lim_base (T := metric_topology) f F x (_,,is_base_of_neighborhood_ball x).
+  is_lim (T := metric_topology) f F x.
 Definition ex_lim {X : UU} {NR : NonnegativeMonoid} {M : MetricSet NR} (f : X -> M) (F : Filter X) :=
   ∃ (x : M), is_lim f F x.
 
@@ -914,21 +857,25 @@ Proof.
     now apply (pr2 e).
   - intros H P.
     apply hinhuniv.
-    intros (O,(Ho,Ho')).
-    revert Ho.
+    intros ((O,Hopen),(Ho,Ho')).
+    simpl in Ho, Ho'.
+    generalize (Hopen x Ho) ; clear Hopen.
     apply hinhuniv.
-    intros (e,->).
-    generalize (H e).
+    intros (U,(Hu,Hu')).
+    revert Hu.
+    apply hinhuniv.
+    intros (e,(He,He')).
+    generalize (H (e,,He)).
     apply (filter_imply F).
     intros y Hy.
-    apply Ho'.
+    apply Ho', Hu', He'.
     apply Hy.
 Qed.
 
 (** *** Continuity *)
 
 Definition continuous_at {NR : NonnegativeMonoid} {U V : MetricSet NR} (f : U -> V) (x : U) :=
-  continuous_base_at (U := metric_topology) (V := metric_topology) f x  (_,,is_base_of_neighborhood_ball x) (_,,is_base_of_neighborhood_ball (f x)).
+  continuous_at (U := metric_topology) (V := metric_topology) f x.
 
 Definition continuous_on {NR : NonnegativeMonoid} {U V : MetricSet NR} (dom : U -> hProp) (f : U -> V) :=
   ∀ (x : U) (Hx : dom x) H,
@@ -942,7 +889,7 @@ Definition continuous {NR : NonnegativeMonoid} {U V : MetricSet NR} (f : U -> V)
 (** *** Continuity for 2 variable functions *)
 
 Definition continuous2d_at {NR : NonnegativeMonoid} {U V W : MetricSet NR} (f : U -> V -> W) (x : U) (y : V) :=
-  continuous2d_base_at (U := metric_topology) (V := metric_topology) (W := metric_topology) f x y (_,,is_base_of_neighborhood_ball x) (_,,is_base_of_neighborhood_ball y) (_,,is_base_of_neighborhood_ball (f x y)).
+  continuous2d_at (U := metric_topology) (V := metric_topology) (W := metric_topology) f x y.
 
 Definition continuous2d {NR : NonnegativeMonoid} {U V W : MetricSet NR} (f : U -> V -> W) :=
   ∀ (x : U) (y : V), continuous2d_at f x y.
