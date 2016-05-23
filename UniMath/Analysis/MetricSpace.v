@@ -299,7 +299,7 @@ Definition isNonnegativeMonoid {X : monoid} (is : islattice X) (lt : StrongOrder
     × (∀ x : X, Σ y : X, (Lle (L := _,,is) (y + y) x) × (lt 0 x -> lt 0 y)).
 
 Definition NonnegativeMonoid :=
-  Σ (X : monoid) (is : islattice X) (lt : StrongOrder X) (le : hrel X), isNonnegativeMonoid is lt.
+  Σ (X : monoid) (is : islattice X) (lt : StrongOrder X), isNonnegativeMonoid is lt.
 
 Definition pr1NonnegativeMonoid : NonnegativeMonoid -> monoid := pr1.
 Coercion pr1NonnegativeMonoid : NonnegativeMonoid >-> monoid.
@@ -322,7 +322,7 @@ Proof.
   simple refine (tightapfromlt _ _ _ _).
   - apply NnMlt.
   - apply (pr1 (NnMle _)).
-  - apply (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))).
+  - apply (pr1 (pr2 (pr2 (pr2 (pr2 X))))).
   - now apply (isantisymm_Lle (L := _ ,, pr1 (pr2 X))).
 Defined.
 Definition NnMmin {X : NonnegativeMonoid} : binop X :=
@@ -330,9 +330,9 @@ Definition NnMmin {X : NonnegativeMonoid} : binop X :=
 Definition NnMmax {X : NonnegativeMonoid} : binop X :=
   Lmax (L := _,,(pr1 (pr2 X))).
 Definition NnMminus {X : NonnegativeMonoid} : binop X :=
-  (pr1 (pr1 (pr2 (pr2 (pr2 (pr2 X)))))).
+  (pr1 (pr1 (pr2 (pr2 (pr2 X))))).
 Definition NnMhalf {X : NonnegativeMonoid} : unop X :=
-  λ x : X, (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))))) x)).
+  λ x : X, (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))) x)).
 
 Local Notation "0" := (0%addmonoid).
 Local Notation "x + y" := ((x + y)%addmonoid).
@@ -362,7 +362,7 @@ Lemma notNnMlt_le {X : NonnegativeMonoid} :
   ∀ x y : X, (¬ (x < y)) <-> (y <= x).
 Proof.
   intros X.
-  now apply (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))).
+  now apply (pr1 (pr2 (pr2 (pr2 (pr2 X))))).
 Qed.
 Lemma isirrefl_NnMlt {X : NonnegativeMonoid} :
   ∀ x : X, ¬ (x < x).
@@ -426,7 +426,7 @@ Lemma isnonnegative_NnM {X : NonnegativeMonoid} :
   ∀ x : X, 0 <= x.
 Proof.
   intros X.
-  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))))).
+  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))).
 Qed.
 Lemma isnonnegative_NnM' {X : NonnegativeMonoid} :
   ∀ x : X, ¬ (x < 0).
@@ -440,13 +440,13 @@ Lemma NnMplus_lt_l {X : NonnegativeMonoid} :
   ∀ k x y : X, x < y -> k + x < k + y.
 Proof.
   intros X k x y.
-  apply (pr1 (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))).
+  apply (pr1 (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))).
 Qed.
 Lemma NnMplus_lt_r {X : NonnegativeMonoid} :
   ∀ k x y : X, x < y -> x + k < y + k.
 Proof.
   intros X k x y.
-  apply (pr2 (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))).
+  apply (pr2 (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))).
 Qed.
 
 Lemma NnMap_lt_0 {X : NonnegativeMonoid} :
@@ -472,7 +472,7 @@ Lemma NnM_nottrivial (X : NonnegativeMonoid) :
   ∃ x0 : X, 0 < x0.
 Proof.
   intros X.
-  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))))).
+  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))))).
 Qed.
 
 Lemma NnMmin_le_l {X : NonnegativeMonoid} :
@@ -492,7 +492,27 @@ Lemma NnMmin_gt {X : NonnegativeMonoid} :
 Proof.
   intros X.
   apply (Lmin_lt (_,,(pr1 (pr2 X)))).
-  apply (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))).
+  apply (pr1 (pr2 (pr2 (pr2 (pr2 X))))).
+Qed.
+
+Lemma NnMmax_le_l {X : NonnegativeMonoid} :
+  ∀ x y : X, x <= NnMmax x y.
+Proof.
+  intros X.
+  apply (Lmax_le_l (L := _,,(pr1 (pr2 X)))).
+Qed.
+Lemma NnMmax_le_r {X : NonnegativeMonoid} :
+  ∀ x y : X, y <= NnMmax x y.
+Proof.
+  intros X.
+  apply (Lmax_le_r (L := _,,(pr1 (pr2 X)))).
+Qed.
+Lemma NnMmax_gt {X : NonnegativeMonoid} :
+  ∀ x y z : X, x < z -> y < z -> NnMmax x y < z.
+Proof.
+  intros X.
+  apply (Lmax_lt (_,,(pr1 (pr2 X)))).
+  apply (pr1 (pr2 (pr2 (pr2 (pr2 X))))).
 Qed.
 
 Lemma iscomm_NnMmin {X : NonnegativeMonoid} :
@@ -551,29 +571,29 @@ Lemma NnMminus_lt_pos {X : NonnegativeMonoid} :
 Proof.
   intros X.
   eapply minus_lt_pos.
-  apply (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))).
-  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))).
-  exact (pr2 (pr1 (pr2 (pr2 (pr2 (pr2 X)))))).
+  apply (pr1 (pr2 (pr2 (pr2 (pr2 X))))).
+  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))).
+  exact (pr2 (pr1 (pr2 (pr2 (pr2 X))))).
 Qed.
 
 Lemma NnMminus_plus {X : NonnegativeMonoid} :
   ∀ x y : X, (NnMminus x y) + y = NnMmax x y.
 Proof.
   intros X x y.
-  apply (pr2 (pr1 (pr2 (pr2 (pr2 (pr2 X)))))).
+  apply (pr2 (pr1 (pr2 (pr2 (pr2 X))))).
 Qed.
 
 Lemma NnMhalf_carac {X : NonnegativeMonoid} :
   ∀ x : X, NnMhalf x + NnMhalf x <= x.
 Proof.
   intros X x.
-  exact (pr1 (pr2 ((pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))))) x))).
+  exact (pr1 (pr2 ((pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))))) x))).
 Qed.
 Lemma NnMhalf_pos {X : NonnegativeMonoid} :
   ∀ x : X, 0 < x -> 0 < NnMhalf x.
 Proof.
   intros X x.
-  exact (pr2 (pr2 ((pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))))) x))).
+  exact (pr2 (pr2 ((pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))))) x))).
 Qed.
 
 (** ** Definition of metric spaces *)

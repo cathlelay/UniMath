@@ -1,64 +1,81 @@
 (** * Results about Normed Spaces *)
 (** Author: Catherine LELAY. Jan 2016 - *)
 
+Require Import UniMath.Foundations.Algebra.Apartness.
 Require Export UniMath.Foundations.Algebra.Rigs_and_Rings.
-Require Export UniMath.Bourbaki.Filters.
-Require Import UniMath.Bourbaki.MetricSpace.
-Require Import UniMath.Dedekind.Sets.
+Require Export UniMath.Topology.Filters.
+Require Import UniMath.Analysis.MetricSpace.
+Require Import UniMath.RealNumbers.Sets.
 
 (** ** Nonnegative Rig *)
 
-Definition isNonnegativeRig {X : rig} (ap le lt : hrel X) :=
-  isConstructiveTotalEffectiveOrder ap le lt
-  × isbinophrel (X := rigaddabmonoid X) lt
-  × isrigmultgt X (λ x y, lt y x)
-  × (∀ x : X, le 0%rig x)
-  × (lt 0%rig 1%rig)
-  × (∀ x y : X, ∃ min : X, is_min le lt x y min)
-  × (∀ (x y : X) (Hxy : lt x y), ∃ minus : X, is_minus (X := rigaddabmonoid X) lt x y minus Hxy).
+Print isNonnegativeMonoid .
+
+Definition isNonnegativeRig {X : rig} (is : islattice X) (lt : StrongOrder X) :=
+  (ex_minus (X := rigaddabmonoid X) is)
+    × islatticelt (_ ,, is) lt
+    × isbinophrel (X := rigaddabmonoid X) lt
+    × isinvbinophrel (X := rigaddabmonoid X) lt
+    × isrigmultgt X (λ x y, lt y x)
+    × (∀ x : X, Lle (L := _,,is) 0%rig x)
+    × (lt 0%rig 1%rig)
+    × (∀ x : X,
+         Σ y : X,
+         Lle (L := _,,is) (y + y)%rig x
+             × (lt 0%rig x → lt 0%rig y)).
 
 Definition NonnegativeRig :=
-  Σ (X : rig) (ap lt le : hrel X), isNonnegativeRig ap lt le.
+  Σ (X : rig) (is : islattice X) (lt : StrongOrder X), isNonnegativeRig is lt.
 
 Definition pr1NonnegativeRig : NonnegativeRig -> rig := pr1.
 Coercion pr1NonnegativeRig : NonnegativeRig >-> rig.
 
+Definition NonnegativeRig_to_NonnegativeAddMonoid : NonnegativeRig -> NonnegativeMonoid.
+Proof.
+  intros X.
+  exists (rigaddabmonoid (pr1 X)).
+  exists (pr1 (pr2 X)).
+  exists (pr1 (pr2 (pr2 X))).
+  split.
+  apply (pr1 (pr2 (pr2 (pr2 X)))).
+  split.
+  apply (pr1 (pr2 (pr2 (pr2 (pr2 X))))).
+  split.
+  apply (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))).
+  split.
+  apply (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))).
+  split.
+  apply (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))))).
+  split.
+  apply hinhpr.
+  exists (1%rig : X).
+  apply (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))))).
+  apply (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))))).
+Defined.
+
 Definition NnRap (X : NonnegativeRig) : tightap X :=
-  pr1 (pr2 X) ,, pr1 (pr1 (pr2 (pr2 (pr2 (pr2 X))))).
+  NnMap (NonnegativeRig_to_NonnegativeAddMonoid X).
 Definition NnRle (X : NonnegativeRig) : PartialOrder X :=
-  pr1 (pr2 (pr2 X)),,
-      pr1 (pr1 (pr1 (pr2 (pr1 (pr2 (pr2 (pr2 (pr2 X)))))))),,
-      pr1 (pr2 (pr2 (pr1 (pr2 (pr2 (pr2 (pr2 X))))))).
+  NnMle (NonnegativeRig_to_NonnegativeAddMonoid X).
 Definition NnRlt (X : NonnegativeRig) : StrongOrder X :=
-  (pr1 (pr2 (pr2 (pr2 X)))) ,, (pr2 (pr1 (pr1 (pr2 (pr1 (pr2 (pr2 (pr2 (pr2 X))))))))).
+  NnMlt (NonnegativeRig_to_NonnegativeAddMonoid X).
+Definition NnRminus {X : NonnegativeRig} : binop X :=
+  NnMminus (X := NonnegativeRig_to_NonnegativeAddMonoid X).
+Definition NnRmin {X : NonnegativeRig} : binop X :=
+  NnMmin (X := NonnegativeRig_to_NonnegativeAddMonoid X).
+Definition NnRmax {X : NonnegativeRig} : binop X :=
+  NnMmax (X := NonnegativeRig_to_NonnegativeAddMonoid X).
+Definition NnRhalf {X : NonnegativeRig} : unop X :=
+  NnMhalf (X := NonnegativeRig_to_NonnegativeAddMonoid X).
 
 Local Notation "0" := (0%rig).
 Local Notation "1" := (1%rig).
 Local Notation "x + y" := ((x + y)%rig).
+Local Notation "x - y" := (NnRminus x y).
 Local Notation "x * y" := ((x * y)%rig).
 Local Notation "x ≠ y" := (NnRap _ x y).
 Local Notation "x <= y" :=  (NnRle _ x y).
 Local Notation "x < y" :=  (NnRlt _ x y).
-
-Definition NonnegativeRig_to_NonnegativeAddMonoid (X : NonnegativeRig) :
-  NonnegativeMonoid.
-Proof.
-  intros X.
-  simple refine (tpair _ _ _).
-  - apply (abmonoidtomonoid (rigaddabmonoid X)).
-  - exists (NnRap X), (NnRle X), (NnRlt X).
-    split.
-    apply (pr1 (pr2 (pr2 (pr2 (pr2 X))))).
-    split.
-    apply (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))).
-    repeat split.
-    apply (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))).
-    apply hinhpr.
-    exists 1.
-    apply (pr2  (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))).
-    apply (pr1 (pr2 (pr2  (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))))).
-    apply (pr2 (pr2 (pr2  (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))))).
-Defined.
 
 Section NonnegativeRig_pty.
 
@@ -76,26 +93,33 @@ Qed.
 Lemma istotal_NnRlt :
   ∀ x y : X, x ≠ y <-> (x < y) ⨿ (y < x).
 Proof.
-  exact (pr2 (pr2 (pr2 (pr1 (pr2 (pr2 (pr2 (pr2 X)))))))).
+  intros x y.
+  apply (istotal_NnMlt (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
 Qed.
 
 Lemma isrefl_NnRle :
   ∀ x : X, x <= x.
 Proof.
   intros x.
-  apply (pr2 (pr1 (pr2 (NnRle _)))).
+  apply (isrefl_Lle (L := _,,(pr1 (pr2 X)))).
 Qed.
 
 Lemma isirrefl_NnRlt :
   ∀ x : X, ¬ (x < x).
 Proof.
-  exact (pr2 (pr2 (pr1 (pr1 (pr2 (pr1 (pr2 (pr2 (pr2 (pr2 X)))))))))).
+  intros x.
+  apply (isirrefl_NnMlt (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
 Qed.
 
 Lemma istrans_NnRlt :
   ∀ x y z : X, x < y -> y < z -> x < z.
 Proof.
   apply istrans_StrongOrder.
+Qed.
+Lemma iscotrans_NnRlt :
+  ∀ x y z : X, x < z -> x < y ∨ y < z.
+Proof.
+  apply iscotrans_StrongOrder.
 Qed.
 Lemma istrans_NnRle :
   ∀ x y z : X, x <= y -> y <= z -> x <= z.
@@ -105,18 +129,21 @@ Qed.
 Lemma istrans_NnRle_lt :
   ∀ x y z : X, x <= y -> y < z -> x < z.
 Proof.
-  apply (pr2 (pr2 (pr2 (pr1 (pr2 (pr1 (pr2 (pr2 (pr2 (pr2 X)))))))))).
+  intros x y z.
+  apply (istrans_NnMle_lt (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
 Qed.
 Lemma istrans_NnRlt_le :
   ∀ x y z : X, x < y -> y <= z -> x < z.
 Proof.
-  apply (pr1 (pr2 (pr2 (pr1 (pr2 (pr1 (pr2 (pr2 (pr2 (pr2 X)))))))))).
+  intros x y z.
+  apply (istrans_NnMlt_le (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
 Qed.
 
 Lemma notNnRlt_le :
   ∀ x y : X, (¬ (x < y)) <-> (y <= x).
 Proof.
-  exact (pr1 (pr2 (pr1 (pr2 (pr1 (pr2 (pr2 (pr2 (pr2 X))))))))).
+  intros x y.
+  apply (notNnMlt_le (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
 Qed.
 Lemma NnRlt_le :
   ∀ x y : X, x < y -> x <= y.
@@ -133,7 +160,8 @@ Qed.
 Lemma isnonnegative_NnR :
   ∀ x : X, 0 <= x.
 Proof.
-  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))).
+  intros x.
+  apply (isnonnegative_NnM (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
 Qed.
 Lemma isnonnegative_NnR' :
   ∀ x : X, ¬ (x < 0).
@@ -183,7 +211,7 @@ Lemma NnRmult_lt :
 Proof.
   intros a b c d.
   rewrite !(rigcomm1 X (a * _)%rig) .
-  apply (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))).
+  apply (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))).
 Qed.
 Lemma NnRmult_lt_0 :
   ∀ x y : X, 0 < x -> 0 < y -> 0 < x * y.
@@ -264,20 +292,107 @@ Qed.
 Lemma NnR_nottrivial :
   (0 : X) < 1.
 Proof.
-  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))))).
-Qed.
-
-Lemma NnRmin_carac :
-  ∀ x y : X, ∃ min : X,
-    min <= x × min <= y × (∀ z : X, z < x -> z < y -> z < min).
-Proof.
   exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))))).
 Qed.
 
-Lemma NnRminus_carac :
-  ∀ (x y : X), x < y -> ∃ minus : X, 0 < minus × y = x + minus.
+Lemma NnRmin_le_l :
+  ∀ (x y : X), (NnRmin x y) <= x.
 Proof.
-  exact (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))))).
+  apply (NnMmin_le_l (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
+Qed.
+Lemma NnRmin_le_r :
+  ∀ (x y : X), (NnRmin x y) <= y.
+Proof.
+  apply (NnMmin_le_r (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
+Qed.
+Lemma NnRmin_gt:
+  ∀ (x y z : X),
+    z < x → z < y → z < (NnRmin x y).
+Proof.
+  apply (NnMmin_gt (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
+Qed.
+Lemma NnRmax_le_l :
+  ∀ (x y : X), x <= (NnRmax x y).
+Proof.
+  apply (NnMmax_le_l (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
+Qed.
+Lemma NnRmax_le_r :
+  ∀ (x y : X), y <= (NnRmax x y).
+Proof.
+  apply (NnMmax_le_r (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
+Qed.
+Lemma NnRmax_gt:
+  ∀ (x y z : X),
+    x < z → y < z → (NnRmax x y) < z.
+Proof.
+  apply (NnMmax_gt (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
+Qed.
+Lemma iscomm_NnRmin :
+  iscomm (NnRmin (X := X)).
+Proof.
+  apply (iscomm_NnMmin (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
+Qed.
+Lemma isassoc_NnRmin :
+  isassoc (NnRmin (X := X)).
+Proof.
+  apply (isassoc_NnMmin (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
+Qed.
+Lemma NnRmin_eq_l:
+  ∀ (x y : X), x <= y → NnRmin x y = x.
+Proof.
+  apply (NnMmin_eq_l (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
+Qed.
+Lemma NnMmin_eq_r:
+  ∀ (x y : X), y <= x → NnRmin x y = y.
+Proof.
+  apply (NnMmin_eq_r (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
+Qed.
+
+Lemma iscomm_NnRmax :
+  iscomm (NnRmax (X := X)).
+Proof.
+  apply (iscomm_NnMmax (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
+Qed.
+Lemma isassoc_NnRmax :
+  isassoc (NnRmax (X := X)).
+Proof.
+  apply (isassoc_NnMmax (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
+Qed.
+Lemma NnRmax_eq_l:
+  ∀ (x y : X), y <= x → NnRmax x y = x.
+Proof.
+  apply (NnMmax_eq_l (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
+Qed.
+Lemma NnMmax_eq_r:
+  ∀ (x y : X), x <= y → NnRmax x y = y.
+Proof.
+  apply (NnMmax_eq_r (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
+Qed.
+
+Lemma NnRminus_lt_pos:
+  ∀ (x y : X),
+    y < x → 0%rig < (NnRminus x y).
+Proof.
+  apply (NnMminus_lt_pos (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
+Qed.
+Lemma NnRminus_plus:
+  ∀ (x y : X),
+  (NnRminus x y + y)%rig = NnRmax x y.
+Proof.
+  apply (NnMminus_plus (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
+Qed.
+
+Lemma NnRhalf_carac:
+  ∀ (x : X),
+    (NnRhalf x + NnRhalf x)%rig <= x.
+Proof.
+  apply (NnMhalf_carac (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
+Qed.
+Lemma NnRhalf_pos:
+  ∀ (x : X),
+    0 < x → 0 < (NnRhalf x).
+Proof.
+  apply (NnMhalf_pos (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
 Qed.
 
 End NonnegativeRig_pty.
@@ -664,6 +779,22 @@ Definition is_lim {X : UU} {NR : NonnegativeRig} {K : absrng NR} {V : NormedModu
 Definition ex_lim {X : UU} {NR : NonnegativeRig} {K : absrng NR} {V : NormedModule K} (f : X -> V) (F : Filter X) :=
   ∃ (x : V), is_lim f F x.
 
+Lemma is_lim_aux {X : UU} {NR : NonnegativeRig} {K : absrng NR} {V : NormedModule K} (f : X → V) (F : Filter X) (x : V) :
+  is_lim f F x <->
+  (∀ eps : Σ e : NR, 0%rig < e, F (λ y : X, ball (M := metric_norm) x (pr1 eps) (f y))).
+Proof.
+  intros X NR K V f F x.
+  split ; intros H.
+  - apply (pr1 (is_lim_aux (M := metric_norm) f F x)).
+    intros P Hp.
+    apply H, Hp.
+  - intros P Hp.
+    apply (pr2 (is_lim_aux (M := metric_norm) f F x)).
+    intros e.
+    apply H.
+    apply Hp.
+Qed.
+
 (** *** Continuity *)
 
 Definition continuous_at {NR : NonnegativeRig} {K : absrng NR} {U V : NormedModule K} (f : U -> V) (x : U) :=
@@ -692,56 +823,37 @@ Definition continuous2d {NR : NonnegativeRig} {K : absrng NR} {U V W : NormedMod
 Lemma continuous_grinv {NR : NonnegativeRig} {K : absrng NR} {X : NormedModule K} :
   continuous (grinv X).
 Proof.
-  intros NR K X x P.
-  apply hinhuniv.
-  intros (O,(Ho,Op)).
-  revert Ho.
-  apply hinhfun.
-  intros (eps,->).
-  exists (ball (M := metric_norm) x (pr1 eps)).
-  split.
-  apply hinhpr.
-  exists eps.
-  reflexivity.
-  intros t Ht.
-  apply Op.
+  intros NR K X x.
+  apply (pr2 (is_lim_aux _ _ _)).
+  intros eps.
+  eapply filter_imply, locally_ball, (pr2 eps).
+  intros y Hy.
   apply ball_symm.
-  unfold ball ; simpl.
-  eapply istrans_NnRle_lt, Ht.
-  unfold dist ; simpl.
+  eapply istrans_NnRle_lt, Hy.
+  unfold dist ; simpl pr1.
   rewrite (grinvinv X).
   rewrite (commax X).
   apply isrefl_NnRle.
 Qed.
 
 Lemma continuous_plus {NR : NonnegativeRig} {K : absrng NR} {X : NormedModule K} :
-  (∀ e : NR, 0 < e -> ∃ e1 e2 : NR, e = e1 + e2 × 0 < e1 × 0 < e2) ->
   continuous2d (λ x y : X, (x + y)%addmonoid).
 Proof.
-  intros NR K X Hnr x y P.
-  apply hinhuniv.
-  intros (O,(Ho',Ho)).
-  revert Ho'.
-  apply hinhuniv.
-  intros ((e,He),->).
-  generalize (Hnr e He).
-  apply hinhuniv.
-  intros (e1,(e2,(->,(He1,He2)))).
+  intros NR K X x y.
+  apply (pr2 (is_lim_aux _ _ _)).
+  intros (e,He) ; simpl pr1.
   apply hinhpr.
-  exists (ball (M := metric_norm) x e1), (ball (M := metric_norm) y e2).
+  exists (ball (M := metric_norm) x (NnRhalf e)), (ball (M := metric_norm) y (NnRhalf e)).
   repeat split.
-  apply locally_ball.
-  exact He1.
-  apply locally_ball.
-  exact He2.
-  intros x' y' Hx Hy.
-  apply Ho.
-  unfold ball.
-  refine (istrans_NnRlt _ _ _ _ _).
-  2: apply NnRplus_lt_r, Hx.
-  refine (istrans_NnRle_lt _ _ _ _ _).
-  2: apply NnRplus_lt_l, Hy.
-  unfold dist ; simpl.
+  apply locally_ball, NnRhalf_pos, He.
+  apply locally_ball, NnRhalf_pos, He.
+  intros x' y' ; unfold ball ; simpl.
+  change (NnMlt (NonnegativeRig_to_NonnegativeAddMonoid NR)) with (NnRlt NR).
+  intros Hx Hy.
+  eapply istrans_NnRlt_le, NnRhalf_carac.
+  eapply istrans_NnRlt, NnRplus_lt_r, Hx.
+  eapply istrans_NnRle_lt, NnRplus_lt_l, Hy.
+  unfold dist ; simpl pr1.
   eapply istrans_NnRle, istriangle_norm.
   rewrite !(assocax X).
   rewrite (commax X (grinv X x')), !(assocax X).
