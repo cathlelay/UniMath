@@ -561,18 +561,10 @@ Proof.
     + intros x A B H.
       apply hinhfun.
       intros (Ua,(Fa,Ha)).
-      simple refine (tpair _ _ _).
-      intros xy.
-      simple refine (hProppair _ _).
-      apply (pr1 xy = x -> B (pr2 xy)).
-      clear.
-      abstract apply isapropimpl, propproperty.
+      exists Ua.
       split.
-      revert Fa.
-      apply UniformStructure_imply.
-      intros (xx,y) Hb <-.
-      apply H, Ha, Hb.
-      now intros y H0 ; apply H0.
+      apply Fa.
+      now intros y H0 ; apply H, Ha.
     + intros x.
       apply isfilter_finite_intersection_carac.
       * apply hinhpr.

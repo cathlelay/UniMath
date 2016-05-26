@@ -303,6 +303,23 @@ Qed.
 
 End Neighborhood.
 
+Definition locally {T : TopologicalSet} (x : T) : Filter T.
+Proof.
+  intros T x.
+  simple refine (mkFilter _ _ _ _ _).
+  - apply (neighborhood x).
+  - abstract (intros A B ;
+              apply neighborhood_imply).
+  - abstract (apply (pr2 (neighborhood_isOpen _)) ;
+              [ apply isOpen_htrue |
+                apply tt]).
+  - abstract (intros A B ;
+              apply neighborhood_and).
+  - abstract (intros Hx ;
+              apply neighborhood_point in Hx ;
+              exact Hx).
+Defined.
+
 (** ** Base of Neighborhood *)
 
 Definition is_base_of_neighborhood {T : TopologicalSet} (x : T) (B : (T -> hProp) -> hProp) :=
@@ -605,12 +622,16 @@ Proof.
       exists (concatenate L L').
       repeat split.
       * intros m ; simpl.
-        destruct weqfromcoprodofstn_invfun as [k | k] ; simpl.
+        destruct (invmap (weqfromcoprodofstn (length L) (length L')) m) as [k | k].
+        rewrite coprod_rect_compute_1.
         now apply Ol.
+        rewrite coprod_rect_compute_2.
         now apply Ol'.
       * intros m ; simpl.
-        destruct weqfromcoprodofstn_invfun as [k | k] ; simpl.
+        destruct (invmap (weqfromcoprodofstn (length L) (length L')) m) as [k | k].
+        rewrite coprod_rect_compute_1.
         now apply Hl.
+        rewrite coprod_rect_compute_2.
         now apply Hl'.
       * intros y Hy ([ | m],Hm).
         assert (Hm = idpath (natgtb (S n) 0)) by (now apply (pr2 (_ < _))).
@@ -618,13 +639,13 @@ Proof.
         apply Al.
         intros k.
         simpl in Hy.
-        specialize (Hy (weqfromcoprodofstn_fun (length L) (length L') (ii1 k))).
-        now rewrite weqfromcoprodofstn_invfun_fun in Hy.
+        specialize (Hy (weqfromcoprodofstn (length L) (length L') (ii1 k))).
+        now rewrite homotinvweqweq, coprod_rect_compute_1 in Hy.
         refine (Al' _ _ (_,,_)).
         intros k.
         simpl in Hy.
-        specialize (Hy (weqfromcoprodofstn_fun (length L) (length L') (ii2 k))).
-        now rewrite weqfromcoprodofstn_invfun_fun in Hy.
+        specialize (Hy (weqfromcoprodofstn (length L) (length L') (ii2 k))).
+        now rewrite homotinvweqweq, coprod_rect_compute_2 in Hy.
       * intros m.
         apply Ha.
   - intros x P.
@@ -632,16 +653,15 @@ Proof.
     intros (L,(Ol,(Hl,Pl))).
     now apply Pl.
   - intros x P.
-
-    simple refine (mkTopologicalSet _ _ _ _ _).
-  - apply X.
-  - intros P.
-    simple refine (tpair _ _ _).
-    apply (topologygenerated O P).
-    apply isaprop_topologygenerated.
-  - apply topologygenerated_union.
-  - apply topologygenerated_htrue.
-  - apply topologygenerated_and.
+    apply hinhfun.
+    intros (L,(Ol,(Hl,Pl))).
+    exists (finite_intersection L).
+    split.
+    apply hinhpr.
+    now exists L.
+    intros y Hy.
+    apply hinhpr.
+    now exists L.
 Defined.
 
 
@@ -650,13 +670,20 @@ Lemma TopologyGenerated_included {X : UU} :
     O P -> isOpen (T := TopologyGenerated O) P.
 Proof.
   intros X O P Op.
+  apply neighborhood_isOpen.
   intros x Hx.
+  apply TopologyFromNeighborhood_correct.
   apply hinhpr.
   exists (singletonSequence P).
-  split.
-  - now simpl.
+  repeat split.
+  - intros ([|n],Hn).
+    exact Op.
+    now apply fromempty.
+  - intros ([|n],Hn).
+    exact Hx.
+    now apply fromempty.
   - intros y Hy.
-    apply (Hy (0%nat,,paths_refl _)).
+    now apply (Hy (0%nat,,paths_refl _)).
 Qed.
 Lemma TopologyGenerated_smallest {X : UU} :
   ∀ (O : (X -> hProp) -> hProp) (T : isTopologicalSet X),
@@ -668,18 +695,17 @@ Proof.
   intros x Px.
   generalize (Hp x Px) ; clear Hp.
   apply hinhfun.
-  intros (L,(Hl,Hp)).
+  intros (L,(Ol,(Hl,Pl))).
   simple refine (tpair _ _ _).
   simple refine (tpair _ _ _).
   apply (finite_intersection L).
   apply (isOpen_finite_intersection (T := X,,T)).
   intros m.
   apply Ht.
-  apply Hl.
+  apply Ol.
   split.
-  intros m.
-  apply (pr2 (Hl m)).
-  apply Hp.
+  exact Hl.
+  exact Pl.
 Qed.
 
 (** *** Product of topologies *)
@@ -687,13 +713,122 @@ Qed.
 Definition TopologyDirprod (U V : TopologicalSet) : TopologicalSet.
 Proof.
   intros U V.
-  simple refine (TopologyGenerated _).
+  simple refine (TopologyFromNeighborhood _ _).
   - apply (U × V).
-  - simpl ; intros A.
-    apply (∃ (B : U -> hProp) (C : V -> hProp),
-              isOpen B × isOpen C
-                     × (∀ (x : U) (y : V), A (x,,y) <-> B x × C y)).
+  - intros z A.
+    apply (∃ (Ax : U -> hProp) (Ay : V -> hProp),
+              (Ax (pr1 z) × isOpen Ax)
+                × (Ay (pr2 z) × isOpen Ay)
+                × (∀ x y, Ax x -> Ay y -> A (x,,y))).
+  - repeat split.
+    + intros x A B H.
+      apply hinhfun.
+      intros (Ax,(Ay,(Hx,(Hy,Ha)))).
+      exists Ax, Ay ; split ; [ | split].
+      exact Hx.
+      exact Hy.
+      intros x' y' Hx' Hy'.
+      now apply H, Ha.
+    + intros z.
+      apply isfilter_finite_intersection_carac.
+      * apply hinhpr.
+        exists (λ _, htrue), (λ _, htrue).
+        repeat split.
+        apply isOpen_htrue.
+        apply isOpen_htrue.
+      * intros A B.
+        apply hinhfun2.
+        intros (Ax,(Ay,(Hax,(Hay,Ha)))) (Bx,(By,(Hbx,(Hby,Hb)))).
+        exists (λ x, Ax x ∧ Bx x), (λ y, Ay y ∧ By y).
+        repeat split.
+        apply (pr1 Hax).
+        apply (pr1 Hbx).
+        apply isOpen_and.
+        apply (pr2 Hax).
+        apply (pr2 Hbx).
+        apply (pr1 Hay).
+        apply (pr1 Hby).
+        apply isOpen_and.
+        apply (pr2 Hay).
+        apply (pr2 Hby).
+        apply Ha.
+        apply (pr1 X).
+        apply (pr1 X0).
+        apply Hb.
+        apply (pr2 X).
+        apply (pr2 X0).
+    + intros (x,y) A.
+      apply hinhuniv.
+      intros (Ax,(Ay,(Hx,(Hy,Ha)))).
+      apply Ha.
+      exact (pr1 Hx).
+      exact (pr1 Hy).
+    + intros (x,y) P.
+      apply hinhfun.
+      intros (Ax,(Ay,(Hx,(Hy,Ha)))).
+      exists (λ z, Ax (pr1 z) ∧ Ay (pr2 z)).
+      split.
+      * apply hinhpr.
+        exists Ax, Ay.
+        split.
+        exact Hx.
+        split.
+        exact Hy.
+        intros x' y' Ax' Ay'.
+        now split.
+      * intros z Az.
+        apply hinhpr.
+        exists Ax, Ay.
+        repeat split.
+        exact (pr1 Az).
+        exact (pr2 Hx).
+        exact (pr2 Az).
+        exact (pr2 Hy).
+        exact Ha.
 Defined.
+
+Definition locally2d {T S : TopologicalSet} (x : T) (y : S) : Filter (T × S).
+Proof.
+  intros T S x y.
+  now apply FilterDirprod ; apply locally.
+Defined.
+
+Lemma locally2d_correct {T S : TopologicalSet} (x : T) (y : S) :
+  ∀ P : T × S -> hProp, locally2d x y P <-> locally (T := TopologyDirprod T S) (x,,y) P.
+Proof.
+  intros T S x y P.
+  split ; apply hinhuniv.
+  - intros (Ax,(Ay,(Hx,(Hy,Ha)))).
+    apply TopologyFromNeighborhood_correct.
+    revert Hx Hy.
+    apply hinhfun2.
+    intros (Ox,(Hx,Hax)) (Oy,(Hy,Hay)).
+    exists Ox,Oy.
+    repeat split.
+    + exact Hx.
+    + exact (pr2 Ox).
+    + exact Hy.
+    + exact (pr2 Oy).
+    + intros x' y' Hx' Hy'.
+      apply Ha.
+      now apply Hax.
+      now apply Hay.
+  - intros ((O,Ho),(Oz,Hop)) ; simpl in Oz, Hop.
+    generalize (Ho _ Oz).
+    apply hinhfun.
+    intros (Ax,(Ay,(Hx,(Hy,Ha)))).
+    exists Ax, Ay.
+    repeat split.
+    apply (pr2 (neighborhood_isOpen _)).
+    exact (pr2 Hx).
+    exact (pr1 Hx).
+    apply (pr2 (neighborhood_isOpen _)).
+    exact (pr2 Hy).
+    exact (pr1 Hy).
+    intros x' y' Ax' Ay'.
+    apply Hop.
+    now apply Ha.
+Qed.
 
 (** *** Topology on a subtype *)
 
@@ -770,213 +905,58 @@ End topologysubtype.
 Definition topology_subtypes {T : TopologicalSet} (dom : T -> hProp) : TopologicalSet.
 Proof.
   intros T dom.
-  simple refine (mkTopologicalSet _ _ _ _ _).
+  simple refine (TopologyFromNeighborhood _ _).
   - exact (Σ x : T, dom x).
-  - apply topologysubtype.
-  - now apply topologysubtype_union.
-  - now apply topologysubtype_htrue.
-  - now apply topologysubtype_and.
+  - intros x A.
+    apply (∃ B : T -> hProp, (B (pr1 x) × isOpen B) × (∀ y : (Σ x : T, dom x), B (pr1 y) -> A y)).
+  - repeat split.
+    + intros x A B H.
+      apply hinhfun.
+      intros (A',(Ax,Ha)).
+      exists A'.
+      split.
+      exact Ax.
+      intros y Hy.
+      now apply H, Ha.
+    + intros x.
+      apply isfilter_finite_intersection_carac.
+      * apply hinhpr.
+        exists (λ _, htrue).
+        repeat split.
+        now apply isOpen_htrue.
+      * intros A B.
+        apply hinhfun2.
+        intros (A',(Ax,Ha)) (B',(Bx,Hb)).
+        exists (λ x, A' x ∧ B' x).
+        repeat split.
+        exact (pr1 Ax).
+        exact (pr1 Bx).
+        apply isOpen_and.
+        exact (pr2 Ax).
+        exact (pr2 Bx).
+        apply Ha, (pr1 X).
+        apply Hb, (pr2 X).
+    + intros x A.
+      apply hinhuniv.
+      intros (B,(Bx,Hb)).
+      apply Hb, (pr1 Bx).
+    + intros x A.
+      apply hinhfun.
+      intros (B,(Bx,Hb)).
+      exists (λ y : Σ x : T, dom x, B (pr1 y)).
+      split.
+      apply hinhpr.
+      now exists B.
+      intros y By.
+      apply hinhpr.
+      exists B.
+      repeat split.
+      exact By.
+      exact (pr2 Bx).
+      exact Hb.
 Defined.
 
 (** ** Limits in a Topological Set *)
-
-Definition locally {T : TopologicalSet} (x : T) : Filter T.
-Proof.
-  intros T x.
-  simple refine (mkFilter _ _ _ _ _).
-  - apply (neighborhood x).
-  - abstract (intros A B ;
-              apply neighborhood_imply).
-  - abstract (apply (pr2 (neighborhood_isOpen _)) ;
-              [ apply isOpen_htrue |
-                apply tt]).
-  - abstract (intros A B ;
-              apply neighborhood_and).
-  - abstract (intros Hx ;
-              apply neighborhood_point in Hx ;
-              exact Hx).
-Defined.
-
-Definition locally2d {T S : TopologicalSet} (x : T) (y : S) : Filter (T × S).
-Proof.
-  intros T S x y.
-  now apply FilterDirprod ; apply locally.
-Defined.
-
-Lemma locally2d_correct {T S : TopologicalSet} (x : T) (y : S) :
-  ∀ P : T × S -> hProp, locally2d x y P <-> locally (T := TopologyDirprod T S) (x,,y) P.
-Proof.
-  intros T S x y P.
-  split ; apply hinhuniv.
-  - intros (Ax,(Ay,(Hx,(Hy,Ha)))).
-    revert Hx Hy.
-    apply hinhfun2.
-    intros (Ox,(Hx,Hax)) (Oy,(Hy,Hay)).
-    mkpair.
-    + mkpair.
-      apply (λ z : T × S, Ox (pr1 z) ∧ Oy (pr2 z)).
-      intros z Hz.
-      apply hinhpr.
-      exists (singletonSequence (λ z : T × S, Ox (pr1 z) ∧ Oy (pr2 z))).
-      split.
-      intros ([ | n],Hn).
-      2: easy.
-      split.
-      apply hinhpr.
-      exists Ox, Oy ; split ; [ | split].
-      apply (pr2 Ox).
-      apply (pr2 Oy).
-      easy.
-      easy.
-      intros t H.
-      apply H.
-      mkpair.
-      apply O.
-      reflexivity.
-    + simpl ; repeat split.
-      exact Hx.
-      exact Hy.
-      intros (z,t) (Oxz,Oyz).
-      apply Ha.
-      now apply Hax.
-      now apply Hay.
-  - intros ((O,Ho),(Oz,Hop)) ; simpl in Oz, Hop.
-    generalize (Ho _ Oz).
-    apply hinhfun.
-    intros (L,(Hl,Hol)) ; simpl in Hl, Hol.
-    exists  (λ x, finite_intersection L (x,,y)),  (λ y, finite_intersection L (x,,y)).
-    repeat split.
-    + clear -Hl.
-      destruct L as (l,L) ; simpl in Hl |- *.
-      induction l.
-      apply hinhpr.
-      mkpair.
-      mkpair.
-      apply (λ _, htrue).
-      apply isOpen_htrue.
-      split.
-      easy.
-      now intros z _ (n,Hn).
-      refine (hinhfun2 _ _ _).
-      2: apply (pr1 (Hl (Datatypes.O,, idpath _))).
-      2: apply (IHl (λ n, L (Datatypes.S (pr1 n) ,, pr2 n))).
-      intros (Ax,(Ay,(Hax,(Hay,Ha)))).
-      intros (Bx,(Hbx,Hb)).
-      mkpair.
-      mkpair.
-      apply (λ x, Ax x ∧ Bx x).
-      apply isOpen_and.
-      exact Hax.
-      exact (pr2 Bx).
-      split.
-      split.
-      apply (Ha x y).
-      apply (pr2 (Hl _)).
-      apply Hbx.
-      simpl ; intros z Hz ([ | n],Hn).
-      assert (Hn = idpath (natgtb (Datatypes.S l) 0)) by (now apply (pr2 (_ < _))).
-      rewrite X ; clear X.
-      apply (pr2 (Ha _ _)).
-      split.
-      apply (pr1 Hz).
-      apply (λ H, pr2 (pr1 (Ha x y) H)).
-      apply (pr2 (Hl _)).
-      apply (Hb _ (pr2 Hz) (n,,Hn)).
-      intros n.
-      apply Hl.
-    + clear -Hl.
-      destruct L as (l,L) ; simpl in Hl |- *.
-      induction l.
-      apply hinhpr.
-      mkpair.
-      mkpair.
-      apply (λ _, htrue).
-      apply isOpen_htrue.
-      split.
-      easy.
-      now intros z _ (n,Hn).
-      refine (hinhfun2 _ _ _).
-      2: apply (pr1 (Hl (Datatypes.O,, idpath _))).
-      2: apply (IHl (λ n, L (Datatypes.S (pr1 n) ,, pr2 n))).
-      intros (Ax,(Ay,(Hax,(Hay,Ha)))).
-      intros (By,(Hby,Hb)).
-      mkpair.
-      mkpair.
-      apply (λ y, Ay y ∧ By y).
-      apply isOpen_and.
-      exact Hay.
-      exact (pr2 By).
-      split.
-      split.
-      apply (λ H, pr2 (pr1 (Ha x y) H)).
-      apply (pr2 (Hl _)).
-      apply Hby.
-      simpl ; intros z Hz ([ | n],Hn).
-      assert (Hn = idpath (natgtb (Datatypes.S l) 0)) by (now apply (pr2 (_ < _))).
-      rewrite X ; clear X.
-      apply (pr2 (Ha _ _)).
-      split.
-      apply (λ H, pr1 (pr1 (Ha x y) H)).
-      apply (pr2 (Hl _)).
-      apply (pr1 Hz).
-      apply (Hb _ (pr2 Hz) (n,,Hn)).
-      intros n.
-      apply Hl.
-    + intros x' y' Hx' Hy'.
-      apply Hop, Hol.
-      intros n.
-      specialize (Hx' n). (Hy' n).
-
-
-      apply filter_finite_intersection.
-Search PreFilter.
-    induction l.
-    + apply hinhpr.
-      exists (λ _, htrue), (λ _, htrue).
-      repeat split.
-      apply filter_htrue.
-      apply filter_htrue.
-      intros x' y' _ _.
-      apply Hop, Hol.
-      now intros (n,Hn).
-    + assert (Hn = idpath (natgtb (Datatypes.S l) 0)) by (now apply (pr2 (_ < _))).
-
-
-
-    generalize (Hl (Datatypes.O ,, paths_refl _)) ; intros (Hl0,Hl0z).
-      generalize (λ n : stn l, Hl (Datatypes.S (pr1 n),,pr2 n)) ; clear Hl ; intros Hl.
-      apply (IHl (λ n : stn l, λ z, L (Datatypes.O,,paths_refl _) z ∧ L (Datatypes.S (pr1 n),, pr2 n) z)).
-      * intros n.
-        destruct (Hl n) as (Hls,Hlsz) ; clear Hl.
-        split.
-        revert Hl0 Hls.
-        apply hinhfun2.
-        intros (Ax,(Ay,(Hax,(Hay,Ha)))).
-        intros (Bx,(By,(Hbx,(Hby,Hb)))).
-        exists (λ x, Ax x ∧ Bx x), (λ y, Ay y ∧ By y).
-        repeat split.
-        now apply isOpen_and.
-        now apply isOpen_and.
-        apply (Ha x0 y0), (pr1 X).
-        apply (Hb x0 y0), (pr2 X).
-        apply (λ H, pr2 (pr1 (Ha x0 y0) H)), (pr1 X).
-        apply (λ H, pr2 (pr1 (Hb x0 y0) H)), (pr2 X).
-        apply (pr2 (Ha x0 y0)).
-        split.
-        apply (pr1 (pr1 X)).
-        apply (pr1 (pr2 X)).
-        apply (pr2 (Hb x0 y0)).
-        split.
-        apply (pr2 (pr1 X)).
-        apply (pr2 (pr2 X)).
-        now split.
-      * intros z Hz.
-        apply Hol.
-        intros ([ | n],Hn).
-        assert (Hn = idpath (natgtb (Datatypes.S l) 0)) by (now apply (pr2 (_ < _))).
-        rewrite X ; clear X.
-        apply
-Qed.
 
 Section locally_base.
 
