@@ -1538,6 +1538,15 @@ Proof.
   now apply NQmax_le_l.
 Qed.
 
+(** ** NQmin *)
+
+Definition NQmin : binop NonnegativeRationals :=
+  λ (x y : NonnegativeRationals),
+  match (isdecrel_leNonnegativeRationals x y) with
+  | ii1 _ => x
+  | ii2 _ => y
+  end.
+
 (** ** intpart *)
 
 Lemma nat_to_NonnegativeRationals_O :
@@ -1596,6 +1605,128 @@ Proof.
 Qed.
 
 Close Scope NRat_scope.
+
+(* Require Import UniMath.Analysis.NormedSpace.
+
+Definition NRat_NonnegativeRig : NonnegativeRig.
+Proof.
+  mkpair.
+  apply (commrigtorig (pr1 NonnegativeRationals)).
+  mkpair.
+  exists NQmin, NQmax.
+  repeat split.
+  { intros x y z.
+    unfold NQmin at 2 ; destruct isdecrel_leNonnegativeRationals ;
+    unfold NQmin at 3 ; destruct isdecrel_leNonnegativeRationals.
+    assert (h1 : (x <= z)%NRat)
+      by (now apply istrans_leNonnegativeRationals with y).
+    unfold NQmin ; destruct isdecrel_leNonnegativeRationals.
+    destruct isdecrel_leNonnegativeRationals.
+    reflexivity.
+    now apply fromempty, n.
+    now apply fromempty, n.
+    reflexivity.
+    unfold NQmin ; destruct isdecrel_leNonnegativeRationals.
+    destruct isdecrel_leNonnegativeRationals.
+    now apply fromempty, n.
+    reflexivity.
+    now apply fromempty, n0.
+    assert (n1 : ¬ (x <= z)%NRat).
+    { intro h.
+      apply fromempty, n.
+      apply istrans_leNonnegativeRationals with z.
+      exact h.
+      now apply lt_leNonnegativeRationals, notge_ltNonnegativeRationals. }
+    unfold NQmin ; destruct isdecrel_leNonnegativeRationals.
+    now apply fromempty, n.
+    destruct isdecrel_leNonnegativeRationals.
+    now apply fromempty, n1.
+    reflexivity. }
+  { intros x y.
+    unfold NQmin ; destruct isdecrel_leNonnegativeRationals.
+    destruct isdecrel_leNonnegativeRationals.
+    now apply isantisymm_leNonnegativeRationals.
+    reflexivity.
+    assert (h : (y <= x)%NRat)
+      by (now apply lt_leNonnegativeRationals, notge_ltNonnegativeRationals).
+    destruct isdecrel_leNonnegativeRationals.
+    reflexivity.
+    now apply fromempty, n0. }
+  { intros x y z.
+    unfold NQmax at 2 ; destruct isdecrel_leNonnegativeRationals ;
+    unfold NQmax at 3 ; destruct isdecrel_leNonnegativeRationals.
+    assert (h1 : (x <= z)%NRat)
+      by (now apply istrans_leNonnegativeRationals with y).
+    unfold NQmax ; destruct isdecrel_leNonnegativeRationals.
+    destruct isdecrel_leNonnegativeRationals.
+    reflexivity.
+    now apply fromempty, n.
+    now apply fromempty, n.
+    unfold NQmax ; destruct isdecrel_leNonnegativeRationals.
+    now apply fromempty, n.
+    destruct isdecrel_leNonnegativeRationals.
+    reflexivity.
+    now apply fromempty, n1.
+    reflexivity.
+    assert (n1 : ¬ (x <= z)%NRat).
+    { intro h.
+      apply fromempty, n.
+      apply istrans_leNonnegativeRationals with z.
+      exact h.
+      now apply lt_leNonnegativeRationals, notge_ltNonnegativeRationals. }
+    unfold NQmax ; destruct isdecrel_leNonnegativeRationals.
+    now apply fromempty, n1.
+    destruct isdecrel_leNonnegativeRationals.
+    now apply fromempty, n.
+    reflexivity. }
+  { intros x y ; apply iscomm_NQmax. }
+  { intros x y.
+    unfold NQmin ; destruct isdecrel_leNonnegativeRationals.
+    reflexivity.
+    apply fromempty, n, NQmax_le_l. }
+  { intros x y.
+    unfold NQmax ; destruct isdecrel_leNonnegativeRationals.
+    unfold NQmin in h |- *.
+    destruct isdecrel_leNonnegativeRationals.
+    reflexivity.
+    now apply fromempty, n.
+    reflexivity. }
+  exists ltNonnegativeRationals.
+  split.
+  { exists minusNonnegativeRationals.
+    change (∀ x y : NonnegativeRationals, ((x - y) + y)%NRat = NQmax x y).
+    intros x y.
+    unfold NQmax ; destruct isdecrel_leNonnegativeRationals.
+    now rewrite minusNonnegativeRationals_eq_zero, islunit_zeroNonnegativeRationals.
+    apply minusNonnegativeRationals_plus_r.
+    now apply lt_leNonnegativeRationals, notge_ltNonnegativeRationals. }
+  split.
+  split.
+  { change (∀ x y : NonnegativeRationals, (¬ (x < y)%NRat) <-> NQmin y x = y).
+    intros x y.
+    unfold NQmin ; destruct isdecrel_leNonnegativeRationals ; split.
+    intros _.
+    reflexivity.
+    intros _.
+    now apply_pr2 notlt_geNonnegativeRationals.
+    intros H.
+    apply fromempty, n.
+    now apply notlt_geNonnegativeRationals.
+    intros ->.
+    now apply isirrefl_ltNonnegativeRationals. }
+  split.
+  { change (∀ x y z : NonnegativeRationals, (z < x)%NRat -> (z < y)%NRat -> (z < NQmin x y)%NRat).
+    intros x y z Hx Hy.
+    unfold NQmin ; destruct isdecrel_leNonnegativeRationals.
+    exact Hx.
+    exact Hy. }
+  { change (∀ x y z : NonnegativeRationals, (x < z)%NRat -> (y < z)%NRat -> (NQmax x y < z)%NRat).
+    intros x y z Hx Hy.
+    unfold NQmax ; destruct isdecrel_leNonnegativeRationals.
+    exact Hy.
+    exact Hx. }
+  admit.
+Admitted.*)
 
 (** ** Opacify *)
 

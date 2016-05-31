@@ -9,8 +9,6 @@ Require Import UniMath.RealNumbers.Sets.
 
 (** ** Nonnegative Rig *)
 
-Print isNonnegativeMonoid .
-
 Definition isNonnegativeRig {X : rig} (is : islattice X) (lt : StrongOrder X) :=
   (ex_minus (X := rigaddabmonoid X) is)
     × islatticelt (_ ,, is) lt

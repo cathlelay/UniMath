@@ -336,7 +336,7 @@ Definition NnMhalf {X : NonnegativeMonoid} : unop X :=
 
 Local Notation "0" := (0%addmonoid).
 Local Notation "x + y" := ((x + y)%addmonoid).
-Local Notation "x - y" := (NnMminus _ x y).
+Local Notation "x - y" := (NnMminus x y).
 Local Notation "x ≠ y" := (NnMap _ x y).
 Local Notation "x < y" :=  (NnMlt _ x y).
 Local Notation "x <= y" :=  (NnMle _ x y).

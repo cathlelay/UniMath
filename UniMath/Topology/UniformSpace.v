@@ -566,22 +566,21 @@ Proof.
       apply Fa.
       now intros y H0 ; apply H, Ha.
     + intros x.
-      apply isfilter_finite_intersection_carac.
-      * apply hinhpr.
-        exists (λ _, htrue).
-        split.
-        now apply UniformStructure_true.
-        easy.
-      * intros A B.
-        apply hinhfun2.
-        intros (Ua,(Fa,Ha)) (Ub,(Fb,Hb)).
-        exists (λ x, Ua x ∧ Ub x).
-        split.
-        now apply UniformStructure_and.
-        intros y.
-        intros (Ay,By) ; split.
-        now apply Ha.
-        now apply Hb.
+      apply hinhpr.
+      exists (λ _, htrue).
+      split.
+      now apply UniformStructure_true.
+      easy.
+    + intros x A B.
+      apply hinhfun2.
+      intros (Ua,(Fa,Ha)) (Ub,(Fb,Hb)).
+      exists (λ x, Ua x ∧ Ub x).
+      split.
+      now apply UniformStructure_and.
+      intros y.
+      intros (Ay,By) ; split.
+      now apply Ha.
+      now apply Hb.
     + intros x A.
       apply hinhuniv.
       intros (Ua,(Fa,Ha)).

@@ -2977,6 +2977,29 @@ Proof.
   apply Dcuts_eq_is_eq ; intros r.
   split ; apply islogeqcommhdisj.
 Qed.
+Lemma isassoc_Dcuts_max :
+  ∀ x y z : Dcuts, Dcuts_max (Dcuts_max x y) z = Dcuts_max x (Dcuts_max y z).
+Proof.
+  intros x y z.
+  apply Dcuts_eq_is_eq ; intros r.
+  split.
+  - apply hinhuniv ; intros [ | Zr].
+    + apply hinhfun ; intros [Xr | Yr].
+      * now left.
+      * right ; apply hinhpr.
+        now left.
+    + apply hinhpr.
+      right ; apply hinhpr.
+      now right.
+  - apply hinhuniv ; intros [ Xr | ].
+    + apply hinhpr.
+      left ; apply hinhpr.
+      now left.
+    + apply hinhfun ; intros [Yr | Zr].
+      * left ; apply hinhpr.
+        now right.
+      * now right.
+Qed.
 
 Lemma Dcuts_max_le_l :
   ∀ x y : Dcuts, x <= Dcuts_max x y.
@@ -3088,39 +3111,6 @@ Proof.
       now apply is_Dcuts_bot with (1 := Xr).
       now apply fromempty, Xrx.
   - now apply NQmax_case.
-Qed.
-
-Lemma isassoc_Dcuts_max :
-  isassoc Dcuts_max.
-Proof.
-  intros x y z.
-  apply Dcuts_eq_is_eq.
-  intros r.
-  split.
-  - apply hinhuniv.
-    intros [ | Zr].
-    + apply hinhfun.
-      intros [Xr | Yr].
-      * now left.
-      * right.
-        apply hinhpr.
-        now left.
-    + apply hinhpr.
-      right.
-      apply hinhpr.
-      now right.
-  - apply hinhuniv.
-    intros [ Xr | ].
-    + apply hinhpr.
-      left.
-      apply hinhpr.
-      now left.
-    + apply hinhfun.
-      intros [Yr | Zr].
-      * left.
-        apply hinhpr.
-        now right.
-      * now right.
 Qed.
 
 Lemma isldistr_Dcuts_max_mult :
@@ -3263,6 +3253,183 @@ Proof.
     split.
     apply Dcuts_zero_empty.
     exact Xr.
+Qed.
+
+(** *** Dcuts_min *)
+
+Section Dcuts_min.
+
+  Context (X : hsubtypes NonnegativeRationals).
+  Context (X_bot : Dcuts_def_bot X).
+  Context (X_open : Dcuts_def_open X).
+  Context (X_finite : Dcuts_def_finite X).
+  Context (X_error : Dcuts_def_error X).
+  Context (Y : hsubtypes NonnegativeRationals).
+  Context (Y_bot : Dcuts_def_bot Y).
+  Context (Y_open : Dcuts_def_open Y).
+  Context (Y_finite : Dcuts_def_finite Y).
+  Context (Y_error : Dcuts_def_error Y).
+
+Definition Dcuts_min_val : hsubtypes NonnegativeRationals :=
+  λ r : NonnegativeRationals, X r ∧ Y r.
+
+Lemma Dcuts_min_bot : Dcuts_def_bot Dcuts_min_val.
+Proof.
+  intros r (Xr,Yr) q Hqr.
+  split.
+  - apply X_bot with (1 := Xr), Hqr.
+  - apply Y_bot with (1 := Yr), Hqr.
+Qed.
+
+Lemma Dcuts_min_open : Dcuts_def_open Dcuts_min_val.
+Proof.
+  intros r (Xr , Yr).
+  generalize (X_open _ Xr) (Y_open _ Yr).
+  apply hinhfun2 ; intros (q,(Xq,Hq)) (q',(Yq',Hq')).
+  destruct (isdecrel_ltNonnegativeRationals q q') as [H | H].
+  - exists q ; repeat split.
+    exact Xq.
+    apply Y_bot with (1 := Yq'), lt_leNonnegativeRationals, H.
+    exact Hq.
+  - exists q' ; repeat split.
+    apply X_bot with (1 := Xq), notlt_geNonnegativeRationals, H.
+    exact Yq'.
+    exact Hq'.
+Qed.
+
+Lemma Dcuts_min_error : Dcuts_def_error Dcuts_min_val.
+Proof.
+  intros c Hc.
+  generalize (X_error _ Hc) (Y_error _ Hc) ; apply hinhfun2 ; intros [nXc | (q,(Xq,Hq))] Hy.
+  - left ; intros (Xc , Yc).
+    now apply nXc.
+  - destruct Hy as [nYc | (q',(Yq',Hq'))].
+    + left ; intros (Xc , Yc).
+      now apply nYc.
+    + right.
+      destruct (isdecrel_ltNonnegativeRationals q q') as [H | H].
+      * exists q ; repeat split.
+        exact Xq.
+        apply Y_bot with (1 := Yq'), lt_leNonnegativeRationals, H.
+        intros (Xc , Yc).
+        now apply Hq.
+      * exists q' ; repeat split.
+        apply X_bot with (1 := Xq), notlt_geNonnegativeRationals, H.
+        exact Yq'.
+        intros (Xc , Yc).
+        now apply Hq'.
+Qed.
+
+End Dcuts_min.
+
+Definition Dcuts_min (X Y : Dcuts) : Dcuts :=
+  mk_Dcuts (Dcuts_min_val (pr1 X) (pr1 Y))
+           (Dcuts_min_bot (pr1 X) (is_Dcuts_bot X)
+                          (pr1 Y) (is_Dcuts_bot Y))
+           (Dcuts_min_open (pr1 X) (is_Dcuts_bot X) (is_Dcuts_open X)
+                           (pr1 Y) (is_Dcuts_bot Y) (is_Dcuts_open Y))
+           (Dcuts_min_error (pr1 X) (is_Dcuts_bot X) (is_Dcuts_error X)
+                            (pr1 Y) (is_Dcuts_bot Y) (is_Dcuts_error Y)).
+
+Lemma iscomm_Dcuts_min :
+  ∀ x y : Dcuts, Dcuts_min x y = Dcuts_min y x.
+Proof.
+  intros x y.
+  apply Dcuts_eq_is_eq ; intros r.
+  split ; apply weqdirprodcomm.
+Qed.
+
+Lemma isassoc_Dcuts_min :
+  ∀ x y z : Dcuts, Dcuts_min (Dcuts_min x y) z = Dcuts_min x (Dcuts_min y z).
+Proof.
+  intros x y z.
+  apply Dcuts_eq_is_eq ; intros r.
+  split ; intros Hr ; repeat split.
+  - apply (pr1 (pr1 Hr)).
+  - apply (pr2 (pr1 Hr)).
+  - apply (pr2 Hr).
+  - apply (pr1 Hr).
+  - apply (pr1 (pr2 Hr)).
+  - apply (pr2 (pr2 Hr)).
+Qed.
+
+Lemma Dcuts_min_le_l :
+  ∀ x y : Dcuts, Dcuts_min x y <= x.
+Proof.
+  now intros x y r (Xr,Yr).
+Qed.
+Lemma Dcuts_min_le_r :
+  ∀ x y : Dcuts, Dcuts_min x y <= y.
+Proof.
+  now intros x y r (Xr,Yr).
+Qed.
+
+Lemma Dcuts_min_carac_r :
+  ∀ x y : Dcuts, y <= x -> Dcuts_min x y = y.
+Proof.
+  intros x y Hxy.
+  apply Dcuts_eq_is_eq ; intros r ; split.
+  - intros (Xr,Yr).
+    exact Yr.
+  - intros Yr.
+    split.
+    now apply Hxy.
+    exact Yr.
+Qed.
+Lemma Dcuts_min_carac_l :
+  ∀ x y : Dcuts, x <= y -> Dcuts_min x y = x.
+Proof.
+  intros x y Hxy.
+  rewrite iscomm_Dcuts_min.
+  now apply Dcuts_min_carac_r.
+Qed.
+
+Lemma Dcuts_min_max :
+  ∀ x y : Dcuts,
+    Dcuts_min x (Dcuts_max x y) = x.
+Proof.
+  intros x y.
+  apply Dcuts_eq_is_eq ; intros r.
+  split.
+  - now intros (Xr,_).
+  - intros Xr.
+    split.
+    exact Xr.
+    apply hinhpr.
+    now left.
+Qed.
+Lemma Dcuts_max_min :
+  ∀ x y : Dcuts,
+    Dcuts_max x (Dcuts_min x y) = x.
+Proof.
+  intros x y.
+  apply Dcuts_eq_is_eq ; intros r.
+  split.
+  - now apply hinhuniv ; intros [Xr | (Xr,_)].
+  - intros Xr.
+    apply hinhpr.
+    now left.
+Qed.
+
+Lemma Dcuts_min_gt :
+  ∀ x y z : Dcuts,
+    z < x → z < y → z < (Dcuts_min x y).
+Proof.
+  intros x y z.
+  apply hinhfun2.
+  intros (r,(Zr,Xr)).
+  intros (q,(Zq,Yq)).
+  destruct (isdecrel_ltNonnegativeRationals r q) as [H | H].
+  - exists r.
+    repeat split.
+    + exact Zr.
+    + exact Xr.
+    + apply is_Dcuts_bot with (1 := Yq), lt_leNonnegativeRationals, H.
+  - exists q.
+    repeat split.
+    + exact Zq.
+    + apply is_Dcuts_bot with (1 := Xr), notlt_geNonnegativeRationals, H.
+    + exact Yq.
 Qed.
 
 (** *** Dcuts_half *)
@@ -4236,6 +4403,7 @@ Global Opaque Dcuts_zero
               Dcuts_mult
               Dcuts_inv
               Dcuts_max
+              Dcuts_min
               Dcuts_half.
 Global Opaque Dcuts_lim_cauchy_seq.
 
@@ -4305,6 +4473,7 @@ Definition hsubtypesNonnegativeRationals_to_NonnegativeReals
 Definition minusNonnegativeReals : binop NonnegativeReals := Dcuts_minus.
 Definition halfNonnegativeReals : unop NonnegativeReals := Dcuts_half.
 Definition maxNonnegativeReals : binop NonnegativeReals := Dcuts_max.
+Definition minNonnegativeReals : binop NonnegativeReals := Dcuts_min.
 
 Notation "x - y" := (minusNonnegativeReals x y) (at level 50, left associativity) : NR_scope.
 Notation "x / 2" := (halfNonnegativeReals x) (at level 35, no associativity) : NR_scope.
@@ -5148,5 +5317,69 @@ Definition ex_lim_seq  (u : nat -> NonnegativeReals) : hProp
   := hProppair (Σ l : NonnegativeReals, is_lim_seq u l) (isaprop_ex_lim_seq u).
 Definition Lim_seq (u : nat -> NonnegativeReals) (Lu : ex_lim_seq u) : NonnegativeReals
   := pr1 Lu.
+
+(** ** NonnegativeReals is a NonnegativeRig *)
+
+Require Import UniMath.Analysis.NormedSpace.
+Require Import UniMath.Analysis.MetricSpace.
+
+Definition NnR_NonnegativeReals : NonnegativeRig.
+Proof.
+  mkpair.
+  apply (commrigtorig (pr1 NonnegativeReals)).
+  mkpair.
+  { exists minNonnegativeReals.
+    exists maxNonnegativeReals.
+    repeat split.
+    - intros x y z ; apply isassoc_Dcuts_min.
+    - intros x y ; apply iscomm_Dcuts_min.
+    - intros x y z ; apply isassoc_Dcuts_max.
+    - intros x y ; apply iscomm_Dcuts_max.
+    - intros x y ; apply Dcuts_min_max.
+    - intros x y ; apply Dcuts_max_min. }
+  exists ltNonnegativeReals.
+  repeat split ; simpl.
+  - exists minusNonnegativeReals.
+    intros x y.
+    apply pathsinv0, maxNonnegativeReals_minus_plus.
+  - intros H.
+    apply Dcuts_min_carac_l, notlt_leNonnegativeReals, H.
+  - intros <-.
+    apply_pr2 notlt_leNonnegativeReals.
+    apply Dcuts_min_le_r.
+  - intros x y z.
+    apply Dcuts_min_gt.
+  - intros x y z.
+    apply Dcuts_max_lt.
+  - intros x y z.
+    apply plusNonnegativeReals_ltcompat_r.
+  - intros x y z.
+    apply plusNonnegativeReals_ltcompat_l.
+  - intros x y z.
+    apply_pr2 plusNonnegativeReals_ltcompat_r.
+  - intros x y z.
+    apply_pr2 plusNonnegativeReals_ltcompat_l.
+  - intros x y z t Hyx Htz.
+    rewrite <- (maxNonnegativeReals_carac_r t z), iscomm_maxNonnegativeReals, maxNonnegativeReals_minus_plus.
+    2: now apply lt_leNonnegativeReals.
+    rewrite !isldistr_plus_multNonnegativeReals, iscomm_plusNonnegativeReals, !isassoc_plusNonnegativeReals.
+    rewrite (iscomm_plusNonnegativeReals (x*t)).
+    apply plusNonnegativeReals_ltcompat_l.
+    apply multNonnegativeReals_ltcompat_l.
+    apply ispositive_minusNonnegativeReals, Htz.
+    exact Hyx.
+  - intros x.
+    apply Dcuts_min_carac_l, isnonnegative_NonnegativeReals.
+  - exact ispositive_oneNonnegativeReals.
+  - intros x.
+    exists (halfNonnegativeReals x).
+    split.
+    rewrite <- double_halfNonnegativeReals.
+    apply Dcuts_min_carac_l, isrefl_leNonnegativeReals.
+    apply ispositive_halfNonnegativeReals.
+Defined.
+
+Definition NnM_NonnegativeReals : NonnegativeMonoid :=
+  NonnegativeRig_to_NonnegativeAddMonoid NnR_NonnegativeReals.
 
 (* End of the file NonnegativeReals.v *)

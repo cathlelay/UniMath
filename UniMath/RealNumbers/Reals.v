@@ -1537,7 +1537,6 @@ Lemma istrans_Rlt :
 Proof.
   exact (pr1 isStrongOrder_hr_lt).
 Qed.
-Check (pr1 (pr2 isStrongOrder_hr_lt)).
 Lemma iscotrans_Rlt :
   ∀ (x y z : Reals), (x < z) -> (x < y) ∨ (y < z).
 Proof.
