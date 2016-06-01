@@ -482,24 +482,31 @@ Defined.
 
 Lemma TopologyFromNeighborhood_correct {X : UU} (N : X -> (X -> hProp) -> hProp) (H : isNeighborhood N) :
   ∀ (x : X) (P : X -> hProp),
-    N x P -> neighborhood (T := TopologyFromNeighborhood N H) x P.
+    N x P <-> neighborhood (T := TopologyFromNeighborhood N H) x P.
 Proof.
-  intros X N  (Himpl,(Htrue,(Hand,(Hpt,H)))).
-  intros x P Hx.
-  apply hinhpr.
-  simple refine (tpair _ _ _).
-  simple refine (tpair _ _ _).
-  - intros y.
-    apply (N y P).
-  - simpl ; intros y Hy.
-    generalize (H _ _ Hy).
-    apply hinhuniv.
-    intros (Q,(NyQ,Hq)).
-    now apply Himpl with (2 := NyQ).
-  - split ; simpl.
-    exact Hx.
-    intros y.
-    now apply Hpt.
+  intros X N (Himpl,(Htrue,(Hand,(Hpt,H)))).
+  intros x P.
+  split.
+  - intros Hx.
+    apply hinhpr.
+    simple refine (tpair _ _ _).
+    simple refine (tpair _ _ _).
+    + intros y.
+      apply (N y P).
+    + simpl ; intros y Hy.
+      generalize (H _ _ Hy).
+      apply hinhuniv.
+      intros (Q,(NyQ,Hq)).
+      now apply Himpl with (2 := NyQ).
+    + split ; simpl.
+      exact Hx.
+      intros y.
+      now apply Hpt.
+  - apply hinhuniv.
+    intros ((Op,Ho),(Hx,Hp)).
+    apply Himpl with Op.
+    apply Hp.
+    apply Ho, Hx.
 Qed.
 
 (** *** Generated Topology *)
