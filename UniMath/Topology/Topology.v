@@ -1063,12 +1063,10 @@ Qed.
 Definition continuous_at {U V : TopologicalSet} (f : U -> V) (x : U) :=
   is_lim f (locally x) (f x).
 
-Definition continuous_on {U V : TopologicalSet} (dom : U -> hProp) (f : U -> V) :=
-  ∀ (x : U) (Hx : dom x) H,
-    is_lim f (FilterDom (locally x) dom H) (f x).
-Definition continuous_subtypes {U V : TopologicalSet} (dom : U -> hProp) (f : (Σ x : U, dom x) -> V) :=
-  ∀ (x : Σ x : U, dom x) H,
-    is_lim f (FilterSubtype (locally (pr1 x)) dom H) (f x).
+Definition continuous_on {U V : TopologicalSet} (dom : U -> hProp) (f : ∀ (x : U), dom x -> V) :=
+  ∀ (x : U) (Hx : dom x),
+    ∃ H,
+      is_lim (λ y : (Σ x : U, dom x), f (pr1 y) (pr2 y)) (FilterSubtype (locally x) dom H) (f x Hx).
 Definition continuous {U V : TopologicalSet} (f : U -> V) :=
   ∀ x : U, continuous_at f x.
 
@@ -1117,33 +1115,33 @@ Definition Topological_rng :=
 
 Definition isTopological_DivRig (X : DivRig) (is : isTopologicalSet X) :=
   isTopological_rig (pr1 X) is
-  × continuous_subtypes (U := ((pr1 (pr1 (pr1 (pr1 X)))) ,, is))
-                        (V := ((pr1 (pr1 (pr1 (pr1 X)))) ,, is))
-                        (λ x : X, hProppair (x != 0%dr) (isapropneg _)) invDivRig.
+  × continuous_on (U := ((pr1 (pr1 (pr1 (pr1 X)))) ,, is))
+                  (V := ((pr1 (pr1 (pr1 (pr1 X)))) ,, is))
+                  (λ x : X, hProppair (x != 0%dr) (isapropneg _)) (λ x Hx, invDivRig (x,,Hx)).
 Definition Topological_DivRig :=
   Σ (X : DivRig) is, isTopological_DivRig X is.
 
 Definition isTopological_fld (X : fld) (is : isTopologicalSet X) :=
   isTopological_rng (pr1 X) is
-  × continuous_subtypes (U := ((pr1 (pr1 (pr1 (pr1 X)))) ,, is))
-                        (V := ((pr1 (pr1 (pr1 (pr1 X)))) ,, is))
-                        (λ x : X, hProppair (x != 0%rng) (isapropneg _))
-                        (λ x, fldmultinv (pr1 x) (pr2 x)).
+  × continuous_on (U := ((pr1 (pr1 (pr1 (pr1 X)))) ,, is))
+                  (V := ((pr1 (pr1 (pr1 (pr1 X)))) ,, is))
+                  (λ x : X, hProppair (x != 0%rng) (isapropneg _))
+                  fldmultinv.
 Definition Topological_fld :=
   Σ (X : fld) is, isTopological_fld X is.
 
 Definition isTopological_ConstructiveDivisionRig (X : ConstructiveDivisionRig) (is : isTopologicalSet X) :=
   isTopological_rig (pr1 X) is
-  × continuous_subtypes (U := ((pr1 (pr1 (pr1 (pr1 X)))) ,, is))
+  × continuous_on (U := ((pr1 (pr1 (pr1 (pr1 X)))) ,, is))
                         (V := ((pr1 (pr1 (pr1 (pr1 X)))) ,, is))
-                        (λ x : X, (x ≠ 0)%CDR) (λ x, CDRinv (pr1 x) (pr2 x)).
+                        (λ x : X, (x ≠ 0)%CDR) CDRinv.
 Definition Topological_ConstructiveDivisionRig :=
   Σ (X : ConstructiveDivisionRig) is, isTopological_ConstructiveDivisionRig X is.
 
 Definition isTopological_ConstructiveField (X : ConstructiveField) (is : isTopologicalSet X) :=
   isTopological_rng (pr1 X) is
-  × continuous_subtypes (U := ((pr1 (pr1 (pr1 (pr1 X)))) ,, is))
-                        (V := ((pr1 (pr1 (pr1 (pr1 X)))) ,, is))
-                        (λ x : X, (x ≠ 0)%CF) (λ x, CFinv (pr1 x) (pr2 x)).
+  × continuous_on (U := ((pr1 (pr1 (pr1 (pr1 X)))) ,, is))
+                  (V := ((pr1 (pr1 (pr1 (pr1 X)))) ,, is))
+                  (λ x : X, (x ≠ 0)%CF) CFinv.
 Definition Topological_ConstructiveField :=
   Σ (X : ConstructiveField) is, isTopological_ConstructiveField X is.

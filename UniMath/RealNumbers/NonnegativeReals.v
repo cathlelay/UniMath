@@ -5670,4 +5670,81 @@ Proof.
   - exact X0.
 Qed.
 
+Lemma continuous_invNonnegativeReals :
+  continuous_on (U := MS_NonnegativeReals) (V := MS_NonnegativeReals) (λ x, (x ≠ 0)%NR) invNonnegativeReals.
+Proof.
+  intros x Hx.
+  apply hinhpr.
+  mkpair.
+  { intros P HP H ; apply H ; clear H.
+    generalize (pr2 (Topology.TopologyFromNeighborhood_correct _ _ _ _) HP) ; clear HP.
+    apply hinhuniv.
+    intros U.
+    generalize (pr1 (pr2 U)).
+    apply hinhfun.
+    intros e.
+    exists (x + (pr1 e) / 2)%NR.
+    split.
+    apply_pr2 ispositive_apNonnegativeReals.
+    eapply istrans_le_lt_ltNonnegativeReals, (pr1 (plusNonnegativeReals_lt_r _ _)).
+    apply isnonnegative_NonnegativeReals.
+    apply (pr1 (ispositive_halfNonnegativeReals _)), (pr1 (pr2 e)).
+    apply (pr2 (pr2 U)), (pr2 (pr2 e)).
+    generalize (pr1 e) (pr1 (pr2 e)) ; clear e ; intros e He.
+    unfold ball ; simpl.
+    unfold dist ; simpl.
+    rewrite minusNonnegativeReals_eq_zero, maxNonnegativeReals_carac_r.
+    rewrite <- (minusNonnegativeReals_correct_l _ _ _ (idpath _)).
+    pattern e at 2 ;
+      rewrite (double_halfNonnegativeReals e).
+    apply (pr1 (plusNonnegativeReals_lt_r _ _)), (pr1 (ispositive_halfNonnegativeReals _)), He.
+    apply isnonnegative_NonnegativeReals.
+    apply plusNonnegativeReals_le_l. }
+
+  refine (pr2 (is_lim_aux _ _ _) _).
+  intros (e,He).
+  refine (pr1 (Topology.TopologyFromNeighborhood_correct _ _ _ _) _).
+  apply hinhpr.
+  mkpair.
+  { intros (y,z).
+    apply (ball y (minNonnegativeReals (e * x * (x / 2))%NR (x / 2)) z). }
+  split.
+  - apply hinhpr.
+    exists (minNonnegativeReals (e * x * (x / 2)%NR) (x / 2)).
+    split.
+    apply Dcuts_min_gt.
+    change (0 < e * x * (x / 2)%NR)%NR.
+    rewrite <- (islabsorb_zero_multNonnegativeReals (x / 2)%NR).
+    apply multNonnegativeReals_ltcompat_l.
+    apply ispositive_halfNonnegativeReals, ispositive_apNonnegativeReals, Hx.
+    rewrite <- (islabsorb_zero_multNonnegativeReals x).
+    apply multNonnegativeReals_ltcompat_l.
+    apply ispositive_apNonnegativeReals, Hx.
+    apply He.
+    apply ispositive_halfNonnegativeReals, ispositive_apNonnegativeReals, Hx.
+    easy.
+  - intros y Hy Hy0.
+    apply multNonnegativeReals_ltcompat_l' with (x * y)%NR.
+    rewrite isrdistr_max_multNonnegativeReals, !isrdistr_minus_multNonnegativeReals.
+    rewrite <- isassoc_multNonnegativeReals, islinv_invNonnegativeReals, islunit_one_multNonnegativeReals.
+    rewrite iscomm_multNonnegativeReals, isassoc_multNonnegativeReals, isrinv_invNonnegativeReals, isrunit_one_multNonnegativeReals.
+    rewrite iscomm_maxNonnegativeReals.
+    eapply istrans_lt_le_ltNonnegativeReals.
+    apply Hy.
+    eapply istrans_leNonnegativeReals.
+    apply Dcuts_min_le_l.
+    rewrite <- isassoc_multNonnegativeReals.
+    apply multNonnegativeReals_lecompat_r'.
+    apply_pr2 (plusNonnegativeReals_lecompat_r (x / 2)).
+    rewrite <- double_halfNonnegativeReals.
+    eapply istrans_leNonnegativeReals.
+    apply maxNonnegativeReals_le_l.
+    rewrite maxNonnegativeReals_minus_plus.
+    apply plusNonnegativeReals_lecompat_l.
+    eapply istrans_leNonnegativeReals, lt_leNonnegativeReals.
+    apply maxNonnegativeReals_le_l.
+    eapply istrans_lt_le_ltNonnegativeReals, Dcuts_min_le_r.
+    apply Hy.
+Qed.
+
 (* End of the file NonnegativeReals.v *)

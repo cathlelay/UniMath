@@ -897,14 +897,10 @@ Qed.
 Definition continuous_at {NR : NonnegativeMonoid} {U V : MetricSet NR} (f : U -> V) (x : U) :=
   continuous_at (U := metric_topology) (V := metric_topology) f x.
 
-Definition continuous_on {NR : NonnegativeMonoid} {U V : MetricSet NR} (dom : U -> hProp) (f : U -> V) :=
-  ∀ (x : U) (Hx : dom x) H,
-    is_lim f (FilterDom (locally x) dom H) (f x).
-Definition continuous_subtypes {NR : NonnegativeMonoid} {U V : MetricSet NR} (dom : U -> hProp) (f : (Σ x : U, dom x) -> V) :=
-  ∀ (x : Σ x : U, dom x) H,
-    is_lim f (FilterSubtype (locally (pr1 x)) dom H) (f x).
+Definition continuous_on {NR : NonnegativeMonoid} {U V : MetricSet NR} (dom : U -> hProp) (f : ∀ (x : U), dom x -> V) :=
+  continuous_on (U := metric_topology) (V := metric_topology) dom f.
 Definition continuous {NR : NonnegativeMonoid} {U V : MetricSet NR} (f : U -> V) :=
-  ∀ x : U, continuous_at f x.
+  continuous (U := metric_topology) (V := metric_topology) f.
 
 (** *** Continuity for 2 variable functions *)
 
@@ -912,4 +908,4 @@ Definition continuous2d_at {NR : NonnegativeMonoid} {U V W : MetricSet NR} (f : 
   continuous2d_at (U := metric_topology) (V := metric_topology) (W := metric_topology) f x y.
 
 Definition continuous2d {NR : NonnegativeMonoid} {U V W : MetricSet NR} (f : U -> V -> W) :=
-  ∀ (x : U) (y : V), continuous2d_at f x y.
+  continuous2d (U := metric_topology) (V := metric_topology) (W := metric_topology) f.
