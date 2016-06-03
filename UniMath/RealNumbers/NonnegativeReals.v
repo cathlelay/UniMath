@@ -5271,6 +5271,7 @@ Definition Lim_seq (u : nat -> NonnegativeReals) (Lu : ex_lim_seq u) : Nonnegati
 
 (** ** NonnegativeReals is a NonnegativeRig *)
 
+Require Import UniMath.Topology.UniformSpace.
 Require Import UniMath.Analysis.NormedSpace.
 Require Import UniMath.Analysis.MetricSpace.
 
@@ -5389,6 +5390,60 @@ Proof.
       * eapply istrans_leNonnegativeReals, Dcuts_max_le_r.
         apply Dcuts_plus_le_r.
 Defined.
+
+Definition US_NonnegativeReals : UniformStructure NonnegativeReals :=
+  metricUniformStructure (M := MS_NonnegativeReals).
+
+Lemma CUS_NonnegartiveReals :
+  ∀ (F : Filter NonnegativeReals),
+    isCauchy_filter US_NonnegativeReals F
+    -> ex_filter_lim (M := MS_NonnegativeReals) F.
+Proof.
+  intros F Hf.
+  assert (H : ∀ (e : NonnegativeReals) (He : (0 < e)%NR), US_NonnegativeReals (λ z : NonnegativeReals × NonnegativeReals, ball (M := MS_NonnegativeReals) (pr1 z) e (pr2 z))).
+  { intros e He.
+    apply hinhpr.
+    now exists e. }
+  generalize (λ (e : NonnegativeReals) (He : (0 < e)%NR), Hf _ (H e He)).
+  unfold USsmall.
+  clear Hf H ; intros Hf.
+  simpl pr1 in Hf ; simpl pr2 in Hf.
+
+  set (l := λ x : Dcuts, ∀ A, F A -> A x).
+
+  assert (x : Σ y : Dcuts, l y).
+  {
+    admit.
+  }
+
+  apply hinhpr.
+  mkpair.
+  apply (pr1 x).
+
+  intros P Hp.
+  generalize (pr2 (Topology.TopologyFromNeighborhood_correct _ _ _ _) Hp).
+  clear Hp.
+  apply hinhuniv.
+  intros U.
+  apply filter_imply with (1 := pr2 (pr2 U)).
+  generalize (pr1 (pr2 U)).
+  apply hinhuniv.
+  intros e.
+  eapply filter_imply.
+  intros y.
+  apply (pr2 (pr2 e)).
+  generalize (Hf _ (pr1 (pr2 e))).
+  apply hinhuniv.
+  intros A.
+  eapply filter_imply.
+  intros y Hy.
+  apply (pr1 (pr2 A)).
+  apply (pr2 x).
+  apply (pr2 (pr2 A)).
+  apply Hy.
+  apply (pr2 (pr2 A)).
+
+Admitted.
 
 Lemma continuous_plusNonnegativeReals :
   continuous2d (U := MS_NonnegativeReals) (V := MS_NonnegativeReals) (W := MS_NonnegativeReals) plusNonnegativeReals.
