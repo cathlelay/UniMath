@@ -5334,6 +5334,15 @@ Defined.
 Definition NnM_NonnegativeReals : NonnegativeMonoid :=
   NonnegativeRig_to_NonnegativeAddMonoid NnR_NonnegativeReals.
 
+Lemma NnMle_equiv :
+  ∀ x y : NonnegativeReals, (x <= y)%NR <-> NnMle NnM_NonnegativeReals x y.
+Proof.
+  intros x y ; split.
+  - apply Dcuts_min_carac_l.
+  - intros <-.
+    apply Dcuts_min_le_r.
+Qed.
+
 Definition MS_NonnegativeReals : MetricSet NnM_NonnegativeReals.
 Proof.
   mkpair.
@@ -5409,16 +5418,106 @@ Proof.
   clear Hf H ; intros Hf.
   simpl pr1 in Hf ; simpl pr2 in Hf.
 
-  set (l := λ x : Dcuts, ∀ A, F A -> A x).
+  assert (Hne : ∀ A, F A -> ∃ x, A x).
+  { admit. }
 
-  assert (x : Σ y : Dcuts, l y).
-  {
-    admit.
-  }
+  set (l := λ x : Dcuts, ∀ A, F A -> ∃ y : Dcuts, (x <= y)%Dcuts × A y).
+  assert (Hl : ∀ x, isaprop (l x)).
+  { intros x.
+    apply impred_isaprop ; intros A.
+    apply isapropimpl.
+    apply propproperty. }
 
   apply hinhpr.
   mkpair.
-  apply (pr1 x).
+  { apply (Dcuts_of_Dcuts (λ x, l x ,, Hl x)).
+    - intros x Lx y Hy A Fa.
+      generalize (Lx A Fa).
+      apply hinhfun ; intros z.
+      exists (pr1 z).
+      split.
+      apply istrans_leNonnegativeReals with x.
+      exact Hy.
+      apply (pr1 (pr2 z)).
+      apply (pr2 (pr2 z)).
+    - intros c Hc.
+      generalize (Hf (c / 2) (pr1 (ispositive_halfNonnegativeReals _) Hc)).
+      apply hinhuniv.
+      intros A.
+      generalize (NonnegativeReals_dense _ _ (pr1 (ispositive_halfNonnegativeReals _) Hc)).
+      apply hinhuniv.
+      intros r.
+      generalize (Hne _ (pr2 (pr2 A))).
+      apply hinhuniv.
+      intros a.
+      generalize (is_Dcuts_error (pr1 a) _ (pr2 (NonnegativeRationals_to_NonnegativeReals_lt _ _) (pr1 (pr2 r)))).
+      apply hinhfun.
+      intros [Hc' | _].
+      + left.
+        intro Lc.
+        generalize (Lc _ (pr2 (pr2 A))).
+        apply hinhuniv'.
+        apply isapropempty.
+        intros y.
+        generalize (pr1 (pr2 A) _ _ (pr2 a) (pr2 (pr2 y))).
+        apply_pr2 notlt_leNonnegativeReals.
+        eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_r.
+        apply_pr2 (plusNonnegativeReals_lecompat_l (pr1 a)).
+        rewrite <- maxNonnegativeReals_minus_plus.
+        eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
+        eapply istrans_leNonnegativeReals, (pr1 (pr2 y)).
+        pattern c at 3 ;
+          rewrite (double_halfNonnegativeReals c).
+        apply (pr1 (plusNonnegativeReals_lecompat_r _ _ _)).
+        apply lt_leNonnegativeReals.
+        eapply istrans_le_lt_ltNonnegativeReals, (pr2 (pr2 r)).
+        Transparent Dcuts_le_rel.
+        intros q Hq.
+        simpl.
+        apply notge_ltNonnegativeRationals.
+        intros Hq'.
+        apply Hc'.
+        now apply is_Dcuts_bot with q.
+      + right.
+        apply hinhpr.
+        exists (pr1 a - c / 2)%NR.
+        split.
+        * intros B Fb.
+          generalize (Hne _ (filter_and _ _ _ (pr2 (pr2 A)) Fb)).
+          apply hinhfun.
+          intros b.
+          exists (pr1 b).
+          split.
+          apply_pr2 (plusNonnegativeReals_lecompat_l (c / 2)).
+          rewrite <- maxNonnegativeReals_minus_plus.
+          apply maxNonnegativeReals_le.
+          eapply istrans_leNonnegativeReals.
+          apply (maxNonnegativeReals_le_l _ (pr1 b)).
+          rewrite maxNonnegativeReals_minus_plus, iscomm_plusNonnegativeReals.
+          apply (pr1 (plusNonnegativeReals_lecompat_r _ _ _)).
+          apply lt_leNonnegativeReals.
+          eapply istrans_le_lt_ltNonnegativeReals, (pr1 (pr2 A) _ _ (pr2 a) (pr1 (pr2 b))).
+          apply maxNonnegativeReals_le_l.
+          apply plusNonnegativeReals_le_r.
+          apply (pr2 (pr2 b)).
+        * simpl.
+          pattern c at 3 ;
+            rewrite (double_halfNonnegativeReals c), <- isassoc_plusNonnegativeReals, <- maxNonnegativeReals_minus_plus, isrdistr_max_plusNonnegativeReals, <- double_halfNonnegativeReals.
+          intros Ha.
+          generalize (Ha _ (pr2 (pr2 A))) ; clear Ha.
+          apply hinhuniv'.
+          apply isapropempty.
+          intros b.
+          generalize (pr1 (pr2 A) _ _ (pr2 a) (pr2 (pr2 b))).
+          apply_pr2 notlt_leNonnegativeReals.
+          eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_r.
+          apply_pr2 (plusNonnegativeReals_lecompat_l (pr1 a)).
+          rewrite <- maxNonnegativeReals_minus_plus, iscomm_plusNonnegativeReals.
+          eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
+          eapply istrans_leNonnegativeReals, (pr1 (pr2 b)).
+          apply maxNonnegativeReals_le_l. }
+
+  set (x := Dcuts_of_Dcuts _ _ _).
 
   intros P Hp.
   generalize (pr2 (Topology.TopologyFromNeighborhood_correct _ _ _ _) Hp).
@@ -5428,22 +5527,87 @@ Proof.
   apply filter_imply with (1 := pr2 (pr2 U)).
   generalize (pr1 (pr2 U)).
   apply hinhuniv.
+  destruct U as (U,Hu) ;
+    change (pr1 (U,,Hu)) with U;
+    clear Hu P.
   intros e.
   eapply filter_imply.
   intros y.
   apply (pr2 (pr2 e)).
-  generalize (Hf _ (pr1 (pr2 e))).
+  generalize (pr1 e) (pr1 (pr2 e)) ; clear U e ; intros e He.
+  generalize (Hf _ (pr1 (ispositive_halfNonnegativeReals _) He)).
   apply hinhuniv.
   intros A.
   eapply filter_imply.
   intros y Hy.
-  apply (pr1 (pr2 A)).
-  apply (pr2 x).
-  apply (pr2 (pr2 A)).
-  apply Hy.
-  apply (pr2 (pr2 A)).
+  generalize (Hne _ (pr2 (pr2 A))).
+  apply hinhuniv.
+  intros a.
+  rewrite (double_halfNonnegativeReals e).
+  eapply istrans_le_lt_ltNonnegativeReals, plusNonnegativeReals_le_ltcompat.
+  apply_pr2 NnMle_equiv.
+  apply (istriangle_dist (X := MS_NonnegativeReals) _ (pr1 a)).
+  - apply maxNonnegativeReals_le.
+    + apply_pr2 (plusNonnegativeReals_lecompat_l (pr1 a)).
+      rewrite <- maxNonnegativeReals_minus_plus.
+      apply maxNonnegativeReals_le.
+      * intros r.
+        apply hinhuniv.
+        intros b.
+        generalize (pr1 (pr2 b) _ (pr2 (pr2 A))).
+        apply hinhuniv.
+        intros c.
+        generalize (pr2 (pr2 b)).
+        apply istrans_leNonnegativeReals with (pr1 c).
+        apply (pr1 (pr2 c)).
+        eapply istrans_leNonnegativeReals.
+        apply (maxNonnegativeReals_le_l _ (pr1 a)).
+        rewrite maxNonnegativeReals_minus_plus.
+        apply (pr1 (plusNonnegativeReals_lecompat_l _ _ _)).
+        apply lt_leNonnegativeReals.
+        eapply istrans_le_lt_ltNonnegativeReals, (pr1 (pr2 A)).
+        apply maxNonnegativeReals_le_l.
+        apply (pr2 (pr2 c)).
+        apply (pr2 a).
+      * apply plusNonnegativeReals_le_r.
+    + apply_pr2 (plusNonnegativeReals_lecompat_l x).
+      rewrite <- maxNonnegativeReals_minus_plus.
+      apply maxNonnegativeReals_le.
+      * eapply istrans_leNonnegativeReals.
+        apply (maxNonnegativeReals_le_l _ (e / 2)).
+        rewrite maxNonnegativeReals_minus_plus, iscomm_plusNonnegativeReals.
+        apply (pr1 (plusNonnegativeReals_lecompat_r _ _ _)).
+        intros r Hr.
+        apply hinhpr.
+        exists (pr1 a - e / 2)%NR.
+        split.
+        intros B Fb.
+        generalize (Hne _ (filter_and _ _ _ (pr2 (pr2 A)) Fb)).
+        apply hinhfun.
+        intros b.
+        exists (pr1 b).
+        split.
+        apply_pr2 (plusNonnegativeReals_lecompat_l (e / 2)).
+        rewrite <- maxNonnegativeReals_minus_plus.
+        apply maxNonnegativeReals_le.
+        eapply istrans_leNonnegativeReals.
+        apply (maxNonnegativeReals_le_l _ (pr1 b)).
+        rewrite maxNonnegativeReals_minus_plus, iscomm_plusNonnegativeReals.
+        apply (pr1 (plusNonnegativeReals_lecompat_r _ _ _)).
+        apply lt_leNonnegativeReals.
+        eapply istrans_le_lt_ltNonnegativeReals, (pr1 (pr2 A) _ _ (pr2 a) (pr1 (pr2 b))).
+        apply maxNonnegativeReals_le_l.
+        apply plusNonnegativeReals_le_r.
+        apply (pr2 (pr2 b)).
+        exact Hr.
+      * apply plusNonnegativeReals_le_r.
+  - apply (pr1 (pr2 A)).
+    apply (pr2 a).
+    apply Hy.
+  - apply (pr2 (pr2 A)).
 
 Admitted.
+
 
 Lemma continuous_plusNonnegativeReals :
   continuous2d (U := MS_NonnegativeReals) (V := MS_NonnegativeReals) (W := MS_NonnegativeReals) plusNonnegativeReals.
