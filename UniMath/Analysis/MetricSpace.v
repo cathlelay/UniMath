@@ -805,112 +805,78 @@ Proof.
     apply NnMhalf_carac.
 Defined.
 
-Definition metricTopology : TopologicalSet.
-Proof.
-  refine (Topology_UniformSpace _).
-  apply metricUniformStructure.
-Defined.
-
-Lemma isOpen_ball :
-  ∀ (x : M) (eps : Σ e : NR, 0 < e),
-    isOpen (T := metricTopology) (ball x (pr1 eps)).
-Proof.
-  intros x (e,He).
-  apply neighborhood_isOpen.
-  intros y Hy.
-  apply TopologyFromNeighborhood_correct.
-  apply hinhpr.
-  apply ball_recenter in Hy.
-  exists (λ z : M × M, ball (pr1 z) (pr1 Hy) (pr2 z)).
-  split.
-  apply hinhpr.
-  exists (pr1 Hy).
-  split.
-  apply (pr1 (pr2 Hy)).
-  easy.
-  apply (pr2 (pr2 Hy)).
-Qed.
-
 End Balls.
 
 (** ** Limits in a Metric Space *)
 
-Definition MS_locally {NR : NonnegativeMonoid} {M : MetricSet NR} (x : M) : Filter M.
-Proof.
-  intros NR M x.
-  eexists.
-  apply isNeighborhood_isFilter.
-
-Defined.
+Definition locally {NR : NonnegativeMonoid} {M : MetricSet NR} (x : M) :=
+  USlocally (X := _ ,, metricUniformStructure (M := M)) x.
 
 Lemma locally_ball {NR : NonnegativeMonoid} {M : MetricSet NR} (x : M) :
   ∀ e : NR, 0 < e -> locally x (ball x e).
 Proof.
   intros NR M x e He.
-  apply (pr2 (neighborhood_isOpen _)).
-  simple refine (isOpen_ball _ (_,,_)).
-  exact He.
-  now apply ball_center.
+  apply hinhpr.
+  exists (λ z, ball (pr1 z) e (pr2 z)).
+  split.
+  - apply hinhpr.
+    now exists e.
+  - easy.
 Qed.
 
 (** *** Limit of a filter *)
 
 Definition is_filter_lim {NR : NonnegativeMonoid} {M : MetricSet NR} (F : Filter M) (x : M) :=
-  is_filter_lim (T := metricTopology) F x.
+  is_filter_USlim (X := _,,metricUniformStructure) F x.
 Definition ex_filter_lim {NR : NonnegativeMonoid} {M : MetricSet NR} (F : Filter M) :=
   ∃ (x : M), is_filter_lim F x.
 
 (** *** Limit of a function *)
 
 Definition is_lim {X : UU} {NR : NonnegativeMonoid} {M : MetricSet NR} (f : X -> M) (F : Filter X) (x : M) :=
-  is_lim (T := metricTopology) f F x.
+  is_USlim (Y := _ ,, metricUniformStructure (M := M)) f F x.
 Definition ex_lim {X : UU} {NR : NonnegativeMonoid} {M : MetricSet NR} (f : X -> M) (F : Filter X) :=
   ∃ (x : M), is_lim f F x.
 
 Lemma is_lim_aux {X : UU} {NR : NonnegativeMonoid} {M : MetricSet NR} (f : X -> M) (F : Filter X) (x : M) :
   is_lim f F x <->
-  (∀ eps : (Σ e : NR, 0 < e), F (λ y, ball x (pr1 eps) (f y))).
+  (∀ eps : NR, 0 < eps -> F (λ y, ball x eps (f y))).
 Proof.
   intros X NR M f F x.
   split.
-  - intros H e.
+  - intros H e He.
     eapply filter_imply.
-    2: apply H.
     intros y Hy.
     apply Hy.
-    apply locally_ball.
-    now apply (pr2 e).
+    apply H.
+    apply locally_ball, He.
   - intros H P.
     apply hinhuniv.
-    intros ((O,Hopen),(Ho,Ho')).
-    simpl in Ho, Ho'.
-    generalize (Hopen x Ho) ; clear Hopen.
+    intros (O,(Ho,Ho')).
+    revert Ho.
     apply hinhuniv.
-    intros (U,(Hu,Hu')).
-    revert Hu.
-    apply hinhuniv.
-    intros (e,(He,He')).
-    generalize (H (e,,He)).
-    apply (filter_imply F).
+    intros e.
+    eapply (filter_imply F).
     intros y Hy.
-    apply Ho', Hu', He'.
+    apply Ho'.
+    apply (pr2 (pr2 e)).
     apply Hy.
+    apply H, (pr1 (pr2 e)).
 Qed.
 
 (** *** Continuity *)
 
 Definition continuous_at {NR : NonnegativeMonoid} {U V : MetricSet NR} (f : U -> V) (x : U) :=
-  continuous_at (U := metricTopology) (V := metricTopology) f x.
-
+  UScontinuous_at (X := _,,metricUniformStructure) (Y := _,,metricUniformStructure) f x.
 Definition continuous_on {NR : NonnegativeMonoid} {U V : MetricSet NR} (dom : U -> hProp) (f : ∀ (x : U), dom x -> V) :=
-  continuous_on (U := metricTopology) (V := metricTopology) dom f.
+  continuous_on (X := _,,metricUniformStructure) (Y := _,,metricUniformStructure) dom f.
 Definition continuous {NR : NonnegativeMonoid} {U V : MetricSet NR} (f : U -> V) :=
-  continuous (U := metricTopology) (V := metricTopology) f.
+  UScontinuous (X := _,,metricUniformStructure) (Y := _,,metricUniformStructure) f.
 
 (** *** Continuity for 2 variable functions *)
 
 Definition continuous2d_at {NR : NonnegativeMonoid} {U V W : MetricSet NR} (f : U -> V -> W) (x : U) (y : V) :=
-  continuous2d_at (U := metricTopology) (V := metricTopology) (W := metricTopology) f x y.
+  UScontinuous2d_at (X := _,,metricUniformStructure) (Y := _,,metricUniformStructure) (Z := _,,metricUniformStructure) f x y.
 
 Definition continuous2d {NR : NonnegativeMonoid} {U V W : MetricSet NR} (f : U -> V -> W) :=
-  continuous2d (U := metricTopology) (V := metricTopology) (W := metricTopology) f.
+  UScontinuous2d  (X := _,,metricUniformStructure) (Y := _,,metricUniformStructure) (Z := _,,metricUniformStructure) f.

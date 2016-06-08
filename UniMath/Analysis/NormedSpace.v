@@ -759,7 +759,7 @@ Defined.
 End dist_norm.
 
 (** ** Limits in a Normed Module *)
-
+Search MetricSet.
 Definition locally {NR : NonnegativeRig} {K : absrng NR} {X : NormedModule K} (x : X) : Filter X :=
   locally (M := metric_norm) x.
 
@@ -779,7 +779,7 @@ Definition ex_lim {X : UU} {NR : NonnegativeRig} {K : absrng NR} {V : NormedModu
 
 Lemma is_lim_aux {X : UU} {NR : NonnegativeRig} {K : absrng NR} {V : NormedModule K} (f : X → V) (F : Filter X) (x : V) :
   is_lim f F x <->
-  (∀ eps : Σ e : NR, 0%rig < e, F (λ y : X, ball (M := metric_norm) x (pr1 eps) (f y))).
+  (∀ eps : NR, 0%rig < eps -> F (λ y : X, ball (M := metric_norm) x eps (f y))).
 Proof.
   intros X NR K V f F x.
   split ; intros H.
@@ -823,8 +823,8 @@ Lemma continuous_grinv {NR : NonnegativeRig} {K : absrng NR} {X : NormedModule K
 Proof.
   intros NR K X x.
   apply (pr2 (is_lim_aux _ _ _)).
-  intros eps.
-  eapply filter_imply, locally_ball, (pr2 eps).
+  intros e He.
+  eapply filter_imply, locally_ball, He.
   intros y Hy.
   apply ball_symm.
   eapply istrans_NnRle_lt, Hy.
@@ -839,7 +839,7 @@ Lemma continuous_plus {NR : NonnegativeRig} {K : absrng NR} {X : NormedModule K}
 Proof.
   intros NR K X x y.
   apply (pr2 (is_lim_aux _ _ _)).
-  intros (e,He) ; simpl pr1.
+  intros e He.
   apply hinhpr.
   exists (ball (M := metric_norm) x (NnRhalf e)), (ball (M := metric_norm) y (NnRhalf e)).
   repeat split.

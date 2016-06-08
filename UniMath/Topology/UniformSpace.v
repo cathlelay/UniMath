@@ -651,18 +651,20 @@ Proof.
   - apply isNeighborhood_USneighborhood.
 Defined.
 
-Definition US_locally {X : UU} (F : UniformStructure X) (x : X) : Filter X.
+(** ** Convergence in Uniform Spaces *)
+
+Definition USlocally {X : UniformSpace} (x : X) : Filter X.
 Proof.
-  intros X F x.
-  exists (USneighborhood F x).
+  intros X x.
+  exists (USneighborhood (pr2 X) x).
   apply isNeighborhood_isFilter.
-  apply (isNeighborhood_USneighborhood F).
+  apply (isNeighborhood_USneighborhood (pr2 X)).
 Defined.
-Lemma US_locally_correct {X : UU} (F : UniformStructure X) (x : X) :
+Lemma USlocally_correct {X : UniformSpace} (x : X) :
   ∀ P : X -> hProp,
-    locally (T := Topology_UniformSpace F) x P <-> US_locally F x P.
+    locally (T := Topology_UniformSpace (pr2 X)) x P <-> USlocally x P.
 Proof.
-  intros X F x P.
+  intros X x P.
   split ; intros H.
   - apply (pr2 (TopologyFromNeighborhood_correct _ _ _ _)) in H.
     apply H.
@@ -670,28 +672,65 @@ Proof.
     apply H.
 Qed.
 
-Definition US_locally2d {X Y : UU} (Fx : UniformStructure X) (Fy : UniformStructure Y) (x : X) (y : Y) : Filter (X × Y).
+Definition USlocally2d {X Y : UniformSpace} (x : X) (y : Y) :
+  Filter (X × Y).
 Proof.
-  intros X Y Fx Fy x y.
+  intros X Y x y.
   apply FilterDirprod.
-  apply (US_locally Fx x).
-  apply (US_locally Fy y).
+  apply (USlocally x).
+  apply (USlocally y).
 Defined.
+Lemma USlocally2d_correct {X Y : UniformSpace} (x : X) (y : Y) :
+  ∀ P : X × Y -> hProp,
+    locally2d (T := Topology_UniformSpace (pr2 X)) (S := Topology_UniformSpace (pr2 Y)) x y P
+    <-> USlocally2d x y P.
+Proof.
+  split ; apply hinhfun ;
+  intros (Ax,(Ay,(Hx,(Hy,H)))) ;
+  exists Ax, Ay ; repeat split.
+  - apply (pr1 (USlocally_correct _ _)), Hx.
+  - apply (pr1 (USlocally_correct _ _)), Hy.
+  - apply H.
+  - apply (pr2 (USlocally_correct _ _)), Hx.
+  - apply (pr2 (USlocally_correct _ _)), Hy.
+  - apply H.
+Qed.
 
-Definition US_is_filter_lim {X : UU} (FF : UniformStructure X) (F : Filter X) (x : X) :=
-  filter_le F (US_locally FF x).
-Definition US_ex_filter_lim {X : UU} (FF : UniformStructure X) (F : Filter X) :=
-  ∃ x : X, US_is_filter_lim FF F x.
+Definition is_filter_USlim {X : UniformSpace} (F : Filter X) (x : X) :=
+  filter_le F (USlocally x).
+Definition ex_filter_USlim {X : UniformSpace} (F : Filter X) :=
+  ∃ x : X, is_filter_USlim F x.
+Lemma is_filter_USlim_correct {X : UniformSpace} (F : Filter X) (x : X) :
+  is_filter_lim (T := Topology_UniformSpace (pr2 X)) F x <-> is_filter_USlim F x.
+Proof.
+  split ; intros H P Hp ; apply H.
+  - apply (pr2 (USlocally_correct _ _)), Hp.
+  - apply (pr1 (USlocally_correct _ _)), Hp.
+Qed.
 
-Definition US_is_lim {X Y : UU} FF (f : X → Y) (F : Filter X) (x : Y) :=
-  filterlim f F (US_locally FF x).
-(*ex_lim: ∀ T : TopologicalSet, Filter T → hProp
-continuous_at: ∀ U V : TopologicalSet, (U → V) → U → Type
-continuous_on:
-  ∀ (U V : TopologicalSet) (dom : U → hProp), (∀ x : U, dom x → V) → Type
-continuous: ∀ U V : TopologicalSet, (U → V) → Type
-continuous2d_at: ∀ U V W : TopologicalSet, (U → V → W) → U → V → Type
-continuous2d: ∀ U V W : TopologicalSet, (U → V → W) → Type*)
+Definition is_USlim {X : UU} {Y : UniformSpace} (f : X → Y) (F : Filter X) (x : Y) :=
+  filterlim f F (USlocally x).
+Definition ex_USlim {X : UU} {Y : UniformSpace} (f : X → Y) (F : Filter X) :=
+  ∃ x : Y, is_USlim f F x.
+Lemma isUS_lim_correct {X : UU} {Y : UniformSpace} (f : X → Y) (F : Filter X) (x : Y) :
+  is_lim (T := Topology_UniformSpace (pr2 Y)) f F x <-> is_USlim f F x.
+Proof.
+  split ; intros H P Hp ; apply H.
+  - apply (pr2 (USlocally_correct _ _)), Hp.
+  - apply (pr1 (USlocally_correct _ _)), Hp.
+Qed.
+
+Definition UScontinuous_at {X Y : UniformSpace} (f : X → Y) (x : X) :=
+  is_USlim f (USlocally x) (f x).
+Definition continuous_on {X Y : UniformSpace} :=
+  continuous_on (U := Topology_UniformSpace (pr2 X)) (V := Topology_UniformSpace (pr2 Y)).
+Definition UScontinuous {X Y : UniformSpace} (f : X → Y)  :=
+  ∀ x, UScontinuous_at f x.
+
+Definition UScontinuous2d_at {X Y Z : UniformSpace} (f : X → Y → Z) (x : X) (y : Y) :=
+  is_USlim (λ z : X × Y, f (pr1 z) (pr2 z)) (USlocally2d x y) (f x y).
+Definition UScontinuous2d {X Y Z : UniformSpace} (f : X → Y → Z)  :=
+  ∀ x y, UScontinuous2d_at f x y.
 
 (** ** Complete spaces *)
 (** *** Def 1 *)
@@ -731,7 +770,7 @@ Definition isCauchy_filter {X : UU} (FX : UniformStructure X) (F : Filter X) :=
   ∃ A : X -> hProp, USsmall FX V Hv A × F A.
 
 Lemma exfilterlim_cauchy {X : UU} (FX : UniformStructure X) (F : Filter X) :
-  US_ex_filter_lim FX F
+  ex_filter_USlim (X := X,,FX) F
   -> isCauchy_filter FX F.
 Proof.
   intros X FX F Hf V Hv.

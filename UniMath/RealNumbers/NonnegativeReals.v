@@ -5519,9 +5519,7 @@ Proof.
 
   set (x := Dcuts_of_Dcuts _ _ _).
 
-  intros P Hp.
-  generalize (pr2 (Topology.TopologyFromNeighborhood_correct _ _ _ _) Hp).
-  clear Hp.
+  intros P.
   apply hinhuniv.
   intros U.
   apply filter_imply with (1 := pr2 (pr2 U)).
@@ -5614,7 +5612,7 @@ Lemma continuous_plusNonnegativeReals :
 Proof.
   intros x y.
   refine (pr2 (is_lim_aux _ _ _) _).
-  intros (e,He).
+  intros e He.
   simple refine (filter_imply (FilterDirprod _ _) _ _ _ _).
   { intros (x',y').
     apply hconj.
@@ -5677,7 +5675,7 @@ Lemma continuous_minusNonnegativeReals :
 Proof.
   intros x y.
   refine (pr2 (is_lim_aux _ _ _) _).
-  intros (e,He).
+  intros e He.
   simple refine (filter_imply (FilterDirprod _ _) _ _ _ _).
   { intros (x',y').
     apply hconj.
@@ -5788,7 +5786,7 @@ Proof.
       apply ispositive_oneNonnegativeReals. }
   intros x y.
   refine (pr2 (is_lim_aux _ _ _) _).
-  intros (e,He).
+  intros e He.
 
   simple refine (filter_imply (FilterDirprod _ _) _ _ _ _).
   { intros (x',y').
@@ -5920,13 +5918,15 @@ Proof.
     apply isnonnegative_NonnegativeReals.
     apply plusNonnegativeReals_le_l. }
 
+  apply_pr2 (isUS_lim_correct (X := Σ x : NonnegativeReals, (x ≠ 0)%NR) (Y := _,,US_NonnegativeReals)).
+  change is_USlim with (is_lim (X := Σ x : NonnegativeReals, (x ≠ 0)%NR) (M := MS_NonnegativeReals)).
   refine (pr2 (is_lim_aux _ _ _) _).
-  intros (e,He).
+  intros e He.
   refine (pr1 (Topology.TopologyFromNeighborhood_correct _ _ _ _) _).
   apply hinhpr.
   mkpair.
   { intros (y,z).
-    apply (ball y (minNonnegativeReals (e * x * (x / 2))%NR (x / 2)) z). }
+    apply (ball (M := MS_NonnegativeReals) y (minNonnegativeReals (e * x * (x / 2))%NR (x / 2)) z). }
   split.
   - apply hinhpr.
     exists (minNonnegativeReals (e * x * (x / 2)%NR) (x / 2)).
