@@ -805,7 +805,7 @@ Proof.
     apply NnMhalf_carac.
 Defined.
 
-Definition metric_topology : TopologicalSet.
+Definition metricTopology : TopologicalSet.
 Proof.
   refine (Topology_UniformSpace _).
   apply metricUniformStructure.
@@ -813,7 +813,7 @@ Defined.
 
 Lemma isOpen_ball :
   ∀ (x : M) (eps : Σ e : NR, 0 < e),
-    isOpen (T := metric_topology) (ball x (pr1 eps)).
+    isOpen (T := metricTopology) (ball x (pr1 eps)).
 Proof.
   intros x (e,He).
   apply neighborhood_isOpen.
@@ -835,8 +835,13 @@ End Balls.
 
 (** ** Limits in a Metric Space *)
 
-Definition locally {NR : NonnegativeMonoid} {M : MetricSet NR} (x : M) : Filter M :=
-  locally (T := metric_topology) x.
+Definition MS_locally {NR : NonnegativeMonoid} {M : MetricSet NR} (x : M) : Filter M.
+Proof.
+  intros NR M x.
+  eexists.
+  apply isNeighborhood_isFilter.
+
+Defined.
 
 Lemma locally_ball {NR : NonnegativeMonoid} {M : MetricSet NR} (x : M) :
   ∀ e : NR, 0 < e -> locally x (ball x e).
@@ -851,14 +856,14 @@ Qed.
 (** *** Limit of a filter *)
 
 Definition is_filter_lim {NR : NonnegativeMonoid} {M : MetricSet NR} (F : Filter M) (x : M) :=
-  is_filter_lim (T := metric_topology) F x.
+  is_filter_lim (T := metricTopology) F x.
 Definition ex_filter_lim {NR : NonnegativeMonoid} {M : MetricSet NR} (F : Filter M) :=
   ∃ (x : M), is_filter_lim F x.
 
 (** *** Limit of a function *)
 
 Definition is_lim {X : UU} {NR : NonnegativeMonoid} {M : MetricSet NR} (f : X -> M) (F : Filter X) (x : M) :=
-  is_lim (T := metric_topology) f F x.
+  is_lim (T := metricTopology) f F x.
 Definition ex_lim {X : UU} {NR : NonnegativeMonoid} {M : MetricSet NR} (f : X -> M) (F : Filter X) :=
   ∃ (x : M), is_lim f F x.
 
@@ -895,17 +900,17 @@ Qed.
 (** *** Continuity *)
 
 Definition continuous_at {NR : NonnegativeMonoid} {U V : MetricSet NR} (f : U -> V) (x : U) :=
-  continuous_at (U := metric_topology) (V := metric_topology) f x.
+  continuous_at (U := metricTopology) (V := metricTopology) f x.
 
 Definition continuous_on {NR : NonnegativeMonoid} {U V : MetricSet NR} (dom : U -> hProp) (f : ∀ (x : U), dom x -> V) :=
-  continuous_on (U := metric_topology) (V := metric_topology) dom f.
+  continuous_on (U := metricTopology) (V := metricTopology) dom f.
 Definition continuous {NR : NonnegativeMonoid} {U V : MetricSet NR} (f : U -> V) :=
-  continuous (U := metric_topology) (V := metric_topology) f.
+  continuous (U := metricTopology) (V := metricTopology) f.
 
 (** *** Continuity for 2 variable functions *)
 
 Definition continuous2d_at {NR : NonnegativeMonoid} {U V W : MetricSet NR} (f : U -> V -> W) (x : U) (y : V) :=
-  continuous2d_at (U := metric_topology) (V := metric_topology) (W := metric_topology) f x y.
+  continuous2d_at (U := metricTopology) (V := metricTopology) (W := metricTopology) f x y.
 
 Definition continuous2d {NR : NonnegativeMonoid} {U V W : MetricSet NR} (f : U -> V -> W) :=
-  continuous2d (U := metric_topology) (V := metric_topology) (W := metric_topology) f.
+  continuous2d (U := metricTopology) (V := metricTopology) (W := metricTopology) f.

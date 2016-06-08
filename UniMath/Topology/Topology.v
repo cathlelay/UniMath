@@ -509,6 +509,26 @@ Proof.
     apply Ho, Hx.
 Qed.
 
+Lemma isNeighborhood_isPreFilter {X : UU} N :
+  isNeighborhood N -> ∀ x : X, isPreFilter (N x).
+Proof.
+  intros X N Hn x.
+  split.
+  - apply (pr1 Hn).
+  - apply isfilter_finite_intersection_carac.
+    + apply (pr1 (pr2 Hn)).
+    + apply (pr1 (pr2 (pr2 Hn))).
+Qed.
+Lemma isNeighborhood_isFilter {X : UU} N :
+  isNeighborhood N -> ∀ x : X, isFilter (N x).
+Proof.
+  intros X N Hn x.
+  split.
+  - apply isNeighborhood_isPreFilter, Hn.
+  - intros H.
+    apply ((pr1 (pr2 (pr2 (pr2 Hn)))) _ _ H).
+Qed.
+
 (** *** Generated Topology *)
 
 Section topologygenerated.

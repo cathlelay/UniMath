@@ -549,63 +549,150 @@ Qed.
 
 Require Export UniMath.Topology.Topology.
 
+Section UStopology.
+
+Context {X : UU}.
+Context (F : UniformStructure X).
+
+Definition USneighborhood : X -> (X -> hProp) -> hProp :=
+  (λ (x : X) (A : X → hProp),
+    ∃ U : X × X → hProp, F U × (∀ y : X, U (x,, y) → A y)).
+
+Lemma USneighborhood_imply :
+  ∀ x : X, isfilter_imply (USneighborhood x).
+Proof.
+  intros x A B H.
+  apply hinhfun.
+  intros (Ua,(Fa,Ha)).
+  exists Ua.
+  split.
+  apply Fa.
+  now intros y H0 ; apply H, Ha.
+Qed.
+Lemma USneighborhood_htrue :
+  ∀ x : X, isfilter_htrue (USneighborhood x).
+Proof.
+  intros x.
+  apply hinhpr.
+  exists (λ _, htrue).
+  split.
+  now apply UniformStructure_true.
+  easy.
+Qed.
+Lemma USneighborhood_and :
+  ∀ x : X, isfilter_and (USneighborhood x).
+Proof.
+  intros x A B.
+  apply hinhfun2.
+  intros (Ua,(Fa,Ha)) (Ub,(Fb,Hb)).
+  exists (λ x, Ua x ∧ Ub x).
+  split.
+  now apply UniformStructure_and.
+  intros y.
+  intros (Ay,By) ; split.
+  now apply Ha.
+  now apply Hb.
+Qed.
+Lemma USneighborhood_point :
+  ∀ (x : X) (P : X → hProp), USneighborhood x P → P x.
+Proof.
+  intros x A.
+  apply hinhuniv.
+  intros (Ua,(Fa,Ha)).
+  apply Ha.
+  now apply UniformStructure_diag with F.
+Qed.
+Lemma USneighborhood_neighborhood :
+  ∀ (x : X) (P : X → hProp),
+    USneighborhood x P
+    → ∃ Q : X → hProp,
+        USneighborhood x Q × (∀ y : X, Q y → USneighborhood y P).
+Proof.
+  intros x A.
+  apply hinhuniv.
+  intros (Ua,(Fa,Ha)).
+  generalize (UniformStructure_squareroot _ _ Fa).
+  apply hinhfun.
+  intros (Ub,(Fb,Hb)).
+  exists (λ y, Ub (x,,y)).
+  split.
+  apply hinhpr.
+  now exists Ub.
+  intros y Qy.
+  apply hinhpr.
+  exists Ub.
+  split.
+  apply Fb.
+  intros z Hz.
+  apply Ha, Hb.
+  apply hinhpr.
+  now exists y ; split.
+Qed.
+
+Lemma isNeighborhood_USneighborhood :
+  isNeighborhood USneighborhood.
+Proof.
+  repeat split.
+  - apply USneighborhood_imply.
+  - apply USneighborhood_htrue.
+  - apply USneighborhood_and.
+  - apply USneighborhood_point.
+  - apply USneighborhood_neighborhood.
+Qed.
+
+End UStopology.
+
 Definition Topology_UniformSpace {X : UU} (F : UniformStructure X) :
   TopologicalSet.
 Proof.
   intros X F.
   simple refine (TopologyFromNeighborhood _ _).
   - apply X.
-  - intros x A.
-    apply (∃ U, F U × ∀ y : X, U (x ,, y) -> A y).
-  - repeat split.
-    + intros x A B H.
-      apply hinhfun.
-      intros (Ua,(Fa,Ha)).
-      exists Ua.
-      split.
-      apply Fa.
-      now intros y H0 ; apply H, Ha.
-    + intros x.
-      apply hinhpr.
-      exists (λ _, htrue).
-      split.
-      now apply UniformStructure_true.
-      easy.
-    + intros x A B.
-      apply hinhfun2.
-      intros (Ua,(Fa,Ha)) (Ub,(Fb,Hb)).
-      exists (λ x, Ua x ∧ Ub x).
-      split.
-      now apply UniformStructure_and.
-      intros y.
-      intros (Ay,By) ; split.
-      now apply Ha.
-      now apply Hb.
-    + intros x A.
-      apply hinhuniv.
-      intros (Ua,(Fa,Ha)).
-      apply Ha.
-      now apply UniformStructure_diag with F.
-    + intros x A.
-      apply hinhuniv.
-      intros (Ua,(Fa,Ha)).
-      generalize (UniformStructure_squareroot _ _ Fa).
-      apply hinhfun.
-      intros (Ub,(Fb,Hb)).
-      exists (λ y, Ub (x,,y)).
-      split.
-      apply hinhpr.
-      now exists Ub.
-      intros y Qy.
-      apply hinhpr.
-      exists Ub.
-      split.
-      apply Fb.
-      intros z Hz.
-      apply Ha, Hb.
-      apply hinhpr.
-      now exists y ; split.
+  - apply USneighborhood, F.
+  - apply isNeighborhood_USneighborhood.
 Defined.
+
+Definition US_locally {X : UU} (F : UniformStructure X) (x : X) : Filter X.
+Proof.
+  intros X F x.
+  exists (USneighborhood F x).
+  apply isNeighborhood_isFilter.
+  apply (isNeighborhood_USneighborhood F).
+Defined.
+Lemma US_locally_correct {X : UU} (F : UniformStructure X) (x : X) :
+  ∀ P : X -> hProp,
+    locally (T := Topology_UniformSpace F) x P <-> US_locally F x P.
+Proof.
+  intros X F x P.
+  split ; intros H.
+  - apply (pr2 (TopologyFromNeighborhood_correct _ _ _ _)) in H.
+    apply H.
+  - apply (pr1 (TopologyFromNeighborhood_correct _ _ _ _)).
+    apply H.
+Qed.
+
+Definition US_locally2d {X Y : UU} (Fx : UniformStructure X) (Fy : UniformStructure Y) (x : X) (y : Y) : Filter (X × Y).
+Proof.
+  intros X Y Fx Fy x y.
+  apply FilterDirprod.
+  apply (US_locally Fx x).
+  apply (US_locally Fy y).
+Defined.
+
+Definition US_is_filter_lim {X : UU} (FF : UniformStructure X) (F : Filter X) (x : X) :=
+  filter_le F (US_locally FF x).
+Definition US_ex_filter_lim {X : UU} (FF : UniformStructure X) (F : Filter X) :=
+  ∃ x : X, US_is_filter_lim FF F x.
+
+Definition US_is_lim {X Y : UU} FF (f : X → Y) (F : Filter X) (x : Y) :=
+  filterlim f F (US_locally FF x).
+(*ex_lim: ∀ T : TopologicalSet, Filter T → hProp
+continuous_at: ∀ U V : TopologicalSet, (U → V) → U → Type
+continuous_on:
+  ∀ (U V : TopologicalSet) (dom : U → hProp), (∀ x : U, dom x → V) → Type
+continuous: ∀ U V : TopologicalSet, (U → V) → Type
+continuous2d_at: ∀ U V W : TopologicalSet, (U → V → W) → U → V → Type
+continuous2d: ∀ U V W : TopologicalSet, (U → V → W) → Type*)
 
 (** ** Complete spaces *)
 (** *** Def 1 *)
@@ -645,7 +732,7 @@ Definition isCauchy_filter {X : UU} (FX : UniformStructure X) (F : Filter X) :=
   ∃ A : X -> hProp, USsmall FX V Hv A × F A.
 
 Lemma exfilterlim_cauchy {X : UU} (FX : UniformStructure X) (F : Filter X) :
-  ex_filter_lim (T := Topology_UniformSpace FX) F
+  US_ex_filter_lim FX F
   -> isCauchy_filter FX F.
 Proof.
   intros X FX F Hf V Hv.
@@ -655,14 +742,13 @@ Proof.
   generalize (UniformStructure_prod_inv _ _ Hv).
   apply hinhfun.
   intros (Q,(Fq,Hq)).
-  exists (λ y : Topology_UniformSpace FX, Q (y,,x)).
+  exists (λ y : X, Q (y,,x)).
   split.
   - intros y z Qy Qz.
     apply Hq.
     apply hinhpr.
     now exists x.
   - apply Hx.
-    apply TopologyFromNeighborhood_correct.
     apply hinhpr.
     exists (subset_inv Q).
     split.
