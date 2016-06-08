@@ -2,8 +2,7 @@
 (** Author: Catherine LELAY. Jan 2016 - *)
 (** Based on Bourbaky *)
 
-Require Export UniMath.Topology.Complements.
-Require Import UniMath.Topology.Complements.
+Require Export UniMath.Topology.Miscellaneous.
 Require Export UniMath.Topology.Filters.
 
 
