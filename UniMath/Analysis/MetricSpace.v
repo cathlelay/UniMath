@@ -1,6 +1,7 @@
 (** * Results about Metric Spaces *)
 (** Author: Catherine LELAY. Jan 2016 - *)
 
+Require Import UniMath.Topology.Miscellaneous.
 Require Export UniMath.Topology.Filters.
 Require Import UniMath.Topology.Topology.
 Require Import UniMath.Topology.UniformSpace.
@@ -809,59 +810,151 @@ End Balls.
 
 (** ** Limits in a Metric Space *)
 
-Definition locally {NR : NonnegativeMonoid} {M : MetricSet NR} (x : M) :=
-  USlocally (X := _ ,, metricUniformStructure (M := M)) x.
+Section MSlocally.
 
-Lemma locally_ball {NR : NonnegativeMonoid} {M : MetricSet NR} (x : M) :
-  ∀ e : NR, 0 < e -> locally x (ball x e).
+Context {NR : NonnegativeMonoid} {M : MetricSet NR}.
+
+Definition MSneighborhood (x : M) (A : M -> hProp) :=
+  ∃ e : NR, 0 < e × ∀ y, ball x e y -> A y.
+
+Lemma MSneighborhood_equiv :
+  ∀ x A, USneighborhood metricUniformStructure x A <-> MSneighborhood x A.
+Proof.
+  split.
+  - apply hinhuniv ; intros (U,(Hu,Hu')).
+    revert Hu.
+    apply hinhfun.
+    intros  (e,(He,Hu)).
+    exists e ; split.
+    exact He.
+    intros y Hy.
+    apply Hu', Hu, Hy.
+  - apply hinhfun.
+    intros (e,(He,H)).
+    exists (λ z, ball (pr1 z) e (pr2 z)).
+    split.
+    apply hinhpr.
+    now exists e.
+    apply H.
+Qed.
+
+Lemma MSneighborhood_imply :
+  ∀ x : M, isfilter_imply (MSneighborhood x).
+Proof.
+  intros x A B H Ha.
+  apply MSneighborhood_equiv.
+  apply USneighborhood_imply with (1 := H).
+  apply_pr2 MSneighborhood_equiv.
+  exact Ha.
+Qed.
+
+Lemma MSneighborhood_htrue :
+  ∀ x : M, isfilter_htrue (MSneighborhood x).
+Proof.
+  intros x.
+  apply MSneighborhood_equiv.
+  apply USneighborhood_htrue.
+Qed.
+Lemma MSneighborhood_and :
+  ∀ x : M, isfilter_and (MSneighborhood x).
+Proof.
+  intros x A B Ha Hb.
+  apply MSneighborhood_equiv.
+  apply USneighborhood_and.
+  apply_pr2 MSneighborhood_equiv.
+  exact Ha.
+  apply_pr2 MSneighborhood_equiv.
+  exact Hb.
+Qed.
+Lemma MSneighborhood_point :
+  ∀ (x : M) (P : M → hProp), MSneighborhood x P → P x.
+Proof.
+  intros x P Hp.
+  simple refine (USneighborhood_point _ _ _ _).
+  apply metricUniformStructure.
+  apply_pr2 MSneighborhood_equiv.
+  exact Hp.
+Qed.
+Lemma MSneighborhood_neighborhood :
+  ∀ (x : M) (P : M → hProp),
+    MSneighborhood x P
+    → ∃ Q : M → hProp, MSneighborhood x Q × (∀ y : M, Q y → MSneighborhood y P).
+Proof.
+  intros x P Hp.
+  apply_pr2_in MSneighborhood_equiv Hp.
+  generalize (USneighborhood_neighborhood _ _ _ Hp).
+  apply hinhfun.
+  intros (Q,(Hq,Hq')).
+  exists Q.
+  split.
+  apply MSneighborhood_equiv.
+  exact Hq.
+  intros y Hy.
+  apply MSneighborhood_equiv.
+  apply Hq', Hy.
+Qed.
+
+Lemma isNeighborhood_MSneighborhood :
+  isNeighborhood MSneighborhood.
+Proof.
+  repeat split.
+  - exact MSneighborhood_imply.
+  - exact MSneighborhood_htrue.
+  - exact MSneighborhood_and.
+  - exact MSneighborhood_point.
+  - exact MSneighborhood_neighborhood.
+Qed.
+
+End MSlocally.
+
+Definition MSlocally {NR : NonnegativeMonoid} {M : MetricSet NR} (x : M) : Filter M.
+Proof.
+  intros NR M x.
+  exists (MSneighborhood x).
+  revert x.
+  apply isNeighborhood_isFilter.
+  apply isNeighborhood_MSneighborhood.
+Defined.
+
+Lemma MSlocally_ball {NR : NonnegativeMonoid} {M : MetricSet NR} (x : M) :
+  ∀ e : NR, 0 < e -> MSlocally x (ball x e).
 Proof.
   intros NR M x e He.
   apply hinhpr.
-  exists (λ z, ball (pr1 z) e (pr2 z)).
-  split.
-  - apply hinhpr.
-    now exists e.
-  - easy.
+  now exists e.
 Qed.
 
 (** *** Limit of a filter *)
 
-Definition is_filter_lim {NR : NonnegativeMonoid} {M : MetricSet NR} (F : Filter M) (x : M) :=
-  is_filter_USlim (X := _,,metricUniformStructure) F x.
-Definition ex_filter_lim {NR : NonnegativeMonoid} {M : MetricSet NR} (F : Filter M) :=
-  ∃ (x : M), is_filter_lim F x.
+Definition is_filter_MSlim {NR : NonnegativeMonoid} {M : MetricSet NR} (F : Filter M) (x : M) :=
+  filter_le F (MSlocally x).
+Definition ex_filter_MSlim {NR : NonnegativeMonoid} {M : MetricSet NR} (F : Filter M) :=
+  ∃ (x : M), is_filter_MSlim F x.
 
 (** *** Limit of a function *)
 
-Definition is_lim {X : UU} {NR : NonnegativeMonoid} {M : MetricSet NR} (f : X -> M) (F : Filter X) (x : M) :=
-  is_USlim (Y := _ ,, metricUniformStructure (M := M)) f F x.
-Definition ex_lim {X : UU} {NR : NonnegativeMonoid} {M : MetricSet NR} (f : X -> M) (F : Filter X) :=
-  ∃ (x : M), is_lim f F x.
+Definition is_MSlim {X : UU} {NR : NonnegativeMonoid} {M : MetricSet NR} (f : X -> M) (F : Filter X) (x : M) :=
+  filterlim f F (MSlocally x).
+Definition ex_MSlim {X : UU} {NR : NonnegativeMonoid} {M : MetricSet NR} (f : X -> M) (F : Filter X) :=
+  ∃ (x : M), is_MSlim f F x.
 
-Lemma is_lim_aux {X : UU} {NR : NonnegativeMonoid} {M : MetricSet NR} (f : X -> M) (F : Filter X) (x : M) :
-  is_lim f F x <->
+Lemma is_MSlim_aux {X : UU} {NR : NonnegativeMonoid} {M : MetricSet NR} (f : X -> M) (F : Filter X) (x : M) :
+  is_MSlim f F x <->
   (∀ eps : NR, 0 < eps -> F (λ y, ball x eps (f y))).
 Proof.
   intros X NR M f F x.
   split.
   - intros H e He.
-    eapply filter_imply.
-    intros y Hy.
-    apply Hy.
     apply H.
-    apply locally_ball, He.
+    apply MSlocally_ball, He.
   - intros H P.
     apply hinhuniv.
-    intros (O,(Ho,Ho')).
-    revert Ho.
-    apply hinhuniv.
-    intros e.
+    intros (e,(He,He')).
     eapply (filter_imply F).
     intros y Hy.
-    apply Ho'.
-    apply (pr2 (pr2 e)).
+    apply He'.
     apply Hy.
-    apply H, (pr1 (pr2 e)).
+    apply H, He.
 Qed.
 
 (** *** Continuity *)

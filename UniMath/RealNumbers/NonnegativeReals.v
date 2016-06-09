@@ -5406,7 +5406,7 @@ Definition US_NonnegativeReals : UniformStructure NonnegativeReals :=
 Lemma CUS_NonnegartiveReals :
   ∀ (F : Filter NonnegativeReals),
     isCauchy_filter US_NonnegativeReals F
-    -> ex_filter_lim (M := MS_NonnegativeReals) F.
+    -> ex_filter_MSlim (M := MS_NonnegativeReals) F.
 Proof.
   intros F Hf.
   assert (H : ∀ (e : NonnegativeReals) (He : (0 < e)%NR), US_NonnegativeReals (λ z : NonnegativeReals × NonnegativeReals, ball (M := MS_NonnegativeReals) (pr1 z) e (pr2 z))).
@@ -5521,18 +5521,11 @@ Proof.
 
   intros P.
   apply hinhuniv.
-  intros U.
-  apply filter_imply with (1 := pr2 (pr2 U)).
-  generalize (pr1 (pr2 U)).
-  apply hinhuniv.
-  destruct U as (U,Hu) ;
-    change (pr1 (U,,Hu)) with U;
-    clear Hu P.
   intros e.
   eapply filter_imply.
   intros y.
   apply (pr2 (pr2 e)).
-  generalize (pr1 e) (pr1 (pr2 e)) ; clear U e ; intros e He.
+  generalize (pr1 e) (pr1 (pr2 e)) ; clear e ; intros e He.
   generalize (Hf _ (pr1 (ispositive_halfNonnegativeReals _) He)).
   apply hinhuniv.
   intros A.
@@ -5611,7 +5604,7 @@ Lemma continuous_plusNonnegativeReals :
   continuous2d (U := MS_NonnegativeReals) (V := MS_NonnegativeReals) (W := MS_NonnegativeReals) plusNonnegativeReals.
 Proof.
   intros x y.
-  refine (pr2 (is_lim_aux _ _ _) _).
+  refine (pr2 (is_MSlim_aux _ _ _) _).
   intros e He.
   simple refine (filter_imply (FilterDirprod _ _) _ _ _ _).
   { intros (x',y').

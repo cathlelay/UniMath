@@ -759,9 +759,9 @@ Defined.
 End dist_norm.
 
 (** ** Limits in a Normed Module *)
-Search MetricSet.
+
 Definition locally {NR : NonnegativeRig} {K : absrng NR} {X : NormedModule K} (x : X) : Filter X :=
-  locally (M := metric_norm) x.
+  MSlocally (M := metric_norm) x.
 
 (** *** Limit of a filter *)
 
@@ -783,11 +783,11 @@ Lemma is_lim_aux {X : UU} {NR : NonnegativeRig} {K : absrng NR} {V : NormedModul
 Proof.
   intros X NR K V f F x.
   split ; intros H.
-  - apply (pr1 (is_lim_aux (M := metric_norm) f F x)).
+  - apply (pr1 (is_MSlim_aux (M := metric_norm) f F x)).
     intros P Hp.
     apply H, Hp.
   - intros P Hp.
-    apply (pr2 (is_lim_aux (M := metric_norm) f F x)).
+    apply (pr2 (is_MSlim_aux (M := metric_norm) f F x)).
     intros e.
     apply H.
     apply Hp.
@@ -824,7 +824,7 @@ Proof.
   intros NR K X x.
   apply (pr2 (is_lim_aux _ _ _)).
   intros e He.
-  eapply filter_imply, locally_ball, He.
+  eapply filter_imply, MSlocally_ball, He.
   intros y Hy.
   apply ball_symm.
   eapply istrans_NnRle_lt, Hy.
@@ -843,8 +843,8 @@ Proof.
   apply hinhpr.
   exists (ball (M := metric_norm) x (NnRhalf e)), (ball (M := metric_norm) y (NnRhalf e)).
   repeat split.
-  apply locally_ball, NnRhalf_pos, He.
-  apply locally_ball, NnRhalf_pos, He.
+  apply MSlocally_ball, NnRhalf_pos, He.
+  apply MSlocally_ball, NnRhalf_pos, He.
   intros x' y' ; unfold ball ; simpl.
   change (NnMlt (NonnegativeRig_to_NonnegativeAddMonoid NR)) with (NnRlt NR).
   intros Hx Hy.
