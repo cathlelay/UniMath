@@ -5601,7 +5601,7 @@ Admitted.
 
 
 Lemma continuous_plusNonnegativeReals :
-  continuous2d (U := MS_NonnegativeReals) (V := MS_NonnegativeReals) (W := MS_NonnegativeReals) plusNonnegativeReals.
+  MScontinuous2d (U := MS_NonnegativeReals) (V := MS_NonnegativeReals) (W := MS_NonnegativeReals) plusNonnegativeReals.
 Proof.
   intros x y.
   refine (pr2 (is_MSlim_aux _ _ _) _).
@@ -5655,19 +5655,19 @@ Proof.
   apply hinhpr.
   exists (ball x (e / 2)), (ball y (e / 2)).
   repeat split.
-  - apply locally_ball.
+  - apply MSlocally_ball.
     now apply ispositive_halfNonnegativeReals, He.
-  - apply locally_ball.
+  - apply MSlocally_ball.
     now apply ispositive_halfNonnegativeReals, He.
   - exact X.
   - exact X0.
 Qed.
 
 Lemma continuous_minusNonnegativeReals :
-  continuous2d (U := MS_NonnegativeReals) (V := MS_NonnegativeReals) (W := MS_NonnegativeReals) minusNonnegativeReals.
+  MScontinuous2d (U := MS_NonnegativeReals) (V := MS_NonnegativeReals) (W := MS_NonnegativeReals) minusNonnegativeReals.
 Proof.
   intros x y.
-  refine (pr2 (is_lim_aux _ _ _) _).
+  refine (pr2 (is_MSlim_aux _ _ _) _).
   intros e He.
   simple refine (filter_imply (FilterDirprod _ _) _ _ _ _).
   { intros (x',y').
@@ -5760,16 +5760,16 @@ Proof.
   apply hinhpr.
   exists (ball x (e / 2)), (ball y (e / 2)).
   repeat split.
-  - apply locally_ball.
+  - apply MSlocally_ball.
     now apply ispositive_halfNonnegativeReals, He.
-  - apply locally_ball.
+  - apply MSlocally_ball.
     now apply ispositive_halfNonnegativeReals, He.
   - exact X.
   - exact X0.
 Qed.
 
 Lemma continuous_multNonnegativeReals :
-  continuous2d (U := MS_NonnegativeReals) (V := MS_NonnegativeReals) (W := MS_NonnegativeReals) multNonnegativeReals.
+  MScontinuous2d (U := MS_NonnegativeReals) (V := MS_NonnegativeReals) (W := MS_NonnegativeReals) multNonnegativeReals.
 Proof.
   assert (H : ∀ x, (x + 1 ≠ 0)%NR).
     { clear ; intros x.
@@ -5778,7 +5778,7 @@ Proof.
       apply isnonnegative_NonnegativeReals.
       apply ispositive_oneNonnegativeReals. }
   intros x y.
-  refine (pr2 (is_lim_aux _ _ _) _).
+  refine (pr2 (is_MSlim_aux _ _ _) _).
   intros e He.
 
   simple refine (filter_imply (FilterDirprod _ _) _ _ _ _).
@@ -5860,14 +5860,14 @@ Proof.
               (minNonnegativeReals
                  (divNonnegativeReals (e / 2) (x + 1)%NR (H x)) 1)).
   repeat split.
-  - apply locally_ball.
+  - apply MSlocally_ball.
     eapply istrans_le_lt_ltNonnegativeReals, multNonnegativeReals_ltcompat_r.
     apply isnonnegative_NonnegativeReals.
     apply ispositive_halfNonnegativeReals, He.
     apply (multNonnegativeReals_ltcompat_r' (y + 1)%NR).
     rewrite israbsorb_zero_multNonnegativeReals, isrinv_invNonnegativeReals.
     apply ispositive_oneNonnegativeReals.
-  - apply locally_ball.
+  - apply MSlocally_ball.
     apply Dcuts_min_gt.
     eapply istrans_le_lt_ltNonnegativeReals, multNonnegativeReals_ltcompat_r.
     apply isnonnegative_NonnegativeReals.
@@ -5912,8 +5912,8 @@ Proof.
     apply plusNonnegativeReals_le_l. }
 
   apply_pr2 (isUS_lim_correct (X := Σ x : NonnegativeReals, (x ≠ 0)%NR) (Y := _,,US_NonnegativeReals)).
-  change is_USlim with (is_lim (X := Σ x : NonnegativeReals, (x ≠ 0)%NR) (M := MS_NonnegativeReals)).
-  refine (pr2 (is_lim_aux _ _ _) _).
+  apply_pr2 (is_MSlim_correct (X := Σ x : NonnegativeReals, (x ≠ 0)%NR) (M := MS_NonnegativeReals)).
+  refine (pr2 (is_MSlim_aux _ _ _) _).
   intros e He.
   refine (pr1 (Topology.TopologyFromNeighborhood_correct _ _ _ _) _).
   apply hinhpr.
