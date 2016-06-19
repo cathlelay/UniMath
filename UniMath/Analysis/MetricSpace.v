@@ -1,7 +1,7 @@
 (** * Results about Metric Spaces *)
 (** Author: Catherine LELAY. Jan 2016 - *)
 
-Require Import UniMath.Topology.Miscellaneous.
+Require Import UniMath.Topology.Prelim.
 Require Export UniMath.Topology.Filters.
 Require Import UniMath.Topology.Topology.
 Require Import UniMath.Topology.UniformSpace.

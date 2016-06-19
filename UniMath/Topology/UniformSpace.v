@@ -2,7 +2,7 @@
 (** Author: Catherine LELAY. Jan 2016 - *)
 (** Based on Bourbaky *)
 
-Require Export UniMath.Topology.Miscellaneous.
+Require Export UniMath.Topology.Prelim.
 Require Export UniMath.Topology.Filters.
 
 
