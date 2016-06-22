@@ -976,7 +976,7 @@ Qed.
 Definition MScontinuous_at {NR : NonnegativeMonoid} {U V : MetricSet NR} (f : U -> V) (x : U) :=
   is_MSlim f (MSlocally x) (f x).
 Definition continuous_on {NR : NonnegativeMonoid} {U V : MetricSet NR} (dom : U -> hProp) (f : ∀ (x : U), dom x -> V) :=
-  continuous_on (X := _,,metricUniformStructure) (Y := _,,metricUniformStructure) dom f.
+  UScontinuous_on (X := _,,metricUniformStructure) (Y := _,,metricUniformStructure) dom f.
 Definition MScontinuous {NR : NonnegativeMonoid} {U V : MetricSet NR} (f : U -> V) :=
   ∀ x : U, MScontinuous_at f x.
 
@@ -984,6 +984,7 @@ Definition MScontinuous {NR : NonnegativeMonoid} {U V : MetricSet NR} (f : U -> 
 
 Definition MScontinuous2d_at {NR : NonnegativeMonoid} {U V W : MetricSet NR} (f : U -> V -> W) (x : U) (y : V) :=
   is_MSlim (λ z : U × V, f (pr1 z) (pr2 z)) (MSlocally2d x y) (f x y).
-
+Definition continuous2d_on {NR : NonnegativeMonoid} {U V W : MetricSet NR} (dom : U → V -> hProp) (f : ∀ x y, dom x y -> V) :=
+  UScontinuous2d_on (X := _,,metricUniformStructure) (Y := _,,metricUniformStructure) (Z := _,,metricUniformStructure) dom f.
 Definition MScontinuous2d {NR : NonnegativeMonoid} {U V W : MetricSet NR} (f : U -> V -> W) :=
   ∀ x y, MScontinuous2d_at f x y.

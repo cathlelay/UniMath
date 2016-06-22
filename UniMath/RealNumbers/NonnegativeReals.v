@@ -5882,8 +5882,7 @@ Proof.
   intros x Hx.
   apply hinhpr.
   mkpair.
-  { intros P HP.
-    generalize (pr2 (Topology.TopologyFromNeighborhood_correct _ _ _ _) HP) ; clear HP.
+  { intros P.
     apply hinhuniv.
     intros U.
     generalize (pr1 (pr2 U)).
@@ -5907,11 +5906,9 @@ Proof.
     apply isnonnegative_NonnegativeReals.
     apply plusNonnegativeReals_le_l. }
 
-  apply_pr2 (isUS_lim_correct (X := Σ x : NonnegativeReals, (x ≠ 0)%NR) (Y := _,,US_NonnegativeReals)).
   apply_pr2 (is_MSlim_correct (X := Σ x : NonnegativeReals, (x ≠ 0)%NR) (M := MS_NonnegativeReals)).
   refine (pr2 (is_MSlim_aux _ _ _) _).
   intros e He.
-  refine (pr1 (Topology.TopologyFromNeighborhood_correct _ _ _ _) _).
   apply hinhpr.
   mkpair.
   { intros (y,z).

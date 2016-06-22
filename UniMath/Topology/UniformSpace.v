@@ -725,13 +725,23 @@ Qed.
 
 Definition UScontinuous_at {X Y : UniformSpace} (f : X → Y) (x : X) :=
   is_USlim f (USlocally x) (f x).
-Definition continuous_on {X Y : UniformSpace} :=
-  continuous_on (U := Topology_UniformSpace (pr2 X)) (V := Topology_UniformSpace (pr2 Y)).
+Definition UScontinuous_on {X Y : UniformSpace}
+           (dom : X → hProp) (f : ∀ x : X, dom x → Y) :=
+  ∀ (x : X) (Hx : dom x),
+  ∃ H : ∀ P : X → hProp, (USlocally x) P → ∃ x0 : X, dom x0 ∧ P x0,
+    is_USlim (λ y : Σ x0 : X, dom x0, f (pr1 y) (pr2 y))
+             (FilterSubtype (USlocally x) dom H) (f x Hx).
 Definition UScontinuous {X Y : UniformSpace} (f : X → Y)  :=
   ∀ x, UScontinuous_at f x.
 
 Definition UScontinuous2d_at {X Y Z : UniformSpace} (f : X → Y → Z) (x : X) (y : Y) :=
   is_USlim (λ z : X × Y, f (pr1 z) (pr2 z)) (USlocally2d x y) (f x y).
+Definition UScontinuous2d_on {X Y Z : UniformSpace}
+           (dom : X → Y → hProp) (f : ∀ x y, dom x y → Z) :=
+  ∀ x y (Hxy : dom x y),
+  ∃ H,
+    is_USlim (λ y : Σ z, dom (pr1 z) (pr2 z), f (pr1 (pr1 y)) (pr2 (pr1 y)) (pr2 y))
+             (FilterSubtype (USlocally2d x y) (λ z, dom (pr1 z) (pr2 z)) H) (f x y Hxy).
 Definition UScontinuous2d {X Y Z : UniformSpace} (f : X → Y → Z)  :=
   ∀ x y, UScontinuous2d_at f x y.
 
