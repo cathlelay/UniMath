@@ -975,8 +975,11 @@ Qed.
 
 Definition MScontinuous_at {NR : NonnegativeMonoid} {U V : MetricSet NR} (f : U -> V) (x : U) :=
   is_MSlim f (MSlocally x) (f x).
-Definition continuous_on {NR : NonnegativeMonoid} {U V : MetricSet NR} (dom : U -> hProp) (f : ∀ (x : U), dom x -> V) :=
-  UScontinuous_on (X := _,,metricUniformStructure) (Y := _,,metricUniformStructure) dom f.
+Definition MScontinuous_on {NR : NonnegativeMonoid} {U V : MetricSet NR} (dom : U -> hProp) (f : ∀ (x : U), dom x -> V) :=
+  ∀ (x : U) (Hx : dom x),
+  ∃ H,
+  is_MSlim (λ y, f (pr1 y) (pr2 y))
+  (FilterSubtype (MSlocally x) dom H) (f x Hx).
 Definition MScontinuous {NR : NonnegativeMonoid} {U V : MetricSet NR} (f : U -> V) :=
   ∀ x : U, MScontinuous_at f x.
 
@@ -984,7 +987,13 @@ Definition MScontinuous {NR : NonnegativeMonoid} {U V : MetricSet NR} (f : U -> 
 
 Definition MScontinuous2d_at {NR : NonnegativeMonoid} {U V W : MetricSet NR} (f : U -> V -> W) (x : U) (y : V) :=
   is_MSlim (λ z : U × V, f (pr1 z) (pr2 z)) (MSlocally2d x y) (f x y).
-Definition continuous2d_on {NR : NonnegativeMonoid} {U V W : MetricSet NR} (dom : U → V -> hProp) (f : ∀ x y, dom x y -> V) :=
-  UScontinuous2d_on (X := _,,metricUniformStructure) (Y := _,,metricUniformStructure) (Z := _,,metricUniformStructure) dom f.
+Definition MScontinuous2d_on {NR : NonnegativeMonoid} {U V W : MetricSet NR} (dom : U → V -> hProp) (f : ∀ x y, dom x y -> V) :=
+  ∀ x y (Hxy : dom x y),
+  ∃ H,
+    is_MSlim
+      (λ y0,
+       f (pr1 (pr1 y0)) (pr2 (pr1 y0)) (pr2 y0))
+      (FilterSubtype (MSlocally2d x y) (λ z, dom (pr1 z) (pr2 z)) H)
+      (f x y Hxy).
 Definition MScontinuous2d {NR : NonnegativeMonoid} {U V W : MetricSet NR} (f : U -> V -> W) :=
   ∀ x y, MScontinuous2d_at f x y.

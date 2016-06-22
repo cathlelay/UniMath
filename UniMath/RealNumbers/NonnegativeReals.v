@@ -5877,15 +5877,12 @@ Proof.
 Qed.
 
 Lemma continuous_invNonnegativeReals :
-  continuous_on (U := MS_NonnegativeReals) (V := MS_NonnegativeReals) (λ x, (x ≠ 0)%NR) invNonnegativeReals.
+  MScontinuous_on (U := MS_NonnegativeReals) (V := MS_NonnegativeReals) (λ x, (x ≠ 0)%NR) invNonnegativeReals.
 Proof.
   intros x Hx.
   apply hinhpr.
   mkpair.
   { intros P.
-    apply hinhuniv.
-    intros U.
-    generalize (pr1 (pr2 U)).
     apply hinhfun.
     intros e.
     exists (x + (pr1 e) / 2)%NR.
@@ -5894,7 +5891,7 @@ Proof.
     eapply istrans_le_lt_ltNonnegativeReals, (pr1 (plusNonnegativeReals_lt_r _ _)).
     apply isnonnegative_NonnegativeReals.
     apply (pr1 (ispositive_halfNonnegativeReals _)), (pr1 (pr2 e)).
-    apply (pr2 (pr2 U)), (pr2 (pr2 e)).
+    apply (pr2 (pr2 e)).
     generalize (pr1 e) (pr1 (pr2 e)) ; clear e ; intros e He.
     unfold ball ; simpl.
     unfold dist ; simpl.
@@ -5906,18 +5903,12 @@ Proof.
     apply isnonnegative_NonnegativeReals.
     apply plusNonnegativeReals_le_l. }
 
-  apply_pr2 (is_MSlim_correct (X := Σ x : NonnegativeReals, (x ≠ 0)%NR) (M := MS_NonnegativeReals)).
   refine (pr2 (is_MSlim_aux _ _ _) _).
   intros e He.
   apply hinhpr.
-  mkpair.
-  { intros (y,z).
-    apply (ball (M := MS_NonnegativeReals) y (minNonnegativeReals (e * x * (x / 2))%NR (x / 2)) z). }
+  exists (minNonnegativeReals (e * x * (x / 2))%NR (x / 2)).
   split.
-  - apply hinhpr.
-    exists (minNonnegativeReals (e * x * (x / 2)%NR) (x / 2)).
-    split.
-    apply Dcuts_min_gt.
+  - apply Dcuts_min_gt.
     change (0 < e * x * (x / 2)%NR)%NR.
     rewrite <- (islabsorb_zero_multNonnegativeReals (x / 2)%NR).
     apply multNonnegativeReals_ltcompat_l.
@@ -5927,9 +5918,9 @@ Proof.
     apply ispositive_apNonnegativeReals, Hx.
     apply He.
     apply ispositive_halfNonnegativeReals, ispositive_apNonnegativeReals, Hx.
-    easy.
   - intros y Hy Hy0.
     apply multNonnegativeReals_ltcompat_l' with (x * y)%NR.
+    unfold dist ; simpl.
     rewrite isrdistr_max_multNonnegativeReals, !isrdistr_minus_multNonnegativeReals.
     rewrite <- isassoc_multNonnegativeReals, islinv_invNonnegativeReals, islunit_one_multNonnegativeReals.
     rewrite iscomm_multNonnegativeReals, isassoc_multNonnegativeReals, isrinv_invNonnegativeReals, isrunit_one_multNonnegativeReals.
