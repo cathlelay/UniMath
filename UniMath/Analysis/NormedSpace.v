@@ -726,7 +726,8 @@ Proof.
   apply Map.
   simple refine (tpair _ _ _).
   intros x y.
-  apply (norm (X := X) (x + grinv X y)%addmonoid).
+  apply (norm (X := X)).
+  apply (x + grinv X y)%addmonoid.
   repeat split.
   - intros x y.
     rewrite <- norm_grinv.
@@ -766,7 +767,7 @@ Definition locally {NR : NonnegativeRig} {K : absrng NR} {X : NormedModule K} (x
 (** *** Limit of a filter *)
 
 Definition is_filter_lim {NR : NonnegativeRig} {K : absrng NR} {X : NormedModule K} (F : Filter X) (x : X) :=
-  filter_le (locally x) F.
+  is_filter_MSlim (M := metric_norm) F x.
 Definition ex_filter_lim {NR : NonnegativeRig} {K : absrng NR} {X : NormedModule K} (F : Filter X) :=
   ∃ (x : X), is_filter_lim F x.
 

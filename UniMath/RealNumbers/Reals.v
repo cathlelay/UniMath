@@ -1873,3 +1873,302 @@ Lemma Rabs_Rmult :
 Proof.
   exact hr_abs_mult.
 Qed.
+
+(** ** Analysis *)
+
+Require Export UniMath.Analysis.NormedSpace.
+
+Definition absrng_Reals : absrng NnR_NonnegativeReals.
+Proof.
+  exists Reals.
+  mkpair.
+  { exists (λ x y : Reals, x ≠ y).
+    apply istightap_hr_ap. }
+  exists Rabs.
+  split ; split ; [ | | split | split ; [ | split]].
+  - intros x y z H.
+    apply_pr2 Rplus_apcompat_r.
+    apply H.
+  - intros x y z H.
+    apply_pr2 Rplus_apcompat_l.
+    apply H.
+  - intros Hx.
+    apply Rap_Rlt in Hx.
+    unfold Rabs, hr_abs.
+    destruct Hx as [Hx | Hx].
+    + apply_pr2_in hr_to_NR_negative Hx.
+      eapply istrans_lt_le_ltNonnegativeReals, maxNonnegativeReals_le_r.
+      apply ispositive_apNonnegativeReals, (pr2 Hx).
+    + apply_pr2_in hr_to_NR_positive Hx.
+      eapply istrans_lt_le_ltNonnegativeReals, maxNonnegativeReals_le_l.
+      apply ispositive_apNonnegativeReals, (pr1 Hx).
+  - intros Hx.
+    generalize (maxNonnegativeReals_lt' _ _ _ Hx) ; clear Hx.
+    apply hinhuniv.
+    intros [Hx | Hx] ; apply_pr2 Rap_Rlt.
+    + right.
+      apply hr_to_NR_positive.
+      split.
+      * now apply_pr2 ispositive_apNonnegativeReals.
+      * now apply hr_to_NRposneg_zero.
+    + left.
+      apply hr_to_NR_negative.
+      split.
+      * now apply hr_to_NRnegpos_zero.
+      * now apply_pr2 ispositive_apNonnegativeReals.
+  - unfold Rabs, hr_abs, hr_to_NRpos, hr_to_NRneg ; simpl.
+    rewrite minusNonnegativeReals_eq_zero.
+    rewrite <- (minusNonnegativeReals_correct_r _ 1%NR).
+    apply maxNonnegativeReals_carac_r.
+    apply isnonnegative_NonnegativeReals.
+    apply pathsinv0, isrunit_zero_plusNonnegativeReals.
+    apply isnonnegative_NonnegativeReals.
+  - intros x y.
+    apply Dcuts_min_carac_l.
+    apply istriangle_Rabs.
+  - intros x y.
+    apply Dcuts_min_carac_l.
+    rewrite Rabs_Rmult.
+    apply isrefl_leNonnegativeReals.
+Defined.
+
+Definition NM_Reals : NormedModule absrng_Reals :=
+  absrng_to_NormedModule absrng_Reals.
+
+Definition MS_Reals : MetricSpace.MetricSet
+                        (NonnegativeRig_to_NonnegativeAddMonoid NnR_NonnegativeReals) :=
+  @metric_norm _ _ NM_Reals.
+
+Definition US_Reals : UniformSpace.UniformStructure (MetricSpace.pr1MetricSet MS_Reals) :=
+  @MetricSpace.metricUniformStructure _ MS_Reals.
+
+Lemma CUS_Reals :
+  ∀ F : Filter Reals,
+    UniformSpace.isCauchy_filter US_Reals F
+    → ex_filter_lim (X := NM_Reals) F.
+Proof.
+  intros F Hf.
+  refine (hinhfun2 _ _ _).
+  2: apply (CUS_NonnegativeReals (FilterIm hr_to_NRpos F)).
+  3: apply (CUS_NonnegativeReals (FilterIm hr_to_NRneg F)).
+  - intros (x,Hx) (y,Hy).
+    exists (NRNRtoR x y).
+    intros A.
+    apply hinhuniv.
+    intros (e,(He,Ha)) ;
+      apply filter_imply with (1 := Ha) ;
+      clear A Ha ;
+      simpl in He.
+    refine (filter_imply _ _ _ _ _).
+    2: apply filter_and.
+    2: apply Hx, MetricSpace.MSlocally_ball, ispositive_halfNonnegativeReals, He.
+    clear Hx.
+    2: apply Hy, MetricSpace.MSlocally_ball, ispositive_halfNonnegativeReals, He.
+    clear Hy.
+    intros z.
+    rewrite <- (NRNRtoR_RtoNRNR z).
+    unfold hr_to_NRpos, hr_to_NRneg ; simpl.
+    generalize (RtoNRNR_NRNRtoR (pr1 (RtoNRNR z)) (pr2 (RtoNRNR z))).
+    rewrite NRNRtoR_RtoNRNR.
+    generalize (RtoNRNR z) ;
+      clear z ;
+      intros (x',y') Hz (Hx,Hy) ;
+      simpl in Hz, Hx, Hy |- *.
+    generalize (maponpaths pr1 Hz) ; simpl ; intros Hx'.
+    generalize (maponpaths (pr2 (P := λ _, NonnegativeReals)) Hz) ; simpl ; intros Hy'.
+    rewrite <- Hx' in Hx.
+    rewrite <- Hy' in Hy.
+
+    rewrite (double_halfNonnegativeReals e).
+    eapply istrans_le_lt_ltNonnegativeReals.
+    2: apply plusNonnegativeReals_ltcompat.
+    2: apply Hx.
+    2: apply Hy.
+    unfold MetricSpace.dist ; simpl.
+    apply istrans_leNonnegativeReals
+    with (Rabs (NRNRtoR x y - NRNRtoR x' y')%R).
+    unfold Rminus, CFminus, CFplus, CCDRplus, CDRplus, Apartness.op1, CFopp ; simpl.
+    refine (isrefl_leNonnegativeReals _).
+    rewrite <- NRNRtoR_minus.
+    unfold Rabs, hr_abs, hr_to_NRpos, hr_to_NRneg ; simpl.
+
+    apply maxNonnegativeReals_le.
+    + apply_pr2 (plusNonnegativeReals_lecompat_l (y + x')%NR).
+      rewrite <- maxNonnegativeReals_minus_plus.
+      apply maxNonnegativeReals_le.
+      * rewrite <- !isassoc_plusNonnegativeReals, (iscomm_plusNonnegativeReals _ x'), isassoc_plusNonnegativeReals, <- (isassoc_plusNonnegativeReals _ _ (_+_)%NR).
+        apply plusNonnegativeReals_lecompat.
+        eapply istrans_leNonnegativeReals, plusNonnegativeReals_lecompat_r, maxNonnegativeReals_le_l.
+        rewrite iscomm_plusNonnegativeReals, <- maxNonnegativeReals_minus_plus.
+        apply maxNonnegativeReals_le_l.
+        eapply istrans_leNonnegativeReals, plusNonnegativeReals_lecompat_l, maxNonnegativeReals_le_r.
+        rewrite <- maxNonnegativeReals_minus_plus.
+        apply maxNonnegativeReals_le_l.
+      * apply plusNonnegativeReals_le_r.
+    + apply_pr2 (plusNonnegativeReals_lecompat_l (x + y')%NR).
+      rewrite <- maxNonnegativeReals_minus_plus.
+      apply maxNonnegativeReals_le.
+      * rewrite (iscomm_plusNonnegativeReals (maxNonnegativeReals _ _)), <- !isassoc_plusNonnegativeReals, (iscomm_plusNonnegativeReals _ y'), isassoc_plusNonnegativeReals, <- (isassoc_plusNonnegativeReals _ _ (_+_)%NR).
+        apply plusNonnegativeReals_lecompat.
+        eapply istrans_leNonnegativeReals, plusNonnegativeReals_lecompat_r, maxNonnegativeReals_le_l.
+        rewrite iscomm_plusNonnegativeReals, <- maxNonnegativeReals_minus_plus.
+        apply maxNonnegativeReals_le_l.
+        eapply istrans_leNonnegativeReals, plusNonnegativeReals_lecompat_l, maxNonnegativeReals_le_r.
+        rewrite <- maxNonnegativeReals_minus_plus.
+        apply maxNonnegativeReals_le_l.
+      * apply plusNonnegativeReals_le_r.
+  - intros V.
+    unfold UniformSpace.USsmall.
+    apply hinhuniv.
+    intros (e,(He,Hv)).
+    refine (hinhfun _ _).
+    2: refine (Hf (λ z, MetricSpace.ball (M := MS_NonnegativeReals) (hr_to_NRpos (pr1 z)) e (hr_to_NRpos (pr2 z))) _).
+    intros (A,(Ha,Fa)).
+    exists (λ x, ∃ z, x = hr_to_NRpos z × A z).
+    split.
+    + intros x' y'.
+      apply hinhuniv2.
+      intros (x,(->,Hx)) (y,(->,Hy)).
+      apply Hv.
+      now apply Ha.
+    + apply (filter_imply F) with (2 := Fa).
+      intros x Ax.
+      apply hinhpr.
+      now exists x.
+    + apply hinhpr.
+      exists e ; split.
+      exact He.
+      intros x y.
+      apply istrans_le_lt_ltNonnegativeReals.
+      unfold MetricSpace.dist ; simpl.
+      pattern x at 3 ; rewrite <- (NRNRtoR_RtoNRNR x).
+      pattern y at 3 ; rewrite <- (NRNRtoR_RtoNRNR y).
+      unfold hr_to_NRpos, hr_to_NRneg ; simpl.
+      change hr_to_NR with RtoNRNR.
+      generalize (RtoNRNR_NRNRtoR (pr1 (RtoNRNR x)) (pr2 (RtoNRNR x)))
+                 (RtoNRNR_NRNRtoR (pr1 (RtoNRNR y)) (pr2 (RtoNRNR y))).
+      rewrite 2!NRNRtoR_RtoNRNR.
+      generalize (RtoNRNR x) (RtoNRNR y) ;
+        clear x y ;
+        intros (x,x') (y,y') ; simpl ; intros Hx Hy.
+      apply istrans_leNonnegativeReals
+      with (Rabs (NRNRtoR x x' - NRNRtoR y y')%R).
+      rewrite <- NRNRtoR_minus.
+      unfold Rabs, hr_abs.
+      unfold hr_to_NRpos, hr_to_NRneg ; simpl.
+      apply maxNonnegativeReals_le.
+      * apply_pr2 (plusNonnegativeReals_lecompat_l (x' + y)%NR).
+        rewrite (iscomm_plusNonnegativeReals _ y), <- isassoc_plusNonnegativeReals, <- maxNonnegativeReals_minus_plus.
+        rewrite !isrdistr_max_plusNonnegativeReals, <- maxNonnegativeReals_minus_plus.
+        apply maxNonnegativeReals_le.
+        generalize (maponpaths pr1 Hx) ; simpl ; intros Hx'.
+        pattern x at 1 ; rewrite Hx', <- maxNonnegativeReals_minus_plus.
+        apply maxNonnegativeReals_le.
+        eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
+        eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
+        apply plusNonnegativeReals_le_l.
+        eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
+        eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_r.
+        apply plusNonnegativeReals_le_r.
+        eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
+        apply maxNonnegativeReals_le_r.
+      * apply_pr2 (plusNonnegativeReals_lecompat_l (x + y')%NR).
+        rewrite <- isassoc_plusNonnegativeReals, <- maxNonnegativeReals_minus_plus.
+        rewrite !isrdistr_max_plusNonnegativeReals, <- maxNonnegativeReals_minus_plus.
+        apply maxNonnegativeReals_le.
+        generalize (maponpaths pr1 Hy) ; simpl ; intros Hy'.
+        pattern y at 1 ; rewrite Hy', <- maxNonnegativeReals_minus_plus.
+        apply maxNonnegativeReals_le.
+        eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_r.
+        eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
+        apply plusNonnegativeReals_le_r.
+        eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_r.
+        eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_r.
+        apply plusNonnegativeReals_le_r.
+        eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
+        apply plusNonnegativeReals_le_r.
+      * assert (∀ x y : NonnegativeReals, x = y -> (x <= y)%NR).
+        { clear.
+          intros x y ->.
+          now apply isrefl_leNonnegativeReals. }
+        apply X.
+        unfold Rminus, CFminus.
+        apply maponpaths, map_on_two_paths, maponpaths ; reflexivity.
+  - intros V.
+    unfold UniformSpace.USsmall.
+    apply hinhuniv.
+    intros (e,(He,Hv)).
+    refine (hinhfun _ _).
+    2: refine (Hf (λ z, MetricSpace.ball (M := MS_NonnegativeReals) (hr_to_NRneg (pr1 z)) e (hr_to_NRneg (pr2 z))) _).
+    intros (A,(Ha,Fa)).
+    exists (λ x, ∃ z, x = hr_to_NRneg z × A z).
+    split.
+    + intros x' y'.
+      apply hinhuniv2.
+      intros (x,(->,Hx)) (y,(->,Hy)).
+      apply Hv.
+      now apply Ha.
+    + apply (filter_imply F) with (2 := Fa).
+      intros x Ax.
+      apply hinhpr.
+      now exists x.
+    + apply hinhpr.
+      exists e ; split.
+      exact He.
+      intros x y.
+      apply istrans_le_lt_ltNonnegativeReals.
+      unfold MetricSpace.dist ; simpl.
+      pattern x at 3 ; rewrite <- (NRNRtoR_RtoNRNR x).
+      pattern y at 3 ; rewrite <- (NRNRtoR_RtoNRNR y).
+      unfold hr_to_NRpos, hr_to_NRneg ; simpl.
+      change hr_to_NR with RtoNRNR.
+      generalize (RtoNRNR_NRNRtoR (pr1 (RtoNRNR x)) (pr2 (RtoNRNR x)))
+                 (RtoNRNR_NRNRtoR (pr1 (RtoNRNR y)) (pr2 (RtoNRNR y))).
+      rewrite 2!NRNRtoR_RtoNRNR.
+      generalize (RtoNRNR x) (RtoNRNR y) ;
+        clear x y ;
+        intros (x,x') (y,y') ; simpl ; intros Hx Hy.
+      apply istrans_leNonnegativeReals
+      with (Rabs (NRNRtoR x x' - NRNRtoR y y')%R).
+      rewrite <- NRNRtoR_minus.
+      unfold Rabs, hr_abs.
+      unfold hr_to_NRpos, hr_to_NRneg ; simpl.
+      apply maxNonnegativeReals_le.
+      * apply_pr2 (plusNonnegativeReals_lecompat_l (x + y')%NR).
+        rewrite (iscomm_plusNonnegativeReals _ y'), <- isassoc_plusNonnegativeReals, <- maxNonnegativeReals_minus_plus.
+        rewrite !isrdistr_max_plusNonnegativeReals, <- maxNonnegativeReals_minus_plus.
+        apply maxNonnegativeReals_le.
+        generalize (maponpaths (pr2 (P := λ _, _)) Hx) ; simpl ; intros Hx'.
+        pattern x' at 1 ; rewrite Hx', <- maxNonnegativeReals_minus_plus.
+        apply maxNonnegativeReals_le.
+        eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_r.
+        eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
+        apply plusNonnegativeReals_le_l.
+        eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_r.
+        eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_r.
+        apply plusNonnegativeReals_le_r.
+        eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
+        apply plusNonnegativeReals_le_r.
+      * apply_pr2 (plusNonnegativeReals_lecompat_l (x' + y)%NR).
+        rewrite <- isassoc_plusNonnegativeReals, <- maxNonnegativeReals_minus_plus.
+        rewrite !isrdistr_max_plusNonnegativeReals, <- maxNonnegativeReals_minus_plus.
+        apply maxNonnegativeReals_le.
+        generalize (maponpaths (pr2 (P := λ _, _)) Hy) ; simpl ; intros Hy'.
+        pattern y' at 1 ; rewrite Hy', <- maxNonnegativeReals_minus_plus.
+        apply maxNonnegativeReals_le.
+        eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
+        eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
+        apply plusNonnegativeReals_le_r.
+        eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
+        eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_r.
+        apply plusNonnegativeReals_le_r.
+        eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
+        apply maxNonnegativeReals_le_r.
+      * assert (∀ x y : NonnegativeReals, x = y -> (x <= y)%NR).
+        { clear.
+          intros x y ->.
+          now apply isrefl_leNonnegativeReals. }
+        apply X.
+        unfold Rminus, CFminus.
+        apply maponpaths, map_on_two_paths, maponpaths ; reflexivity.
+Qed.
