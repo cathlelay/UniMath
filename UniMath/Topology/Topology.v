@@ -526,8 +526,10 @@ Proof.
   intros X N Hn x.
   split.
   - apply isNeighborhood_isPreFilter, Hn.
-  - intros H.
-    apply ((pr1 (pr2 (pr2 (pr2 Hn)))) _ _ H).
+  - intros A Fa.
+    apply hinhpr.
+    exists x.
+    apply ((pr1 (pr2 (pr2 (pr2 Hn)))) _ _ Fa).
 Qed.
 
 (** *** Generated Topology *)

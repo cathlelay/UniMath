@@ -5408,9 +5408,6 @@ Lemma CUS_NonnegativeReals :
 Proof.
   intros F Hf.
 
-  assert (Hne : ∀ A, F A -> ∃ x, A x).
-  { admit. }
-
   assert (H : ∀ (e : NonnegativeReals) (He : (0 < e)%NR), US_NonnegativeReals (λ z : NonnegativeReals × NonnegativeReals, ball (M := MS_NonnegativeReals) (pr1 z) e (pr2 z))).
   { intros e He.
     apply hinhpr.
@@ -5446,7 +5443,7 @@ Proof.
       generalize (NonnegativeReals_dense _ _ (pr1 (ispositive_halfNonnegativeReals _) Hc)).
       apply hinhuniv.
       intros r.
-      generalize (Hne _ (pr2 (pr2 A))).
+      generalize (filter_notempty _ _ (pr2 (pr2 A))).
       apply hinhuniv.
       intros a.
       generalize (is_Dcuts_error (pr1 a) _ (pr2 (NonnegativeRationals_to_NonnegativeReals_lt _ _) (pr1 (pr2 r)))).
@@ -5482,7 +5479,7 @@ Proof.
         exists (pr1 a - c / 2)%NR.
         split.
         * intros B Fb.
-          generalize (Hne _ (filter_and _ _ _ (pr2 (pr2 A)) Fb)).
+          generalize (filter_notempty _ _ (filter_and _ _ _ (pr2 (pr2 A)) Fb)).
           apply hinhfun.
           intros b.
           exists (pr1 b).
@@ -5530,7 +5527,7 @@ Proof.
   intros A.
   eapply filter_imply.
   intros y Hy.
-  generalize (Hne _ (pr2 (pr2 A))).
+  generalize (filter_notempty _ _ (pr2 (pr2 A))).
   apply hinhuniv.
   intros a.
   rewrite (double_halfNonnegativeReals e).
@@ -5572,7 +5569,7 @@ Proof.
         exists (pr1 a - e / 2)%NR.
         split.
         intros B Fb.
-        generalize (Hne _ (filter_and _ _ _ (pr2 (pr2 A)) Fb)).
+        generalize (filter_notempty _ _ (filter_and _ _ _ (pr2 (pr2 A)) Fb)).
         apply hinhfun.
         intros b.
         exists (pr1 b).
@@ -5596,7 +5593,7 @@ Proof.
     apply Hy.
   - apply (pr2 (pr2 A)).
 
-Admitted.
+Qed.
 
 
 Lemma continuous_plusNonnegativeReals :
@@ -5885,7 +5882,7 @@ Proof.
   intros x Hx.
   apply hinhpr.
   mkpair.
-  { intros P HP H ; apply H ; clear H.
+  { intros P HP.
     generalize (pr2 (Topology.TopologyFromNeighborhood_correct _ _ _ _) HP) ; clear HP.
     apply hinhuniv.
     intros U.

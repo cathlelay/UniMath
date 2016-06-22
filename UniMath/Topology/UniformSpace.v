@@ -249,10 +249,12 @@ Proof.
   exists F.
   split.
   - apply (pr2 (UniformeStructure_PreFilter F)).
-  - abstract (intro H ;
-               simple refine (hinhuniv' isapropempty _ x0) ;
-               clear x0 ; intros x0 ;
-               apply ((pr1 (pr2 (pr2 (pr2 F)))) _ H x0)).
+  - abstract (intros A Fa ;
+              revert x0 ;
+              apply hinhfun ;
+              intros x0 ;
+              exists (x0,,x0) ;
+              now apply (UniformStructure_diag F)).
 Defined.
 
 Lemma UniformStructure_square {X : UU} (F : UniformStructure X) :
@@ -404,13 +406,14 @@ Proof.
     intros (A,(Ha,_)).
     exists A.
     exact Ha.
-  - intros H.
+  - intros A Ha.
     revert x0.
-    apply hinhuniv'.
-    apply isapropempty.
+    apply hinhuniv.
     intros x0.
-    apply Hincl in H.
-    apply (UniformStructure_diag _ _ H x0).
+    apply Hincl in Ha.
+    apply hinhpr.
+    exists (x0,,x0).
+    now apply (UniformStructure_diag F).
 Qed.
 
 Lemma isUSbase_filterbase {X : UU} (F : UniformStructure X) (base : (X × X -> hProp) -> hProp) :
