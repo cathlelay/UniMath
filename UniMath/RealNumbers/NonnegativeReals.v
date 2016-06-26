@@ -4642,6 +4642,12 @@ Proof.
   -  intros ->.
      split ; apply isrefl_leNonnegativeReals.
 Qed.
+Lemma eqNonnegativeReals_le :
+  ∀ x y : NonnegativeReals, x = y -> x <= y.
+Proof.
+  intros x y ->.
+  apply isrefl_leNonnegativeReals.
+Qed.
 
 Definition istrans_ltNonnegativeReals :
   ∀ x y z : NonnegativeReals, x < y → y < z → x < z
