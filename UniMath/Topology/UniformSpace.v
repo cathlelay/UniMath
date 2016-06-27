@@ -17,30 +17,25 @@ Definition subset_inv {X : UU} (A : X × X -> hProp) :=
   λ x : X × X, A (pr2 x ,, pr1 x).
 Fixpoint subset_pow {X : hSet} (A : X × X -> hProp) (n : nat) :=
   match n with
-  | O => λ x : X × X, hProppair (pr1 x = pr2 x) (pr2 X _ _)
-  | S n => subset_prod A (subset_pow A n)
+    | O => λ x : X × X, hProppair (pr1 x = pr2 x) (pr2 X _ _)
+    | 1%nat => A
+    | S n => subset_prod A (subset_pow A n)
   end.
 
-Lemma subset_pow_1 {X : hSet} (A : X × X -> hProp) :
-  subset_pow A 1 = A.
-Proof.
-  intros X A.
-  apply funextfun.
-  intros (x,y).
-  apply uahp.
-  - apply hinhuniv.
-    simpl.
-    intros (z,(Az,->)).
-    exact Az.
-  - intros H.
-    apply hinhpr.
-    now exists y.
-Qed.
 Lemma subset_pow_S {X : hSet} (A : X × X -> hProp) (n : nat) :
   subset_pow A (S n) = subset_prod A (subset_pow A n).
 Proof.
-  intros X A.
-  easy.
+  intros X A [ | n].
+  - apply funextfun ; intros (x,y).
+    apply uahp.
+    + intros Ha ; apply hinhpr.
+      exists y.
+      easy.
+    + apply hinhuniv.
+      simpl.
+      intros (z,(Ha,<-)).
+      exact Ha.
+  - reflexivity.
 Qed.
 
 Lemma isassoc_subset_prod {X : UU} :
@@ -293,15 +288,14 @@ Proof.
     now apply fromempty.
     clear Hn.
     induction n.
-    rewrite subset_pow_1.
     now apply Hincl.
+    rewrite subset_pow_S.
     generalize (Hrep _ IHn).
     apply hinhuniv.
     intros (Q',(BQ',HQ')).
     generalize (UniformStructure_and F _ _ (Hincl _ BQ) (Hincl _ BQ')).
     apply (UniformStructure_imply F).
     intros (x,y) (Qx,Q'x).
-    rewrite subset_pow_S.
     apply hinhpr.
     exists x.
     split.
@@ -314,8 +308,7 @@ Proof.
     intros (Q,(Bq,Hq)).
     exists Q ; split.
     apply hinhpr.
-    exists 1%nat, Q.
-    now rewrite subset_pow_1.
+    now exists 1%nat, Q.
     exact Hq.
 Qed.
 
@@ -745,6 +738,132 @@ Definition UScontinuous2d_on {X Y Z : UniformSpace}
 Definition UScontinuous2d {X Y Z : UniformSpace} (f : X → Y → Z)  :=
   ∀ x y, UScontinuous2d_at f x y.
 
+(** ** Uniform continuity *)
+
+Definition UniformlyContinuous {X Y : UniformSpace} (f : X → Y) :=
+  ∀ V, pr2 Y V → pr2 X (λ xx : X × X, V (f (pr1 xx) ,, f (pr2 xx))).
+
+Lemma UniformlyContinuous_UScontinuous {X Y : UniformSpace} (f : X → Y) :
+  UniformlyContinuous f → UScontinuous f.
+Proof.
+  intros X Y f Cf x P.
+  apply hinhfun.
+  intros (U,(Yu,Hp)).
+  specialize (Cf _ Yu).
+  eexists.
+  split.
+  apply Cf.
+  intros y.
+  apply Hp.
+Qed.
+
+Definition UniformSpace_dirprod (X Y : UniformSpace) : UniformSpace.
+Proof.
+  intros X Y.
+  exists (X × Y).
+  simple refine (mkUniformStructure _ _ _ _ _ _ _).
+  - intros U.
+    apply (∃ (Ux : X × X → hProp) (Uy : Y × Y → hProp),
+             (pr2 X Ux)
+               × (pr2 Y Uy)
+               × (∀ x y, Ux x → Uy y → U ((pr1 x ,, pr1 y) ,, (pr2 x ,, pr2 y)))).
+  - intros A B H.
+    apply hinhfun.
+    intros (Ux,(Uy,(Hx,(Hy,Ha)))).
+    exists Ux, Uy.
+    repeat split.
+    exact Hx.
+    exact Hy.
+    intros x y Uxx Uyy.
+    now apply H, Ha.
+  - apply hinhpr.
+    exists (λ _, htrue), (λ _, htrue).
+    repeat split.
+    + apply UniformStructure_true.
+    + apply UniformStructure_true.
+  - intros A B.
+    apply hinhfun2.
+    intros (Ax,(Ay,(Xa,(Ya,Ha)))).
+    intros (Bx,(By,(Xb,(Yb,Hb)))).
+    exists (λ x, Ax x ∧ Bx x), (λ y, Ay y ∧ By y).
+    repeat split.
+    now apply UniformStructure_and.
+    now apply UniformStructure_and.
+    apply Ha.
+    apply (pr1 X0).
+    apply (pr1 X1).
+    apply Hb.
+    apply (pr2 X0).
+    apply (pr2 X1).
+  - intros P Hp (x,y).
+    revert Hp.
+    apply hinhuniv.
+    intros (Ux,(Uy,(Hx,(Hy,Ha)))).
+    apply (Ha (x,,x) (y,,y)).
+    now apply (UniformStructure_diag (pr2 X)).
+    now apply (UniformStructure_diag (pr2 Y)).
+  - intros P.
+    apply hinhfun.
+    intros (Ux,(Uy,(Hx,(Hy,Ha)))).
+    exists (subset_inv Ux), (subset_inv Uy).
+    repeat split.
+    now apply UniformStructure_symm.
+    now apply UniformStructure_symm.
+    intros x y.
+    apply Ha.
+  - intros P.
+    apply hinhuniv.
+    intros (Ux,(Uy,(Hx,(Hy,Ha)))).
+    generalize (UniformStructure_squareroot _ _ Hx) (UniformStructure_squareroot _ _ Hy).
+    apply hinhfun2.
+    intros (Qx,(Xq,Hqx)) (Qy,(Yq,Hqy)).
+    exists (λ z : (X × Y) × X × Y,
+                  Qx (pr1 (pr1 z) ,, pr1 (pr2 z))
+                  ∧ Qy (pr2 (pr1 z) ,, pr2 (pr2 z))).
+    split.
+    + apply hinhpr.
+      exists Qx, Qy.
+      repeat split ; simpl.
+      exact Xq.
+      exact Yq.
+      now destruct x.
+      now destruct y.
+    + intros ((x,x'),(y,y')).
+      apply hinhuniv.
+      intros ((z,z')) ; simpl.
+      intros ((Qxz,Qxz'),(Qzy,Qzy')).
+      apply (Ha (x,,y) (x',,y')).
+      apply Hqx.
+      apply hinhpr.
+      now exists z.
+      apply Hqy.
+      apply hinhpr.
+      now exists z'.
+Defined.
+
+Lemma UniformlyContinuous_pr1 {X Y : UniformSpace} :
+  UniformlyContinuous (X := UniformSpace_dirprod X Y) (λ x : X × Y, pr1 x).
+Proof.
+  intros X Y V Hv.
+  apply hinhpr.
+  exists V, (λ _, htrue).
+  repeat split ; simpl.
+  exact Hv.
+  apply UniformStructure_true.
+  now intros (x,y).
+Qed.
+Lemma UniformlyContinuous_pr2 {X Y : UniformSpace} :
+  UniformlyContinuous (X := UniformSpace_dirprod X Y) (λ x : X × Y, pr2 x).
+Proof.
+  intros X Y V Hv.
+  apply hinhpr.
+  exists (λ _, htrue), V.
+  repeat split ; simpl.
+  apply UniformStructure_true.
+  exact Hv.
+  now intros _ (x,y).
+Qed.
+
 (** ** Complete spaces *)
 (** *** Def 1 *)
 
@@ -805,4 +924,28 @@ Proof.
     split.
     now apply UniformStructure_symm.
     easy.
+Qed.
+
+Lemma isCauchy_filter_im {X Y : UniformSpace} (F : Filter X) (f : X → Y) :
+  UniformlyContinuous f
+  → isCauchy_filter (pr2 X) F
+  → isCauchy_filter (pr2 Y) (FilterIm f F).
+Proof.
+  intros X Y F f Cf H.
+  intros V Hv.
+  refine (hinhfun _ _).
+  2: simple refine (H (λ x : X × X, V (f (pr1 x),,f (pr2 x))) _).
+  - intros (A,(Ha,Fa)).
+    exists (λ y : Y, ∃ x : X, y = f x × A x).
+    split.
+    + intros x' y'.
+      apply hinhuniv2.
+      intros (x,(->,Ax)) (y,(->,Ay)).
+      now apply Ha.
+    + revert Fa.
+      apply (filter_imply F).
+      intros x Ax.
+      apply hinhpr.
+      now exists x.
+  - now apply Cf.
 Qed.

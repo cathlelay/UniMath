@@ -1110,6 +1110,103 @@ Definition continuous2d_base_at {U V W : TopologicalSet} (f : U → V → W)
               (FilterDirprod (locally_base x base_x) (locally_base y base_y))
               (f x y) base_fxy.
 
+(** *** Continuity of basic functions *)
+
+Lemma continuous_comp {X : UU} {U V : TopologicalSet} (f : X → U) (g : U → V) (F : Filter X) (l : U) :
+  is_lim f F l → continuous_at g l →
+  is_lim (funcomp f g) F (g l).
+Proof.
+  intros X U V f g F l.
+  apply filterlim_comp.
+Qed.
+Lemma continuous2d_comp {X : UU} {U V W : TopologicalSet} (f : X → U) (g : X → V) (h : U → V → W) (F : Filter X) (lf : U) (lg : V) :
+  is_lim f F lf → is_lim g F lg → continuous2d_at h lf lg →
+  is_lim (λ x, h (f x) (g x)) F (h lf lg).
+Proof.
+  intros X U V W f g h F lf lg Hf Hg.
+  apply (filterlim_comp (λ x, (f x ,, g x))).
+  intros P.
+  apply hinhuniv.
+  intros Hp.
+  generalize (filter_and F _ _ (Hf _ (pr1 (pr2 (pr2 Hp)))) (Hg _ (pr1 (pr2 (pr2 (pr2 Hp)))))).
+  apply (filter_imply F).
+  intros x (fx,gx).
+  now apply (pr2 (pr2 (pr2 (pr2 Hp)))).
+Qed.
+
+Lemma continuous_tpair {U V : TopologicalSet} :
+  continuous2d (W := TopologyDirprod U V) (λ (x : U) (y : V), (x,,y)).
+Proof.
+  intros U V x y P.
+  apply hinhuniv.
+  intros (O,(Oxy,Hp)).
+  simple refine (filter_imply _ _ _ _ _).
+  - exact O.
+  - exact Hp.
+  - generalize (pr2 O _ Oxy).
+    apply hinhfun.
+    intros Ho.
+    exists (pr1 Ho), (pr1 (pr2 Ho)).
+    repeat split.
+    + apply (pr2 (neighborhood_isOpen _)).
+      exact (pr2 (pr1 (pr2 (pr2 Ho)))).
+      exact (pr1 (pr1 (pr2 (pr2 Ho)))).
+    + apply (pr2 (neighborhood_isOpen _)).
+      exact (pr2 (pr1 (pr2 (pr2 (pr2 Ho))))).
+      exact (pr1 (pr1 (pr2 (pr2 (pr2 Ho))))).
+    + exact (pr2 (pr2 (pr2 (pr2 Ho)))).
+Qed.
+Lemma continuous_pr1 {U V : TopologicalSet} :
+  continuous (U := TopologyDirprod U V) (λ (xy : U × V), pr1 xy).
+Proof.
+  intros U V (x,y) P.
+  apply hinhuniv.
+  intros (O,(Ox,Hp)).
+  simple refine (filter_imply _ _ _ _ _).
+  - exact O.
+  - exact Hp.
+  - apply hinhpr.
+    mkpair.
+    mkpair.
+    + apply (λ xy : U × V, O (pr1 xy)).
+    + intros xy Oxy.
+      apply hinhpr.
+      exists O, (λ _, htrue).
+      repeat split.
+      exact Oxy.
+      exact (pr2 O).
+      exact isOpen_htrue.
+      easy.
+    + repeat split.
+      * exact Ox.
+      * easy.
+Qed.
+Lemma continuous_pr2 {U V : TopologicalSet} :
+  continuous (U := TopologyDirprod U V) (λ (xy : U × V), pr2 xy).
+Proof.
+  intros U V (x,y) P.
+  apply hinhuniv.
+  intros (O,(Oy,Hp)).
+  simple refine (filter_imply _ _ _ _ _).
+  - exact O.
+  - exact Hp.
+  - apply hinhpr.
+    mkpair.
+    mkpair.
+    + apply (λ xy : U × V, O (pr2 xy)).
+    + intros xy Oxy.
+      apply hinhpr.
+      exists (λ _, htrue), O.
+      repeat split.
+      exact isOpen_htrue.
+      exact Oxy.
+      exact (pr2 O).
+      easy.
+    + repeat split.
+      * exact Oy.
+      * easy.
+Qed.
+
 (** ** Topology in algebraic structures *)
 
 Definition isTopological_monoid (X : monoid) (is : isTopologicalSet X) :=
