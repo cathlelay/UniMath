@@ -1516,6 +1516,31 @@ Proof.
   apply NRNRtoR_one.
 Qed.
 
+Lemma Rabs_NRNRtoR :
+  ∀ x y : NonnegativeReals,
+    Rabs (NRNRtoR x y) = MetricSpace.dist (X := MS_NonnegativeReals) x y.
+Proof.
+  intros x y.
+  reflexivity.
+Qed.
+
+Lemma Rabs_pr1RtoNRNR :
+  ∀ x : Reals,
+    (pr1 (RtoNRNR x) <= Rabs x)%NR.
+Proof.
+  intros x.
+  rewrite <- (NRNRtoR_RtoNRNR x), Rabs_NRNRtoR.
+  apply maxNonnegativeReals_le_l.
+Qed.
+Lemma Rabs_pr2RtoNRNR :
+  ∀ x : Reals,
+    (pr2 (RtoNRNR x) <= Rabs x)%NR.
+Proof.
+  intros x.
+  rewrite <- (NRNRtoR_RtoNRNR x), Rabs_NRNRtoR.
+  apply maxNonnegativeReals_le_r.
+Qed.
+
 (** ** Theorems about apartness and order *)
 
 Lemma ispositive_Rone : 0 < 1.
@@ -1874,6 +1899,14 @@ Proof.
   exact hr_abs_mult.
 Qed.
 
+Lemma Rabs_Ropp :
+  ∀ x : Reals, (Rabs (- x)%R = Rabs x).
+Proof.
+  intros x.
+  rewrite <- (NRNRtoR_RtoNRNR x).
+  apply iscomm_maxNonnegativeReals.
+Qed.
+
 (** ** Analysis *)
 
 Require Export UniMath.Analysis.NormedSpace.
@@ -1916,13 +1949,14 @@ Proof.
       split.
       * now apply hr_to_NRnegpos_zero.
       * now apply_pr2 ispositive_apNonnegativeReals.
-  - unfold Rabs, hr_abs, hr_to_NRpos, hr_to_NRneg ; simpl.
-    rewrite minusNonnegativeReals_eq_zero.
-    rewrite <- (minusNonnegativeReals_correct_r _ 1%NR).
-    apply maxNonnegativeReals_carac_r.
-    apply isnonnegative_NonnegativeReals.
+  - rewrite Rabs_Ropp.
+    unfold Rabs, hr_abs ; simpl.
+    rewrite maxNonnegativeReals_carac_l.
+    apply pathsinv0, (minusNonnegativeReals_correct_r _ 1%NR) ; simpl.
     apply pathsinv0, isrunit_zero_plusNonnegativeReals.
+    rewrite (pr2 (hr_to_NR_nonnegative _)).
     apply isnonnegative_NonnegativeReals.
+    apply Rlt_Rle, ispositive_Rone.
   - intros x y.
     apply Dcuts_min_carac_l.
     apply istriangle_Rabs.

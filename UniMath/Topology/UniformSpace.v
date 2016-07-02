@@ -27,7 +27,7 @@ Lemma subset_pow_S {X : hSet} (A : X × X -> hProp) (n : nat) :
 Proof.
   intros X A [ | n].
   - apply funextfun ; intros (x,y).
-    apply uahp.
+    apply hPropUnivalence.
     + intros Ha ; apply hinhpr.
       exists y.
       easy.
@@ -45,7 +45,7 @@ Proof.
   intros A B C.
   apply funextfun.
   intros x.
-  apply uahp.
+  apply hPropUnivalence.
   - apply hinhuniv.
     intros (z,(H,Hc)).
     revert H.
