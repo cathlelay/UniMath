@@ -1,6 +1,6 @@
 (** * Additionals theorems and definitions *)
 
-Require Export UniMath.Topology.Prelim.
+Require Export UniMath.Topology.Miscellaneous.
 
 Unset Automatic Introduction. (* This line has to be removed for the file to compile with Coq8.2 *)
 
@@ -58,7 +58,7 @@ Proof.
 Qed.
 
 Lemma hqgth_hqneq :
-  ∀ x y : hq, x > y → hqneq x y.
+  forall x y : hq, x > y -> hqneq x y.
 Proof.
   intros x y Hlt Heq.
   rewrite Heq in Hlt.
@@ -66,20 +66,20 @@ Proof.
 Qed.
 
 Lemma hqldistr :
-  ∀ x y z, x * (y + z) = x * y + x * z.
+  forall x y z, x * (y + z) = x * y + x * z.
 Proof.
   intros x y z.
   now apply rngldistr.
 Qed.
 
 Lemma hqmult2r :
-  ∀ x : hq, x * 2 = x + x.
+  forall x : hq, x * 2 = x + x.
 Proof.
   intros x.
   now rewrite hq2eq1plus1, hqldistr, (hqmultr1 x).
 Qed.
 
-Lemma hqplusdiv2 : ∀ x : hq, x = (x + x) / 2.
+Lemma hqplusdiv2 : forall x : hq, x = (x + x) / 2.
   intros x.
   apply hqmultrcan with 2.
   now apply hqgth_hqneq, hq2_gt0.
@@ -92,7 +92,7 @@ Lemma hqplusdiv2 : ∀ x : hq, x = (x + x) / 2.
 Qed.
 
 Lemma hqlth_between :
-  ∀ x y : hq, x < y → Σ z, dirprod (x < z) (z < y).
+  forall x y : hq, x < y -> total2 (fun z => dirprod (x < z) (z < y)).
 Proof.
   assert (H0 : / 2 > 0).
   { apply hqgthandmultlinv with 2.
@@ -119,8 +119,8 @@ Proof.
 Qed.
 
 Lemma hq0lehandplus:
-  ∀ n m : hq,
-    0 <= n → 0 <= m → 0 <= (n + m).
+  forall n m : hq,
+    0 <= n -> 0 <= m -> 0 <= (n + m).
 Proof.
   intros n m Hn Hm.
   eapply istranshqleh, hqlehandplusl, Hm.
@@ -128,14 +128,14 @@ Proof.
 Qed.
 
 Lemma hq0lehandmult:
-  ∀ n m : hq, 0 <= n → 0 <= m → 0 <= n * m.
+  ∀ n m : hq, 0 <= n -> 0 <= m -> 0 <= n * m.
 Proof.
   intros n m.
   exact hqmultgeh0geh0.
 Qed.
 
 Lemma hq0leminus :
-  ∀ r q : hq, r <= q → 0 <= q - r.
+  forall r q : hq, r <= q -> 0 <= q - r.
 Proof.
   intros r q Hr.
   apply hqlehandplusrinv with r.
@@ -144,7 +144,7 @@ Proof.
   now rewrite hqplusl0, hqplusr0.
 Qed.
 
-Lemma hqinv_gt0 (x : hq) : 0 < x → 0 < / x.
+Lemma hqinv_gt0 (x : hq) : 0 < x -> 0 < / x.
 Proof.
   unfold hqlth.
   intros x Hx.
@@ -158,7 +158,7 @@ Proof.
 Qed.
 
 Lemma hztohqandleh':
-  ∀ n m : hz, (hztohq n <= hztohq m)%hq → hzleh n m.
+  ∀ n m : hz, (hztohq n <= hztohq m)%hq -> hzleh n m.
 Proof.
   intros n m Hle Hlt.
   apply Hle.
@@ -166,7 +166,7 @@ Proof.
   exact Hlt.
 Qed.
 Lemma hztohqandlth':
-  ∀ n m : hz, (hztohq n < hztohq m)%hq → hzlth n m.
+  ∀ n m : hz, (hztohq n < hztohq m)%hq -> hzlth n m.
 Proof.
   intros n m Hlt.
   apply neghzgehtolth.
