@@ -511,7 +511,7 @@ Proof.
 Qed.
 
 Lemma isNeighborhood_isPreFilter {X : UU} N :
-  isNeighborhood N -> ∀ x : X, isPreFilter (N x).
+  isNeighborhood N -> Π x : X, isPreFilter (N x).
 Proof.
   intros X N Hn x.
   split.
@@ -521,7 +521,7 @@ Proof.
     + apply (pr1 (pr2 (pr2 Hn))).
 Qed.
 Lemma isNeighborhood_isFilter {X : UU} N :
-  isNeighborhood N -> ∀ x : X, isFilter (N x).
+  isNeighborhood N -> Π x : X, isFilter (N x).
 Proof.
   intros X N Hn x.
   split.

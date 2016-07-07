@@ -15,9 +15,9 @@ Definition isNonnegativeRig {X : rig} (is : islattice X) (lt : StrongOrder X) :=
     × isbinophrel (X := rigaddabmonoid X) lt
     × isinvbinophrel (X := rigaddabmonoid X) lt
     × isrigmultgt X (λ x y, lt y x)
-    × (∀ x : X, Lle (L := _,,is) 0%rig x)
+    × (Π x : X, Lle (L := _,,is) 0%rig x)
     × (lt 0%rig 1%rig)
-    × (∀ x : X,
+    × (Π x : X,
          Σ y : X,
          Lle (L := _,,is) (y + y)%rig x
              × (lt 0%rig x → lt 0%rig y)).
@@ -89,62 +89,62 @@ Proof.
   exact (pr2 (pr2 (NnRap X))).
 Qed.
 Lemma istotal_NnRlt :
-  ∀ x y : X, x ≠ y <-> (x < y) ⨿ (y < x).
+  Π x y : X, x ≠ y <-> (x < y) ⨿ (y < x).
 Proof.
   intros x y.
   apply (istotal_NnMlt (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
 Qed.
 
 Lemma isrefl_NnRle :
-  ∀ x : X, x <= x.
+  Π x : X, x <= x.
 Proof.
   intros x.
   apply (isrefl_Lle (L := _,,(pr1 (pr2 X)))).
 Qed.
 
 Lemma isirrefl_NnRlt :
-  ∀ x : X, ¬ (x < x).
+  Π x : X, ¬ (x < x).
 Proof.
   intros x.
   apply (isirrefl_NnMlt (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
 Qed.
 
 Lemma istrans_NnRlt :
-  ∀ x y z : X, x < y -> y < z -> x < z.
+  Π x y z : X, x < y -> y < z -> x < z.
 Proof.
   apply istrans_StrongOrder.
 Qed.
 Lemma iscotrans_NnRlt :
-  ∀ x y z : X, x < z -> x < y ∨ y < z.
+  Π x y z : X, x < z -> x < y ∨ y < z.
 Proof.
   apply iscotrans_StrongOrder.
 Qed.
 Lemma istrans_NnRle :
-  ∀ x y z : X, x <= y -> y <= z -> x <= z.
+  Π x y z : X, x <= y -> y <= z -> x <= z.
 Proof.
   exact (pr1 (pr1 (pr2 (NnRle _)))).
 Qed.
 Lemma istrans_NnRle_lt :
-  ∀ x y z : X, x <= y -> y < z -> x < z.
+  Π x y z : X, x <= y -> y < z -> x < z.
 Proof.
   intros x y z.
   apply (istrans_NnMle_lt (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
 Qed.
 Lemma istrans_NnRlt_le :
-  ∀ x y z : X, x < y -> y <= z -> x < z.
+  Π x y z : X, x < y -> y <= z -> x < z.
 Proof.
   intros x y z.
   apply (istrans_NnMlt_le (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
 Qed.
 
 Lemma notNnRlt_le :
-  ∀ x y : X, (¬ (x < y)) <-> (y <= x).
+  Π x y : X, (¬ (x < y)) <-> (y <= x).
 Proof.
   intros x y.
   apply (notNnMlt_le (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
 Qed.
 Lemma NnRlt_le :
-  ∀ x y : X, x < y -> x <= y.
+  Π x y : X, x < y -> x <= y.
 Proof.
   intros x y H.
   apply notNnRlt_le.
@@ -156,13 +156,13 @@ Proof.
 Qed.
 
 Lemma isnonnegative_NnR :
-  ∀ x : X, 0 <= x.
+  Π x : X, 0 <= x.
 Proof.
   intros x.
   apply (isnonnegative_NnM (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
 Qed.
 Lemma isnonnegative_NnR' :
-  ∀ x : X, ¬ (x < 0).
+  Π x : X, ¬ (x < 0).
 Proof.
   intros x.
   apply (pr2 (notNnRlt_le _ _)).
@@ -170,20 +170,20 @@ Proof.
 Qed.
 
 Lemma NnRplus_lt_l :
-  ∀ k x y : X, x < y -> k + x < k + y.
+  Π k x y : X, x < y -> k + x < k + y.
 Proof.
   intros k x y.
   apply (pr1 (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))).
 Qed.
 Lemma NnRplus_lt_r :
-  ∀ k x y : X, x < y -> x + k < y + k.
+  Π k x y : X, x < y -> x + k < y + k.
 Proof.
   intros k x y.
   apply (pr2 (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))).
 Qed.
 
 Lemma NnRplus_le_l :
-  ∀ k x y : X, k + x <= k + y -> x <= y.
+  Π k x y : X, k + x <= k + y -> x <= y.
 Proof.
   intros k x y Hle.
   apply notNnRlt_le.
@@ -193,7 +193,7 @@ Proof.
   now apply NnRplus_lt_l.
 Qed.
 Lemma NnRplus_le_r :
-  ∀ k x y : X, x + k <= y + k -> x <= y.
+  Π k x y : X, x + k <= y + k -> x <= y.
 Proof.
   intros k x y Hle.
   apply notNnRlt_le.
@@ -204,7 +204,7 @@ Proof.
 Qed.
 
 Lemma NnRmult_lt :
-  ∀ a b c d : X,
+  Π a b c d : X,
     a < b -> c < d -> ((a * d) + (b * c)) < ((a * c) + (b * d)).
 Proof.
   intros a b c d.
@@ -212,21 +212,21 @@ Proof.
   apply (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))).
 Qed.
 Lemma NnRmult_lt_0 :
-  ∀ x y : X, 0 < x -> 0 < y -> 0 < x * y.
+  Π x y : X, 0 < x -> 0 < y -> 0 < x * y.
 Proof.
   intros x y Hx Hy.
   generalize (NnRmult_lt _ _ _ _ Hx Hy).
   now rewrite !rigmult0x, rigmultx0, !riglunax1.
 Qed.
 Lemma NnRmult_lt_l :
-  ∀ k x y : X, 0 < k -> x < y -> k * x < k * y.
+  Π k x y : X, 0 < k -> x < y -> k * x < k * y.
 Proof.
   intros k x y Hk H.
   generalize (NnRmult_lt _ _ _ _ Hk H).
   now rewrite !rigmult0x, !riglunax1.
 Qed.
 Lemma NnRmult_lt_r :
-  ∀ k x y : X, 0 < k -> x < y -> x * k < y * k.
+  Π k x y : X, 0 < k -> x < y -> x * k < y * k.
 Proof.
   intros k x y Hk H.
   generalize (NnRmult_lt _ _ _ _ H Hk).
@@ -234,7 +234,7 @@ Proof.
 Qed.
 
 Lemma NnRmult_le_l :
-  ∀ k x y : X, 0 < k -> k * x <= k * y -> x <= y.
+  Π k x y : X, 0 < k -> k * x <= k * y -> x <= y.
 Proof.
   intros k x y Hk Hle.
   apply notNnRlt_le.
@@ -244,7 +244,7 @@ Proof.
   now apply NnRmult_lt_l.
 Qed.
 Lemma NnRmult_le_r :
-  ∀ k x y : X, 0 < k -> x * k <= y * k -> x <= y.
+  Π k x y : X, 0 < k -> x * k <= y * k -> x <= y.
 Proof.
   intros k x y Hk Hle.
   apply notNnRlt_le.
@@ -255,7 +255,7 @@ Proof.
 Qed.
 
 Lemma NnRap_lt_0 :
-  ∀ x : X, x ≠ 0 -> 0 < x.
+  Π x : X, x ≠ 0 -> 0 < x.
 Proof.
   intros x Hx.
   apply istotal_NnRlt in Hx.
@@ -266,7 +266,7 @@ Proof.
   exact Hx.
 Qed.
 Lemma NnRlt_ap :
-  ∀ x y : X, x < y -> x ≠ y.
+  Π x y : X, x < y -> x ≠ y.
 Proof.
   intros x y H.
   apply (pr2 (istotal_NnRlt _ _)).
@@ -274,7 +274,7 @@ Proof.
 Qed.
 
 Lemma isantisymm_NnRle :
-  ∀ x y : X, x <= y -> y <= x -> x = y.
+  Π x y : X, x <= y -> y <= x -> x = y.
 Proof.
   intros x y Hge Hle.
   apply istight_NnRap.
@@ -294,33 +294,33 @@ Proof.
 Qed.
 
 Lemma NnRmin_le_l :
-  ∀ (x y : X), (NnRmin x y) <= x.
+  Π (x y : X), (NnRmin x y) <= x.
 Proof.
   apply (NnMmin_le_l (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
 Qed.
 Lemma NnRmin_le_r :
-  ∀ (x y : X), (NnRmin x y) <= y.
+  Π (x y : X), (NnRmin x y) <= y.
 Proof.
   apply (NnMmin_le_r (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
 Qed.
 Lemma NnRmin_gt:
-  ∀ (x y z : X),
+  Π (x y z : X),
     z < x → z < y → z < (NnRmin x y).
 Proof.
   apply (NnMmin_gt (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
 Qed.
 Lemma NnRmax_le_l :
-  ∀ (x y : X), x <= (NnRmax x y).
+  Π (x y : X), x <= (NnRmax x y).
 Proof.
   apply (NnMmax_le_l (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
 Qed.
 Lemma NnRmax_le_r :
-  ∀ (x y : X), y <= (NnRmax x y).
+  Π (x y : X), y <= (NnRmax x y).
 Proof.
   apply (NnMmax_le_r (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
 Qed.
 Lemma NnRmax_gt:
-  ∀ (x y z : X),
+  Π (x y z : X),
     x < z → y < z → (NnRmax x y) < z.
 Proof.
   apply (NnMmax_gt (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
@@ -336,12 +336,12 @@ Proof.
   apply (isassoc_NnMmin (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
 Qed.
 Lemma NnRmin_eq_l:
-  ∀ (x y : X), x <= y → NnRmin x y = x.
+  Π (x y : X), x <= y → NnRmin x y = x.
 Proof.
   apply (NnMmin_eq_l (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
 Qed.
 Lemma NnMmin_eq_r:
-  ∀ (x y : X), y <= x → NnRmin x y = y.
+  Π (x y : X), y <= x → NnRmin x y = y.
 Proof.
   apply (NnMmin_eq_r (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
 Qed.
@@ -357,37 +357,37 @@ Proof.
   apply (isassoc_NnMmax (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
 Qed.
 Lemma NnRmax_eq_l:
-  ∀ (x y : X), y <= x → NnRmax x y = x.
+  Π (x y : X), y <= x → NnRmax x y = x.
 Proof.
   apply (NnMmax_eq_l (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
 Qed.
 Lemma NnMmax_eq_r:
-  ∀ (x y : X), x <= y → NnRmax x y = y.
+  Π (x y : X), x <= y → NnRmax x y = y.
 Proof.
   apply (NnMmax_eq_r (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
 Qed.
 
 Lemma NnRminus_lt_pos:
-  ∀ (x y : X),
+  Π (x y : X),
     y < x → 0%rig < (NnRminus x y).
 Proof.
   apply (NnMminus_lt_pos (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
 Qed.
 Lemma NnRminus_plus:
-  ∀ (x y : X),
+  Π (x y : X),
   (NnRminus x y + y)%rig = NnRmax x y.
 Proof.
   apply (NnMminus_plus (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
 Qed.
 
 Lemma NnRhalf_carac:
-  ∀ (x : X),
+  Π (x : X),
     (NnRhalf x + NnRhalf x)%rig <= x.
 Proof.
   apply (NnMhalf_carac (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
 Qed.
 Lemma NnRhalf_pos:
-  ∀ (x : X),
+  Π (x : X),
     0 < x → 0 < (NnRhalf x).
 Proof.
   apply (NnMhalf_pos (X := NonnegativeRig_to_NonnegativeAddMonoid X)).
@@ -399,10 +399,10 @@ End NonnegativeRig_pty.
 
 Definition ismodule (K : rng) (X : abgr) (ap : tightap X) (scal : K -> X -> X) :=
   (isbinophrel ap)
-  × (∀ (a : K) (x y : X), scal a (x + y)%addmonoid = (scal a x + scal a y)%addmonoid)
-  × (∀ (a b : K) (x : X), scal (a + b) x = (scal a x + scal b x)%addmonoid)
-  × (∀ (a b : K) (x : X), scal (a * b) x = scal a (scal b x))
-  × (∀ x : X, scal (- (1))%rng x = grinv _ x).
+  × (Π (a : K) (x y : X), scal a (x + y)%addmonoid = (scal a x + scal a y)%addmonoid)
+  × (Π (a b : K) (x : X), scal (a + b) x = (scal a x + scal b x)%addmonoid)
+  × (Π (a b : K) (x : X), scal (a * b) x = scal a (scal b x))
+  × (Π x : X, scal (- (1))%rng x = grinv _ x).
 Definition module (K : rng) :=
   Σ (X : abgr) (ap : tightap X) (scal : K -> X -> X), ismodule K X ap scal.
 Definition pr1module (K : rng) : (module K) -> abgr := pr1.
@@ -419,43 +419,43 @@ Definition scal : K -> X -> X :=
   pr1 (pr2 (pr2 X)).
 
 Lemma Mplus_ap_l :
-  ∀ k x y : X, Map x y -> Map (k + x)%addmonoid (k + y)%addmonoid.
+  Π k x y : X, Map x y -> Map (k + x)%addmonoid (k + y)%addmonoid.
 Proof.
   intros k x y.
   apply (pr1 (pr1 (pr2 (pr2 (pr2 X))))).
 Qed.
 Lemma Mplus_ap_r :
-  ∀ k x y : X, Map x y -> Map (x + k)%addmonoid (y + k)%addmonoid.
+  Π k x y : X, Map x y -> Map (x + k)%addmonoid (y + k)%addmonoid.
 Proof.
   intros k x y.
   apply (pr2 (pr1 (pr2 (pr2 (pr2 X))))).
 Qed.
 
 Lemma isldistr_scal :
-  ∀ (a : K) (x y : X), scal a (x + y)%addmonoid = (scal a x + scal a y)%addmonoid.
+  Π (a : K) (x y : X), scal a (x + y)%addmonoid = (scal a x + scal a y)%addmonoid.
 Proof.
   exact (pr1 (pr2 (pr2 (pr2 (pr2 X))))).
 Qed.
 Lemma isrdistr_scal :
-  ∀ (a b : K) (x : X), scal (a + b) x = (scal a x + scal b x)%addmonoid.
+  Π (a b : K) (x : X), scal (a + b) x = (scal a x + scal b x)%addmonoid.
 Proof.
   exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))).
 Qed.
 
 Lemma isassoc_scal :
-  ∀ (a b : K) (x : X), scal (a * b) x = scal a (scal b x).
+  Π (a b : K) (x : X), scal (a * b) x = scal a (scal b x).
 Proof.
   exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))).
 Qed.
 
 Lemma scal_m1 :
-  ∀ x : X, scal (- (1))%rng x = grinv _ x.
+  Π x : X, scal (- (1))%rng x = grinv _ x.
 Proof.
   exact (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))).
 Qed.
 
 Lemma islunit_scal_1 :
-  ∀ x : X, scal 1%rng x = x.
+  Π x : X, scal 1%rng x = x.
 Proof.
   intros x.
   rewrite <- (rnglunax2 _ 1%rng).
@@ -466,7 +466,7 @@ Proof.
 Qed.
 
 Lemma islabsorb_scal_0 :
-  ∀ x : X, scal 0%rng x = 0%addmonoid.
+  Π x : X, scal 0%rng x = 0%addmonoid.
 Proof.
   intros x.
   rewrite <- (rnglinvax1 _ 1%rng).
@@ -475,7 +475,7 @@ Proof.
   apply grlinvax.
 Qed.
 Lemma israbsorb_scal_0 :
-  ∀ k : K, scal k 0%addmonoid = 0%addmonoid.
+  Π k : K, scal k 0%addmonoid = 0%addmonoid.
 Proof.
   intros k.
   pattern (0%addmonoid : X) at 1.
@@ -499,10 +499,10 @@ End Module_pty.
 
 Definition isabsrng (NR : NonnegativeRig) (K : rng) (ap : tightap K) (abs : K -> NR) :=
   (isbinophrel (X := rngaddabgr K) ap)
-  × (∀ x : K, ap x 0%rng <-> 0 < abs x)
+  × (Π x : K, ap x 0%rng <-> 0 < abs x)
   × (abs (- (1))%rng = 1)
-  × (∀ (x y : K), abs (x + y)%rng <= abs x + abs y)
-  × (∀ (x y : K), abs (x * y)%rng <= abs x * abs y).
+  × (Π (x y : K), abs (x + y)%rng <= abs x + abs y)
+  × (Π (x y : K), abs (x * y)%rng <= abs x * abs y).
 Definition absrng (NR : NonnegativeRig) :=
   Σ (K : rng) (ap : tightap K) (abs : K -> NR), isabsrng NR K ap abs.
 
@@ -517,7 +517,7 @@ Definition absrng_ap : tightap K := (pr1 (pr2 K)).
 Definition abs : K -> NR := (pr1 (pr2 (pr2 K))).
 
 Lemma issepp_abs :
-  ∀ x : K, absrng_ap x 0%rng <-> 0 < abs x.
+  Π x : K, absrng_ap x 0%rng <-> 0 < abs x.
 Proof.
   apply (pr1 (pr2 (pr2 (pr2 (pr2 K))))).
 Qed.
@@ -537,12 +537,12 @@ Proof.
   apply (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 K)))))).
 Qed.
 Lemma istriangle_abs :
-  ∀ (x y : K), abs (x + y)%rng <= abs x + abs y.
+  Π (x y : K), abs (x + y)%rng <= abs x + abs y.
 Proof.
   apply (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 K))))))).
 Qed.
 Lemma issubmult_abs :
-  ∀ (x y : K), abs (x * y)%rng <= abs x * abs y.
+  Π (x y : K), abs (x * y)%rng <= abs x * abs y.
 Proof.
   apply (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 K))))))).
 Qed.
@@ -580,7 +580,7 @@ Context (norm : X -> NR).
 Definition issepp_isnorm : hProp.
 Proof.
   simple refine (hProppair _ _).
-  apply (∀ x : X, (Map x 0%addmonoid) <-> (0 < norm x)).
+  apply (Π x : X, (Map x 0%addmonoid) <-> (0 < norm x)).
   apply impred_isaprop ; intros x.
   apply isapropdirprod.
   apply isapropimpl.
@@ -592,7 +592,7 @@ Defined.
 Definition istriangle_isnorm : hProp.
 Proof.
   simple refine (hProppair _ _).
-  apply (∀ x y : X, (norm (x + y)%addmonoid) <= (norm x + norm y)).
+  apply (Π x y : X, (norm (x + y)%addmonoid) <= (norm x + norm y)).
   apply impred_isaprop ; intros x.
   apply impred_isaprop ; intros y.
   apply propproperty.
@@ -601,7 +601,7 @@ Defined.
 Definition issubmult_isnorm : hProp.
 Proof.
   simple refine (hProppair _ _).
-  apply (∀ (k : K) (x : X), norm (scal k x) <= (abs k * norm x)).
+  apply (Π (k : K) (x : X), norm (scal k x) <= (abs k * norm x)).
   apply impred_isaprop ; intros x.
   apply impred_isaprop ; intros y.
   apply propproperty.
@@ -659,28 +659,28 @@ Context {NR : NonnegativeRig}
         {X : NormedModule K}.
 
 Lemma issepp_norm :
-  ∀ x : X, (Map x 0%addmonoid) <-> (0 < norm x).
+  Π x : X, (Map x 0%addmonoid) <-> (0 < norm x).
 Proof.
   intros.
   now apply (pr1 (pr2 (pr2 X))).
 Qed.
 Lemma istriangle_norm :
-  ∀ x y : X, (norm (x + y)%addmonoid) <= (norm x + norm y).
+  Π x y : X, (norm (x + y)%addmonoid) <= (norm x + norm y).
 Proof.
   intros.
   now apply (pr1 (pr2 (pr2 (pr2 X)))).
 Qed.
 Lemma issubmult_norm :
-  ∀ (k : K) (x : X), norm (scal k x) <= (abs k * norm x).
+  Π (k : K) (x : X), norm (scal k x) <= (abs k * norm x).
 Proof.
   intros.
   now apply (pr2 (pr2 (pr2 (pr2 X)))).
 Qed.
 
 Lemma norm_grinv :
-  ∀ x : X, norm (grinv X x) = norm x.
+  Π x : X, norm (grinv X x) = norm x.
 Proof.
-  assert (∀ x : X, norm (grinv X x) <= norm x).
+  assert (Π x : X, norm (grinv X x) <= norm x).
   { intros x.
     rewrite <- scal_m1.
     eapply istrans_NnRle.
@@ -697,7 +697,7 @@ Proof.
 Qed.
 
 Lemma grinvop :
-  ∀ (x y : X), grinv X (x + y)%addmonoid = (grinv X y + grinv X x)%addmonoid.
+  Π (x y : X), grinv X (x + y)%addmonoid = (grinv X y + grinv X x)%addmonoid.
 Proof.
   intros.
   apply (pr2 (pr2 Map)).
@@ -780,7 +780,7 @@ Definition ex_lim {X : UU} {NR : NonnegativeRig} {K : absrng NR} {V : NormedModu
 
 Lemma is_lim_aux {X : UU} {NR : NonnegativeRig} {K : absrng NR} {V : NormedModule K} (f : X → V) (F : Filter X) (x : V) :
   is_lim f F x <->
-  (∀ eps : NR, 0%rig < eps -> F (λ y : X, ball (M := metric_norm) x eps (f y))).
+  (Π eps : NR, 0%rig < eps -> F (λ y : X, ball (M := metric_norm) x eps (f y))).
 Proof.
   intros X NR K V f F x.
   split ; intros H.
@@ -799,23 +799,23 @@ Qed.
 Definition continuous_at {NR : NonnegativeRig} {K : absrng NR} {U V : NormedModule K} (f : U -> V) (x : U) :=
   is_lim f (locally x) (f x).
 Definition continuous_on {NR : NonnegativeRig} {K : absrng NR} {U V : NormedModule K} (dom : U -> hProp) (f : U -> V) :=
-  ∀ (x : U) (H : dom x) H,
+  Π (x : U) (H : dom x) H,
     is_lim f (FilterDom (locally x) dom H) (f x).
 
 Definition continuous_subtypes {NR : NonnegativeRig} {K : absrng NR} {U V : NormedModule K} (dom : U -> hProp) (f : (Σ x : U, dom x) -> V) :=
-  ∀ (x : Σ x : U, dom x) H,
+  Π (x : Σ x : U, dom x) H,
     is_lim f (FilterSubtype (locally (pr1 x)) dom H) (f x).
 Definition continuous {NR : NonnegativeRig} {K : absrng NR} {U V : NormedModule K} (f : U -> V) :=
-  ∀ x : U, continuous_at f x.
+  Π x : U, continuous_at f x.
 
 (** *** Continuity for 2 variable functions *)
 
 Definition continuous2d_at {NR : NonnegativeRig} {K : absrng NR} {U V W : NormedModule K} (f : U -> V -> W) (x : U) (y : V) :=
   is_lim (λ z : U × V, f (pr1 z) (pr2 z)) (FilterDirprod (locally x) (locally y)) (f x y).
 Definition continuous2d_on {NR : NonnegativeRig} {K : absrng NR} {U V W : NormedModule K} (f : U -> V -> W) (dom : U -> V -> hProp) :=
-  ∀ x y Hz, is_lim (λ z : U × V, f (pr1 z) (pr2 z)) (FilterDom (FilterDirprod (locally x) (locally y)) (λ z : U × V, dom (pr1 z) (pr2 z)) Hz) (f x y).
+  Π x y Hz, is_lim (λ z : U × V, f (pr1 z) (pr2 z)) (FilterDom (FilterDirprod (locally x) (locally y)) (λ z : U × V, dom (pr1 z) (pr2 z)) Hz) (f x y).
 Definition continuous2d {NR : NonnegativeRig} {K : absrng NR} {U V W : NormedModule K} (f : U -> V -> W) :=
-  ∀ (x : U) (y : V), continuous2d_at f x y.
+  Π (x : U) (y : V), continuous2d_at f x y.
 
 (** *** Lemmas of continuity *)
 

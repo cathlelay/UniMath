@@ -1517,7 +1517,7 @@ Proof.
 Qed.
 
 Lemma Rabs_NRNRtoR :
-  ∀ x y : NonnegativeReals,
+  Π x y : NonnegativeReals,
     Rabs (NRNRtoR x y) = MetricSpace.dist (X := MS_NonnegativeReals) x y.
 Proof.
   intros x y.
@@ -1525,7 +1525,7 @@ Proof.
 Qed.
 
 Lemma Rabs_pr1RtoNRNR :
-  ∀ x : Reals,
+  Π x : Reals,
     (pr1 (RtoNRNR x) <= Rabs x)%NR.
 Proof.
   intros x.
@@ -1533,7 +1533,7 @@ Proof.
   apply maxNonnegativeReals_le_l.
 Qed.
 Lemma Rabs_pr2RtoNRNR :
-  ∀ x : Reals,
+  Π x : Reals,
     (pr2 (RtoNRNR x) <= Rabs x)%NR.
 Proof.
   intros x.
@@ -1900,7 +1900,7 @@ Proof.
 Qed.
 
 Lemma Rabs_Ropp :
-  ∀ x : Reals, (Rabs (- x)%R = Rabs x).
+  Π x : Reals, (Rabs (- x)%R = Rabs x).
 Proof.
   intros x.
   rewrite <- (NRNRtoR_RtoNRNR x).
@@ -1977,8 +1977,8 @@ Definition US_Reals : UniformSpace.UniformStructure (MetricSpace.pr1MetricSet MS
   @MetricSpace.metricUniformStructure _ MS_Reals.
 
 Lemma is_filter_lim_NRNRtoR :
-  ∀ F : Filter Reals,
-  ∀ x y : MetricSpace.pr1MetricSet MS_NonnegativeReals,
+  Π F : Filter Reals,
+  Π x y : MetricSpace.pr1MetricSet MS_NonnegativeReals,
     MetricSpace.is_filter_MSlim (M := MS_NonnegativeReals) (FilterIm hr_to_NRpos F) x
     → MetricSpace.is_filter_MSlim (M := MS_NonnegativeReals) (FilterIm hr_to_NRneg F) y
     → is_filter_lim (X := NM_Reals) F (NRNRtoR x y).
@@ -2054,7 +2054,7 @@ Proof.
 Qed.
 
 Lemma CUS_Reals :
-  ∀ F : Filter Reals,
+  Π F : Filter Reals,
     UniformSpace.isCauchy_filter US_Reals F
     → ex_filter_lim (X := NM_Reals) F.
 Proof.

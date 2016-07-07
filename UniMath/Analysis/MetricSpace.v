@@ -15,8 +15,8 @@ Definition islatticeop {X : hSet} (min max : binop X) :=
     × (iscomm min)
     × (isassoc max)
     × (iscomm max)
-    × (∀ x y : X, min x (max x y) = x)
-    × (∀ x y : X, max x (min x y) = x).
+    × (Π x y : X, min x (max x y) = x)
+    × (Π x y : X, max x (min x y) = x).
 Definition islattice (X : hSet) := Σ min max : binop X, islatticeop min max.
 Definition lattice := Σ X : hSet, islattice X.
 Definition pr1lattice : lattice -> setwith2binop :=
@@ -37,8 +37,8 @@ Local Lemma pr2lattice :
     × (iscomm Lmin)
     × (isassoc Lmax)
     × (iscomm Lmax)
-    × (∀ x y : L, Lmin x (Lmax x y) = x)
-    × (∀ x y : L, Lmax x (Lmin x y) = x).
+    × (Π x y : L, Lmin x (Lmax x y) = x)
+    × (Π x y : L, Lmax x (Lmin x y) = x).
 Proof.
   apply (pr2 (pr2 (pr2 L))).
 Qed.
@@ -64,25 +64,25 @@ Proof.
   exact (pr1 (pr2 (pr2 (pr2 pr2lattice)))).
 Qed.
 Lemma Lmin_absorb :
-  ∀ x y : L, Lmin x (Lmax x y) = x.
+  Π x y : L, Lmin x (Lmax x y) = x.
 Proof.
   exact (pr1 (pr2 (pr2 (pr2 (pr2 pr2lattice))))).
 Qed.
 Lemma Lmax_absorb :
-  ∀ x y : L, Lmax x (Lmin x y) = x.
+  Π x y : L, Lmax x (Lmin x y) = x.
 Proof.
   exact (pr2 (pr2 (pr2 (pr2 (pr2 pr2lattice))))).
 Qed.
 
 Lemma Lmin_id :
-  ∀ x : L, Lmin x x = x.
+  Π x : L, Lmin x x = x.
 Proof.
   intros x.
   pattern x at 2 ; rewrite <- (Lmax_absorb x x).
   apply Lmin_absorb.
 Qed.
 Lemma Lmax_id :
-  ∀ x : L, Lmax x x = x.
+  Π x : L, Lmax x x = x.
 Proof.
   intros x.
   pattern x at 2 ; rewrite <- (Lmin_absorb x x).
@@ -113,7 +113,7 @@ Proof.
 Qed.
 
 Lemma Lmin_le_l :
-  ∀ x y : L, Lle (Lmin x y) x.
+  Π x y : L, Lle (Lmin x y) x.
 Proof.
   intros x y.
   simpl.
@@ -121,21 +121,21 @@ Proof.
   reflexivity.
 Qed.
 Lemma Lmin_le_r :
-  ∀ x y : L, Lle (Lmin x y) y.
+  Π x y : L, Lle (Lmin x y) y.
 Proof.
   intros x y.
   rewrite iscomm_Lmin.
   apply Lmin_le_l.
 Qed.
 Lemma Lmax_le_l :
-  ∀ x y : L, Lle x (Lmax x y).
+  Π x y : L, Lle x (Lmax x y).
 Proof.
   intros x y.
   simpl.
   apply Lmin_absorb.
 Qed.
 Lemma Lmax_le_r :
-  ∀ x y : L, Lle y (Lmax x y).
+  Π x y : L, Lle y (Lmax x y).
 Proof.
   intros x y.
   rewrite iscomm_Lmax.
@@ -143,13 +143,13 @@ Proof.
 Qed.
 
 Lemma Lmin_eq_l :
-  ∀ x y : L, Lle x y -> Lmin x y = x.
+  Π x y : L, Lle x y -> Lmin x y = x.
 Proof.
   intros x y H.
   apply H.
 Qed.
 Lemma Lmin_eq_r :
-  ∀ x y : L, Lle y x -> Lmin x y = y.
+  Π x y : L, Lle y x -> Lmin x y = y.
 Proof.
   intros x y H.
   rewrite iscomm_Lmin.
@@ -157,14 +157,14 @@ Proof.
 Qed.
 
 Lemma Lmax_eq_l :
-  ∀ x y : L, Lle y x -> Lmax x y = x.
+  Π x y : L, Lle y x -> Lmax x y = x.
 Proof.
   intros x y <-.
   rewrite iscomm_Lmin.
   apply Lmax_absorb.
 Qed.
 Lemma Lmax_eq_r :
-  ∀ x y : L, Lle x y -> Lmax x y = y.
+  Π x y : L, Lle x y -> Lmax x y = y.
 Proof.
   intros x y H.
   rewrite iscomm_Lmax.
@@ -174,18 +174,18 @@ Qed.
 End lattice_pty.
 
 Definition islatticelt (L : lattice) (lt : StrongOrder L) :=
-  (∀ x y : L, (¬ (lt x y)) <-> Lle y x)
-    × (∀ x y z : L, lt z x -> lt z y -> lt z (Lmin x y))
-    × (∀ x y z : L, lt x z -> lt y z -> lt (Lmax x y) z).
+  (Π x y : L, (¬ (lt x y)) <-> Lle y x)
+    × (Π x y z : L, lt z x -> lt z y -> lt z (Lmin x y))
+    × (Π x y z : L, lt x z -> lt y z -> lt (Lmax x y) z).
 
 Lemma notlt_Lle (L : lattice) (lt : StrongOrder L) (Hlt : islatticelt L lt) :
-  ∀ x y : L, (¬ (lt x y)) <-> Lle y x.
+  Π x y : L, (¬ (lt x y)) <-> Lle y x.
 Proof.
   intros L lt Hlt.
   apply (pr1 Hlt).
 Qed.
 Lemma lt_Lle (L : lattice) (lt : StrongOrder L) (Hlt : islatticelt L lt) :
-  ∀ x y : L, lt x y -> Lle x y.
+  Π x y : L, lt x y -> Lle x y.
 Proof.
   intros L lt Hlt.
   intros x y H.
@@ -199,13 +199,13 @@ Proof.
 Qed.
 
 Lemma Lmin_lt (L : lattice) (lt : StrongOrder L) (Hlt : islatticelt L lt) :
-  ∀ x y z : L, lt z x -> lt z y -> lt z (Lmin x y).
+  Π x y z : L, lt z x -> lt z y -> lt z (Lmin x y).
 Proof.
   intros L lt Hlt.
   apply (pr1 (pr2 Hlt)).
 Qed.
 Lemma Lmax_lt (L : lattice) (lt : StrongOrder L) (Hlt : islatticelt L lt) :
-  ∀ x y z : L, lt x z -> lt y z -> lt (Lmax x y) z.
+  Π x y z : L, lt x z -> lt y z -> lt (Lmax x y) z.
 Proof.
   intros L lt Hlt.
   apply (pr2 (pr2 Hlt)).
@@ -239,7 +239,7 @@ Proof.
       now left ; right.
 Defined.
 Definition tightapfromlt {X : hSet} (lt : StrongOrder X) (le : hrel X)
-           (Hnltle : ∀ x y, (¬ lt x y) <-> le y x) (Hle : isantisymm le) : tightap X.
+           (Hnltle : Π x y, (¬ lt x y) <-> le y x) (Hle : isantisymm le) : tightap X.
 Proof.
   intros X lt le Hnltle Hle.
   refine (tpair _ _ _).
@@ -256,12 +256,12 @@ Defined.
 Open Scope addmonoid_scope.
 
 Definition is_minus {X : monoid} (is : islattice X) (minus : binop X) :=
-  (∀ x y : X, minus x y + y = Lmax (L := _,,is) x y).
+  (Π x y : X, minus x y + y = Lmax (L := _,,is) x y).
 
 Lemma minus_pos_lt {X : monoid} {is : islattice X}
       (lt : StrongOrder X) (is_lt : islatticelt (_,,is) lt) (is_lt' : isbinophrel lt)
       (minus : binop X) (is0 : is_minus is minus):
-  ∀ x y : X, lt 0 (minus x y) -> lt y x.
+  Π x y : X, lt 0 (minus x y) -> lt y x.
 Proof.
   intros.
   apply (pr2 is_lt' _ _ y) in X0.
@@ -278,7 +278,7 @@ Qed.
 Lemma minus_lt_pos {X : monoid} {is : islattice X}
       (lt : StrongOrder X) (is_lt : islatticelt (_,,is) lt) (is_lt' : isinvbinophrel lt)
       (minus : binop X) (is0 : is_minus is minus):
-  ∀ x y : X, lt y x -> lt 0 (minus x y).
+  Π x y : X, lt y x -> lt 0 (minus x y).
 Proof.
   intros.
   apply (pr2 is_lt' _ _ y).
@@ -295,9 +295,9 @@ Definition isNonnegativeMonoid {X : monoid} (is : islattice X) (lt : StrongOrder
     × (islatticelt (_,,is) lt)
     × isbinophrel lt
     × isinvbinophrel lt
-    × (∀ x : X, Lle (L := _,,is) 0 x)
+    × (Π x : X, Lle (L := _,,is) 0 x)
     × (∃ x0, lt 0 x0)
-    × (∀ x : X, Σ y : X, (Lle (L := _,,is) (y + y) x) × (lt 0 x -> lt 0 y)).
+    × (Π x : X, Σ y : X, (Lle (L := _,,is) (y + y) x) × (lt 0 x -> lt 0 y)).
 
 Definition NonnegativeMonoid :=
   Σ (X : monoid) (is : islattice X) (lt : StrongOrder X), isNonnegativeMonoid is lt.
@@ -353,39 +353,39 @@ Proof.
   exact (pr1 (pr1 (pr2 (NnMap X)))).
 Qed.
 Lemma istotal_NnMlt {X : NonnegativeMonoid} :
-  ∀ x y : X, x ≠ y <-> (x < y) ⨿ (y < x).
+  Π x y : X, x ≠ y <-> (x < y) ⨿ (y < x).
 Proof.
   intros X.
   easy.
 Qed.
 
 Lemma notNnMlt_le {X : NonnegativeMonoid} :
-  ∀ x y : X, (¬ (x < y)) <-> (y <= x).
+  Π x y : X, (¬ (x < y)) <-> (y <= x).
 Proof.
   intros X.
   now apply (pr1 (pr2 (pr2 (pr2 (pr2 X))))).
 Qed.
 Lemma isirrefl_NnMlt {X : NonnegativeMonoid} :
-  ∀ x : X, ¬ (x < x).
+  Π x : X, ¬ (x < x).
 Proof.
   intros X.
   apply isirrefl_StrongOrder.
 Qed.
 Lemma istrans_NnMlt {X : NonnegativeMonoid} :
-  ∀ x y z : X, x < y -> y < z -> x < z.
+  Π x y z : X, x < y -> y < z -> x < z.
 Proof.
   intros X.
   apply istrans_StrongOrder.
 Qed.
 Lemma iscotrans_NnMlt {X : NonnegativeMonoid} :
-  ∀ x y z : X, x < z -> x < y ∨ y < z.
+  Π x y z : X, x < z -> x < y ∨ y < z.
 Proof.
   intros X.
   apply iscotrans_StrongOrder.
 Qed.
 
 Lemma NnMlt_le {X : NonnegativeMonoid} :
-  ∀ x y : X, x < y -> x <= y.
+  Π x y : X, x < y -> x <= y.
 Proof.
   intros X x y Hlt.
   apply (pr1 (notNnMlt_le _ _)).
@@ -400,7 +400,7 @@ Proof.
 Qed.
 
 Lemma istrans_NnMlt_le {X : NonnegativeMonoid} :
-  ∀ x y z : X, x < y -> y <= z -> x < z.
+  Π x y z : X, x < y -> y <= z -> x < z.
 Proof.
   intros X.
   intros x y z Hxy Hyz.
@@ -412,7 +412,7 @@ Proof.
 Qed.
 
 Lemma istrans_NnMle_lt {X : NonnegativeMonoid} :
-  ∀ x y z : X, x <= y -> y < z -> x < z.
+  Π x y z : X, x <= y -> y < z -> x < z.
 Proof.
   intros X.
   intros x y z Hxy Hyz.
@@ -424,13 +424,13 @@ Proof.
 Qed.
 
 Lemma isnonnegative_NnM {X : NonnegativeMonoid} :
-  ∀ x : X, 0 <= x.
+  Π x : X, 0 <= x.
 Proof.
   intros X.
   exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))).
 Qed.
 Lemma isnonnegative_NnM' {X : NonnegativeMonoid} :
-  ∀ x : X, ¬ (x < 0).
+  Π x : X, ¬ (x < 0).
 Proof.
   intros X x.
   apply (pr2 (notNnMlt_le _ _)).
@@ -438,20 +438,20 @@ Proof.
 Qed.
 
 Lemma NnMplus_lt_l {X : NonnegativeMonoid} :
-  ∀ k x y : X, x < y -> k + x < k + y.
+  Π k x y : X, x < y -> k + x < k + y.
 Proof.
   intros X k x y.
   apply (pr1 (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))).
 Qed.
 Lemma NnMplus_lt_r {X : NonnegativeMonoid} :
-  ∀ k x y : X, x < y -> x + k < y + k.
+  Π k x y : X, x < y -> x + k < y + k.
 Proof.
   intros X k x y.
   apply (pr2 (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))).
 Qed.
 
 Lemma NnMap_lt_0 {X : NonnegativeMonoid} :
-  ∀ x : X, x ≠ 0 -> 0 < x.
+  Π x : X, x ≠ 0 -> 0 < x.
 Proof.
   intros X x Hx.
   apply istotal_NnMlt in Hx.
@@ -462,7 +462,7 @@ Proof.
   exact Hx.
 Qed.
 Lemma NnMlt_ap {X : NonnegativeMonoid} :
-  ∀ x y : X, x < y -> x ≠ y.
+  Π x y : X, x < y -> x ≠ y.
 Proof.
   intros X x y H.
   apply (pr2 (istotal_NnMlt _ _)).
@@ -477,19 +477,19 @@ Proof.
 Qed.
 
 Lemma NnMmin_le_l {X : NonnegativeMonoid} :
-  ∀ x y : X, NnMmin x y <= x.
+  Π x y : X, NnMmin x y <= x.
 Proof.
   intros X.
   apply (Lmin_le_l (L := _,,(pr1 (pr2 X)))).
 Qed.
 Lemma NnMmin_le_r {X : NonnegativeMonoid} :
-  ∀ x y : X, NnMmin x y <= y.
+  Π x y : X, NnMmin x y <= y.
 Proof.
   intros X.
   apply (Lmin_le_r (L := _,,(pr1 (pr2 X)))).
 Qed.
 Lemma NnMmin_gt {X : NonnegativeMonoid} :
-  ∀ x y z : X, z < x -> z < y -> z < NnMmin x y.
+  Π x y z : X, z < x -> z < y -> z < NnMmin x y.
 Proof.
   intros X.
   apply (Lmin_lt (_,,(pr1 (pr2 X)))).
@@ -497,19 +497,19 @@ Proof.
 Qed.
 
 Lemma NnMmax_le_l {X : NonnegativeMonoid} :
-  ∀ x y : X, x <= NnMmax x y.
+  Π x y : X, x <= NnMmax x y.
 Proof.
   intros X.
   apply (Lmax_le_l (L := _,,(pr1 (pr2 X)))).
 Qed.
 Lemma NnMmax_le_r {X : NonnegativeMonoid} :
-  ∀ x y : X, y <= NnMmax x y.
+  Π x y : X, y <= NnMmax x y.
 Proof.
   intros X.
   apply (Lmax_le_r (L := _,,(pr1 (pr2 X)))).
 Qed.
 Lemma NnMmax_gt {X : NonnegativeMonoid} :
-  ∀ x y z : X, x < z -> y < z -> NnMmax x y < z.
+  Π x y z : X, x < z -> y < z -> NnMmax x y < z.
 Proof.
   intros X.
   apply (Lmax_lt (_,,(pr1 (pr2 X)))).
@@ -543,32 +543,32 @@ Proof.
 Qed.
 
 Lemma NnMmin_eq_l {X : NonnegativeMonoid} :
-  ∀ (x y : X), x <= y → NnMmin x y = x.
+  Π (x y : X), x <= y → NnMmin x y = x.
 Proof.
   intros X.
   apply (Lmin_eq_l (L := _,,(pr1 (pr2 X)))).
 Qed.
 Lemma NnMmin_eq_r {X : NonnegativeMonoid} :
-  ∀ (x y : X), y <= x → NnMmin x y = y.
+  Π (x y : X), y <= x → NnMmin x y = y.
 Proof.
   intros X.
   apply (Lmin_eq_r (L := _,,(pr1 (pr2 X)))).
 Qed.
 Lemma NnMmax_eq_l {X : NonnegativeMonoid} :
-  ∀ (x y : X), y <= x → NnMmax x y = x.
+  Π (x y : X), y <= x → NnMmax x y = x.
 Proof.
   intros X.
   apply (Lmax_eq_l (L := _,,(pr1 (pr2 X)))).
 Qed.
 Lemma NnMmax_eq_r {X : NonnegativeMonoid} :
-  ∀ (x y : X), x <= y → NnMmax x y = y.
+  Π (x y : X), x <= y → NnMmax x y = y.
 Proof.
   intros X.
   apply (Lmax_eq_r (L := _,,(pr1 (pr2 X)))).
 Qed.
 
 Lemma NnMminus_lt_pos {X : NonnegativeMonoid} :
-  ∀ x y : X, y < x -> 0 < NnMminus x y.
+  Π x y : X, y < x -> 0 < NnMminus x y.
 Proof.
   intros X.
   eapply minus_lt_pos.
@@ -578,20 +578,20 @@ Proof.
 Qed.
 
 Lemma NnMminus_plus {X : NonnegativeMonoid} :
-  ∀ x y : X, (NnMminus x y) + y = NnMmax x y.
+  Π x y : X, (NnMminus x y) + y = NnMmax x y.
 Proof.
   intros X x y.
   apply (pr2 (pr1 (pr2 (pr2 (pr2 X))))).
 Qed.
 
 Lemma NnMhalf_carac {X : NonnegativeMonoid} :
-  ∀ x : X, NnMhalf x + NnMhalf x <= x.
+  Π x : X, NnMhalf x + NnMhalf x <= x.
 Proof.
   intros X x.
   exact (pr1 (pr2 ((pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))))) x))).
 Qed.
 Lemma NnMhalf_pos {X : NonnegativeMonoid} :
-  ∀ x : X, 0 < x -> 0 < NnMhalf x.
+  Π x : X, 0 < x -> 0 < NnMhalf x.
 Proof.
   intros X x.
   exact (pr2 (pr2 ((pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))))) x))).
@@ -608,7 +608,7 @@ Context (dist : X -> X -> NR).
 Definition issymm_isdist : hProp.
 Proof.
   simple refine (hProppair _ _).
-  apply (∀ x y : X, dist x y = dist y x).
+  apply (Π x y : X, dist x y = dist y x).
   apply impred_isaprop ; intro x.
   apply impred_isaprop ; intro y.
   apply (pr2 (pr1 (pr1 (pr1 NR)))).
@@ -617,7 +617,7 @@ Defined.
 Definition issepp_isdist : hProp.
 Proof.
   simple refine (hProppair _ _).
-  apply (∀ x y : X, (x ≠ y)%tap <-> (0%addmonoid < (dist x y))).
+  apply (Π x y : X, (x ≠ y)%tap <-> (0%addmonoid < (dist x y))).
   apply impred_isaprop ; intros x.
   apply impred_isaprop ; intros y.
   apply isapropdirprod.
@@ -630,7 +630,7 @@ Defined.
 Definition istriangle_isdist : hProp.
 Proof.
   simple refine (hProppair _ _).
-  apply (∀ x y z : X,  (dist x z) <= (dist x y + dist y z)%addmonoid).
+  apply (Π x y z : X,  (dist x z) <= (dist x y + dist y z)%addmonoid).
   apply impred_isaprop ; intros x.
   apply impred_isaprop ; intros y.
   apply impred_isaprop ; intros z.
@@ -651,26 +651,26 @@ Coercion pr1MetricSet : MetricSet >-> tightapSet.
 Definition dist {NR : NonnegativeMonoid} {X : MetricSet NR} : (X -> X -> NR) := pr1 (pr2 X).
 
 Lemma issymm_dist {NR : NonnegativeMonoid} {X : MetricSet NR} :
-  ∀ x y : X, dist x y = dist y x.
+  Π x y : X, dist x y = dist y x.
 Proof.
   intros.
   now apply (pr1 (pr2 (pr2 X))).
 Qed.
 Lemma issepp_dist {NR : NonnegativeMonoid} {X : MetricSet NR} :
-  ∀ x y : X, (x ≠ y)%tap <-> (0 < (dist x y)).
+  Π x y : X, (x ≠ y)%tap <-> (0 < (dist x y)).
 Proof.
   intros.
   now apply (pr1 (pr2 (pr2 (pr2 X)))).
 Qed.
 Lemma istriangle_dist {NR : NonnegativeMonoid} {X : MetricSet NR} :
-  ∀ x y z : X, (dist x z) <= (dist x y + dist y z).
+  Π x y z : X, (dist x z) <= (dist x y + dist y z).
 Proof.
   intros.
   now apply (pr2 (pr2 (pr2 (pr2 X)))).
 Qed.
 
 Lemma dist_0 {NR : NonnegativeMonoid} {X : MetricSet NR} :
-  ∀ x : X, dist x x = 0.
+  Π x : X, dist x x = 0.
 Proof.
   intros.
   apply istight_NnMap.
@@ -691,14 +691,14 @@ Definition ball (x : M) (eps : NR) (y : M) : hProp :=
   (dist x y < eps).
 
 Lemma ball_center :
-  ∀ (x : M) (eps : NR), 0 < eps -> ball x eps x.
+  Π (x : M) (eps : NR), 0 < eps -> ball x eps x.
 Proof.
   intros x eps He.
   unfold ball.
   now rewrite dist_0.
 Qed.
 Lemma ball_le :
-  ∀ x e e' y, e <= e' -> ball x e y -> ball x e' y.
+  Π x e e' y, e <= e' -> ball x e y -> ball x e' y.
 Proof.
   intros x e e' y H H'.
   refine (istrans_NnMlt_le _ _ _ _ _).
@@ -706,7 +706,7 @@ Proof.
   apply H.
 Qed.
 Lemma ball_recenter :
-  ∀ (x y : M) (eps : NR), ball y eps x -> Σ eps' : NR, 0 < eps' × ∀ z : M, ball x eps' z -> ball y eps z.
+  Π (x y : M) (eps : NR), ball y eps x -> Σ eps' : NR, 0 < eps' × Π z : M, ball x eps' z -> ball y eps z.
 Proof.
   intros x y eps Hy.
   exists (NnMminus eps (dist y x)).
@@ -729,7 +729,7 @@ Proof.
 Qed.
 
 Lemma ball_symm :
-  ∀ (x y : M) (eps : NR), ball x eps y -> ball y eps x.
+  Π (x y : M) (eps : NR), ball x eps y -> ball y eps x.
 Proof.
   intros x y eps.
   unfold ball.
@@ -740,7 +740,7 @@ Definition metricUniformStructure : UniformStructure M.
 Proof.
   simple refine (mkUniformStructure _ _ _ _ _ _ _).
   - intros A.
-    apply (∃ e : NR, 0 < e × ∀ x y : M, ball x e y -> A (x,,y)).
+    apply (∃ e : NR, 0 < e × Π x y : M, ball x e y -> A (x,,y)).
   - intros A B H.
     apply hinhfun.
     intros (e,(He,Ha)).
@@ -815,10 +815,10 @@ Section MSlocally.
 Context {NR : NonnegativeMonoid} {M : MetricSet NR}.
 
 Definition MSneighborhood (x : M) (A : M -> hProp) :=
-  ∃ e : NR, 0 < e × ∀ y, ball x e y -> A y.
+  ∃ e : NR, 0 < e × Π y, ball x e y -> A y.
 
 Lemma MSneighborhood_equiv :
-  ∀ x A, USneighborhood metricUniformStructure x A <-> MSneighborhood x A.
+  Π x A, USneighborhood metricUniformStructure x A <-> MSneighborhood x A.
 Proof.
   split.
   - apply hinhuniv ; intros (U,(Hu,Hu')).
@@ -839,7 +839,7 @@ Proof.
 Qed.
 
 Lemma MSneighborhood_imply :
-  ∀ x : M, isfilter_imply (MSneighborhood x).
+  Π x : M, isfilter_imply (MSneighborhood x).
 Proof.
   intros x A B H Ha.
   apply MSneighborhood_equiv.
@@ -849,14 +849,14 @@ Proof.
 Qed.
 
 Lemma MSneighborhood_htrue :
-  ∀ x : M, isfilter_htrue (MSneighborhood x).
+  Π x : M, isfilter_htrue (MSneighborhood x).
 Proof.
   intros x.
   apply MSneighborhood_equiv.
   apply USneighborhood_htrue.
 Qed.
 Lemma MSneighborhood_and :
-  ∀ x : M, isfilter_and (MSneighborhood x).
+  Π x : M, isfilter_and (MSneighborhood x).
 Proof.
   intros x A B Ha Hb.
   apply MSneighborhood_equiv.
@@ -867,7 +867,7 @@ Proof.
   exact Hb.
 Qed.
 Lemma MSneighborhood_point :
-  ∀ (x : M) (P : M → hProp), MSneighborhood x P → P x.
+  Π (x : M) (P : M → hProp), MSneighborhood x P → P x.
 Proof.
   intros x P Hp.
   simple refine (USneighborhood_point _ _ _ _).
@@ -876,9 +876,9 @@ Proof.
   exact Hp.
 Qed.
 Lemma MSneighborhood_neighborhood :
-  ∀ (x : M) (P : M → hProp),
+  Π (x : M) (P : M → hProp),
     MSneighborhood x P
-    → ∃ Q : M → hProp, MSneighborhood x Q × (∀ y : M, Q y → MSneighborhood y P).
+    → ∃ Q : M → hProp, MSneighborhood x Q × (Π y : M, Q y → MSneighborhood y P).
 Proof.
   intros x P Hp.
   apply_pr2_in MSneighborhood_equiv Hp.
@@ -917,7 +917,7 @@ Proof.
 Defined.
 
 Lemma MSlocally_ball {NR : NonnegativeMonoid} {M : MetricSet NR} (x : M) :
-  ∀ e : NR, 0 < e -> MSlocally x (ball x e).
+  Π e : NR, 0 < e -> MSlocally x (ball x e).
 Proof.
   intros NR M x e He.
   apply hinhpr.
@@ -942,7 +942,7 @@ Definition ex_MSlim {X : UU} {NR : NonnegativeMonoid} {M : MetricSet NR} (f : X 
   ∃ (x : M), is_MSlim f F x.
 
 Lemma is_MSlim_correct :
-  ∀ {X : UU} {NR : NonnegativeMonoid} {M : MetricSet NR} (f : X -> M) (F : Filter X) (x : M),
+  Π {X : UU} {NR : NonnegativeMonoid} {M : MetricSet NR} (f : X -> M) (F : Filter X) (x : M),
     is_USlim (Y := _ ,, metricUniformStructure (M := M)) f F x <-> is_MSlim f F x.
 Proof.
   split ; intros H P Hp.
@@ -954,7 +954,7 @@ Qed.
 
 Lemma is_MSlim_aux {X : UU} {NR : NonnegativeMonoid} {M : MetricSet NR} (f : X -> M) (F : Filter X) (x : M) :
   is_MSlim f F x <->
-  (∀ eps : NR, 0 < eps -> F (λ y, ball x eps (f y))).
+  (Π eps : NR, 0 < eps -> F (λ y, ball x eps (f y))).
 Proof.
   intros X NR M f F x.
   split.
@@ -975,20 +975,20 @@ Qed.
 
 Definition MScontinuous_at {NR : NonnegativeMonoid} {U V : MetricSet NR} (f : U -> V) (x : U) :=
   is_MSlim f (MSlocally x) (f x).
-Definition MScontinuous_on {NR : NonnegativeMonoid} {U V : MetricSet NR} (dom : U -> hProp) (f : ∀ (x : U), dom x -> V) :=
-  ∀ (x : U) (Hx : dom x),
+Definition MScontinuous_on {NR : NonnegativeMonoid} {U V : MetricSet NR} (dom : U -> hProp) (f : Π (x : U), dom x -> V) :=
+  Π (x : U) (Hx : dom x),
   ∃ H,
   is_MSlim (λ y, f (pr1 y) (pr2 y))
   (FilterSubtype (MSlocally x) dom H) (f x Hx).
 Definition MScontinuous {NR : NonnegativeMonoid} {U V : MetricSet NR} (f : U -> V) :=
-  ∀ x : U, MScontinuous_at f x.
+  Π x : U, MScontinuous_at f x.
 
 (** *** Continuity for 2 variable functions *)
 
 Definition MScontinuous2d_at {NR : NonnegativeMonoid} {U V W : MetricSet NR} (f : U -> V -> W) (x : U) (y : V) :=
   is_MSlim (λ z : U × V, f (pr1 z) (pr2 z)) (MSlocally2d x y) (f x y).
-Definition MScontinuous2d_on {NR : NonnegativeMonoid} {U V W : MetricSet NR} (dom : U → V -> hProp) (f : ∀ x y, dom x y -> V) :=
-  ∀ x y (Hxy : dom x y),
+Definition MScontinuous2d_on {NR : NonnegativeMonoid} {U V W : MetricSet NR} (dom : U → V -> hProp) (f : Π x y, dom x y -> V) :=
+  Π x y (Hxy : dom x y),
   ∃ H,
     is_MSlim
       (λ y0,
@@ -996,4 +996,4 @@ Definition MScontinuous2d_on {NR : NonnegativeMonoid} {U V W : MetricSet NR} (do
       (FilterSubtype (MSlocally2d x y) (λ z, dom (pr1 z) (pr2 z)) H)
       (f x y Hxy).
 Definition MScontinuous2d {NR : NonnegativeMonoid} {U V W : MetricSet NR} (f : U -> V -> W) :=
-  ∀ x y, MScontinuous2d_at f x y.
+  Π x y, MScontinuous2d_at f x y.
