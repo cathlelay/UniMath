@@ -42,6 +42,27 @@ Proof.
   now rewrite !isassoc_plusNonnegativeReals, (iscomm_plusNonnegativeReals (pr2 x)).
 Qed.
 
+Lemma iscomprelfun_hr_to_NR :
+  iscomprelfun (Y := NonnegativeReals × NonnegativeReals) (binopeqrelabgrfrac (rigaddabmonoid NonnegativeReals))
+               (λ x : NonnegativeReals × NonnegativeReals,
+                      pr1 x - pr2 x ,, pr2 x - pr1 x).
+Proof.
+  intros x y.
+  apply hinhuniv'.
+  refine (isasetdirprod _ _ _ _ _ _) ;
+    apply (pr2 (pr1 (pr1 (pr1 NonnegativeReals)))).
+  intros (c,H).
+  apply dirprodeq.
+  + apply iscomprelfun_NRminus.
+    apply (plusNonnegativeReals_eqcompat_l c).
+    exact H.
+  + apply (iscomprelfun_NRminus (pr2 x ,, pr1 x) (pr2 y ,, pr1 y)).
+    simpl.
+    rewrite (iscomm_plusNonnegativeReals (pr2 x)), (iscomm_plusNonnegativeReals (pr2 y)).
+    apply (plusNonnegativeReals_eqcompat_l c), pathsinv0.
+    exact H.
+Qed.
+
 Definition hr_to_NR (x : hr_commrng) : NonnegativeReals × NonnegativeReals.
 Proof.
   simple refine (setquotuniv _ (_,,_) _ _).
@@ -49,20 +70,7 @@ Proof.
     apply (pr2 (pr1 (pr1 (pr1 NonnegativeReals)))).
   - intros x.
     apply (pr1 x - pr2 x ,, pr2 x - pr1 x).
-  - intros x y.
-    apply hinhuniv'.
-    refine (isasetdirprod _ _ _ _ _ _) ;
-    apply (pr2 (pr1 (pr1 (pr1 NonnegativeReals)))).
-    intros (c,H).
-    apply dirprodeq.
-    + apply iscomprelfun_NRminus.
-      apply (plusNonnegativeReals_eqcompat_l c).
-      exact H.
-    + apply (iscomprelfun_NRminus (pr2 x ,, pr1 x) (pr2 y ,, pr1 y)).
-      simpl.
-      rewrite (iscomm_plusNonnegativeReals (pr2 x)), (iscomm_plusNonnegativeReals (pr2 y)).
-      apply (plusNonnegativeReals_eqcompat_l c), pathsinv0.
-      exact H.
+  - apply iscomprelfun_hr_to_NR.
 Defined.
 
 Definition hr_to_NRpos (x : hr_commrng) : NonnegativeReals := pr1 (hr_to_NR x).
