@@ -11,7 +11,7 @@ Require Import UniMath.Foundations.Algebra.BinaryOperations
 
 Lemma isaset_hsubtypes {X : hSet} (Hsub : hsubtypes X) : isaset (carrier Hsub).
 Proof.
-  intros.
+  intros X Hsub.
   apply (isasetsubset pr1 (pr2 X) (isinclpr1 (λ x : X, Hsub x) (λ x : X, pr2 (Hsub x)))).
 Qed.
 Definition subset {X : hSet} (Hsub : hsubtypes X) : hSet :=
@@ -70,12 +70,11 @@ End so_pty.
 Definition isStrongOrder_quotrel {X : UU} {R : eqrel X} {L : hrel X} (is : iscomprelrel R L) :
   isStrongOrder L → isStrongOrder (quotrel is).
 Proof.
-  intros X R L is.
-  intros (Htrans,(Hcotran,Hirrefl)).
+  intros X R L is H.
   repeat split.
-  - now apply istransquotrel.
-  - now apply iscotransquotrel.
-  - now apply isirreflquotrel.
+  - apply istransquotrel, (pr1 H).
+  - apply iscotransquotrel, (pr1 (pr2 H)).
+  - apply isirreflquotrel, (pr2 (pr2 H)).
 Defined.
 
 (** ** Reverse orderse *)
@@ -100,10 +99,10 @@ Qed.
 Lemma ispreorder_reverse {X : UU} (l : hrel X) :
   ispreorder l → ispreorder (hrel_reverse l).
 Proof.
-  intros X l (Ht,Hr).
+  intros X l H.
   split.
-  now apply istrans_reverse.
-  now apply isrefl_reverse.
+  now apply istrans_reverse, (pr1 H).
+  now apply isrefl_reverse, (pr2 H).
 Qed.
 Definition po_reverse {X : UU} (l : po X) :=
   popair (hrel_reverse l) (ispreorder_reverse l (pr2 l)).
@@ -124,10 +123,10 @@ Qed.
 Lemma iseqrel_reverse {X : UU} (l : hrel X) :
   iseqrel l → iseqrel (hrel_reverse l).
 Proof.
-  intros X l (Hpo,Hs).
+  intros X l H.
   split.
-  now apply ispreorder_reverse.
-  now apply issymm_reverse.
+  now apply ispreorder_reverse, (pr1 H).
+  now apply issymm_reverse, (pr2 H).
 Qed.
 Definition eqrel_reverse {X : UU} (l : eqrel X) :=
   eqrelpair (hrel_reverse l) (iseqrel_reverse l (pr2 l)).
@@ -154,11 +153,11 @@ Qed.
 Lemma isStrongOrder_reverse {X : UU} (l : hrel X) :
   isStrongOrder l → isStrongOrder (hrel_reverse l).
 Proof.
-  intros X l (Ht,(Hcot,Hir)).
+  intros X l H.
   repeat split.
-  now apply istrans_reverse.
-  now apply iscotrans_reverse.
-  now apply isirrefl_reverse.
+  now apply istrans_reverse, (pr1 H).
+  now apply iscotrans_reverse, (pr1 (pr2 H)).
+  now apply isirrefl_reverse, (pr2 (pr2 H)).
 Qed.
 Definition StrongOrder_reverse {X : UU} (l : StrongOrder X) :=
   pairStrongOrder (hrel_reverse l) (isStrongOrder_reverse l (pr2 l)).
@@ -366,8 +365,8 @@ Definition pr1LeastUpperBound {E : hsubtypes X} :
 Lemma isapropLeastUpperBound (E : hsubtypes X) (H : isantisymm (λ x y : X, x <= y)) :
   isaprop (LeastUpperBound E).
 Proof.
-  intros E H (x,Hx) (y,Hy).
-  apply (iscontrweqf (X := x = y)).
+  intros E H x y.
+  apply (iscontrweqf (X := (pr1 x) = (pr1 y))).
   - apply invweq, subtypeInjectivity.
     intro t.
     apply isapropdirprod.
@@ -377,10 +376,10 @@ Proof.
     apply impred_isaprop ; intro.
     apply isapropimpl.
     now apply pr2.
-  - assert (Heq : x = y).
+  - assert (Heq : (pr1 x) = (pr1 y)).
     { apply H.
-      now apply (pr2 Hx), (pr1 Hy).
-      now apply (pr2 Hy), (pr1 Hx). }
+      now apply (pr2 (pr2 x)), (pr1 (pr2 y)).
+      now apply (pr2 (pr2 y)), (pr1 (pr2 x)). }
     rewrite <- Heq.
     apply iscontrloopsifisaset.
     apply pr2.
@@ -411,8 +410,8 @@ Definition pr1GreatestLowerBound {E : hsubtypes X} :
 Lemma isapropGreatestLowerBound (E : hsubtypes X) (H : isantisymm (λ x y : X, x >= y)) :
   isaprop (GreatestLowerBound E).
 Proof.
-  intros E H (x,Hx) (y,Hy).
-  apply (iscontrweqf (X := x = y)).
+  intros E H x y.
+  apply (iscontrweqf (X := (pr1 x) = (pr1 y))).
   - apply invweq, subtypeInjectivity.
     intro t.
     apply isapropdirprod.
@@ -422,10 +421,10 @@ Proof.
     apply impred_isaprop ; intro.
     apply isapropimpl.
     now apply pr2.
-  - assert (Heq : x = y).
+  - assert (Heq : (pr1 x) = (pr1 y)).
     { apply H.
-      now apply (pr2 Hx), (pr1 Hy).
-      now apply (pr2 Hy), (pr1 Hx). }
+      now apply (pr2 (pr2 x)), (pr1 (pr2 y)).
+      now apply (pr2 (pr2 y)), (pr1 (pr2 x)). }
     rewrite <- Heq.
     apply iscontrloopsifisaset.
     apply pr2.
