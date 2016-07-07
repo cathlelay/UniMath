@@ -91,8 +91,8 @@ Proof.
   apply (pr1 (pr2 (pr2 X))).
   apply hinhpr.
   exists 0 ; simpl.
-  change ((pr1 (pr1 x) + (pr2 (pr1 x) - pr1 (pr1 x))%NR + 0%NR) =
-   ((pr1 (pr1 x) - pr2 (pr1 x))%NR + pr2 (pr1 x) + 0%NR)).
+  change ((pr1 (pr1 x) + (pr2 (pr1 x) - pr1 (pr1 x)) + 0) =
+   ((pr1 (pr1 x) - pr2 (pr1 x)) + pr2 (pr1 x) + 0))%NR.
   rewrite !isrunit_zero_plusNonnegativeReals.
   rewrite iscomm_plusNonnegativeReals, <- !maxNonnegativeReals_minus_plus.
   now apply iscomm_maxNonnegativeReals.
