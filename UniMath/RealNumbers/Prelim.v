@@ -183,7 +183,7 @@ Lemma nattorig_nattohz :
   Π n : nat, nattorig (X := hz) n = nattohz n.
 Proof.
   induction n.
-  - simpl.
+  - unfold nattorig, nattohz ; simpl.
     reflexivity.
   - rewrite nattorigS, IHn.
     apply pathsinv0, nattohzandS.
