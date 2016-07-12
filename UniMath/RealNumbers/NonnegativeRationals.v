@@ -760,7 +760,8 @@ Proof.
   intros x y Hle.
   unfold minusNonnegativeRationals, hnnq_minus.
   destruct hqgthorleh as [H | H].
-  - now apply fromempty, Hle, H.
+  - apply fromempty.
+    exact (Hle H).
   - reflexivity.
 Qed.
 Lemma minusNonnegativeRationals_plus_r :
