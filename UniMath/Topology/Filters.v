@@ -1441,19 +1441,20 @@ Proof.
   intros L Hbase.
   generalize (base_finite_intersection L Hbase).
   apply hinhuniv.
-  intros (A,(Ha,Ha')).
-  generalize (Hfalse _ Ha).
+  intros A.
+  generalize (Hfalse _ (pr1 (pr2 A))).
   apply hinhfun.
-  intros (x,Ax).
-  exists x.
-  now apply Ha'.
+  intros x.
+  exists (pr1 x).
+  apply (pr2 (pr2 A)).
+  exact (pr2 x).
 Qed.
 
 End filterbase.
 
 Definition PreFilterBase {X : UU} (base : BaseOfPreFilter X) : PreFilter X.
 Proof.
-  intros.
+  intros X base.
   simple refine (mkPreFilter _ _ _ _).
   - apply (filterbase base).
   - apply filterbase_imply.
@@ -1530,15 +1531,15 @@ Proof.
   split.
   - intros Hbase P.
     apply hinhuniv.
-    intros (A,(Ha,Ha')).
-    generalize (Hbase _ Ha).
+    intros A.
+    generalize (Hbase _ (pr1 (pr2 A))).
     apply hinhfun.
-    intros (B,(Hb,Hb')).
-    exists B.
+    intros B.
+    exists (pr1 B).
     split.
-    apply Hb.
+    apply (pr1 (pr2 B)).
     intros x Bx.
-    apply Ha', Hb', Bx.
+    apply (pr2 (pr2 A)), (pr2 (pr2 B)), Bx.
   - intros Hbase P Hp.
     apply Hbase.
     apply hinhpr.
