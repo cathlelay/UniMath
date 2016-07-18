@@ -15,26 +15,31 @@ Definition subset_square {X : UU} (A : X × X -> hProp) :=
   subset_prod A A.
 Definition subset_inv {X : UU} (A : X × X -> hProp) :=
   λ x : X × X, A (pr2 x ,, pr1 x).
-Fixpoint subset_pow {X : hSet} (A : X × X -> hProp) (n : nat) :=
-  match n with
-    | O => λ x : X × X, hProppair (pr1 x = pr2 x) (pr2 X _ _)
-    | 1%nat => A
-    | S n => subset_prod A (subset_pow A n)
-  end.
-
+Definition subset_pow {X : hSet} (A : X × X -> hProp) (n : nat) : X × X → hProp.
+Proof.
+  intros X A n.
+  induction n as [ | n _].
+  - exact (λ x : X × X, hProppair (pr1 x = pr2 x) (pr2 X _ _)).
+  - induction n as [ | n subset_pow].
+    + exact A.
+    + exact (subset_prod A subset_pow).
+Defined.
 Lemma subset_pow_S {X : hSet} (A : X × X -> hProp) (n : nat) :
   subset_pow A (S n) = subset_prod A (subset_pow A n).
 Proof.
-  intros X A [ | n].
-  - apply funextfun ; intros (x,y).
+  intros X A n.
+  induction n as [ | n _].
+  - apply funextfun ; intros xy.
     apply hPropUnivalence.
     + intros Ha ; apply hinhpr.
-      exists y.
+      exists (pr2 xy).
+      rewrite <- tppr.
       easy.
     + apply hinhuniv.
       simpl.
-      intros (z,(Ha,<-)).
-      exact Ha.
+      intros z.
+      rewrite (tppr xy), <- (pr2 (pr2 z)).
+      exact (pr1 (pr2 z)).
   - reflexivity.
 Qed.
 
@@ -47,38 +52,40 @@ Proof.
   intros x.
   apply hPropUnivalence.
   - apply hinhuniv.
-    intros (z,(H,Hc)).
-    revert H.
+    intros z.
+    generalize (pr1 (pr2 z)).
     apply hinhfun.
-    intros (y,(Ha,Hb)).
-    exists y.
+    intros y.
+    exists (pr1 y).
     split.
-    exact Ha.
+    exact (pr1 (pr2 y)).
     apply hinhpr.
-    exists z ; split.
-    exact Hb.
-    exact Hc.
+    exists (pr1 z) ; split.
+    exact (pr2 (pr2 y)).
+    exact (pr2 (pr2 z)).
   - apply hinhuniv.
-    intros (y,(Ha)).
+    intros y.
+    generalize (pr2 (pr2 y)).
     apply hinhfun.
-    intros (z,(Hb,Hc)).
-    exists z.
+    intros z.
+    exists (pr1 z).
     split.
     apply hinhpr.
-    exists y ; split.
-    exact Ha.
-    exact Hb.
-    exact Hc.
+    exists (pr1 y) ; split.
+    exact (pr1 (pr2 y)).
+    exact (pr1 (pr2 z)).
+    exact (pr2 (pr2 z)).
 Qed.
 
 Lemma isdiag_square {X : UU} (A : X × X -> hProp) :
   (Π x : X, A (x,,x)) -> Π x, A x -> subset_square A x.
 Proof.
-  intros X A Hdiag (x,y) Axy.
+  intros X A Hdiag xy Axy.
   apply hinhpr.
-  exists x.
+  exists (pr1 xy).
   split.
   now apply Hdiag.
+  rewrite <- tppr.
   exact Axy.
 Qed.
 
@@ -101,14 +108,14 @@ Proof.
   intros P FP.
   generalize (H P FP).
   apply hinhuniv.
-  intros (Q,(FQ,HQ)).
-  apply Himpl with (2 := FQ).
+  intros Q.
+  apply Himpl with (2 := pr1 (pr2 Q)).
   intros x Qx.
-  apply HQ.
+  apply (pr2 (pr2 Q)).
   apply hinhpr ; simpl.
   exists (pr2 x) ; split.
-  now apply Hdiag.
-  now destruct x.
+  apply Hdiag, (pr1 (pr2 Q)).
+  now induction x as [x y].
 Qed.
 Lemma isUS_prod_inv_imply_squareroot {X : UU} (F : (X × X -> hProp) -> hProp) :
   (isfilter_imply (X := X × X) F) -> (Π A B : X × X → hProp, F A → F B → F (λ x : X × X, A x ∧ B x))
@@ -118,18 +125,24 @@ Proof.
   intros P FP.
   generalize (H P FP).
   apply hinhfun.
-  intros (Q,(FQ,HQ)).
-  exists (λ x, Q x ∧ subset_inv Q x).
+  intros Q.
+  exists (λ x, pr1 Q x ∧ subset_inv (pr1 Q) x).
   split.
   - apply Hand.
-    exact FQ.
-    now apply isUS_prod_inv_imply_symm.
+    exact (pr1 (pr2 Q)).
+    apply isUS_prod_inv_imply_symm.
+    exact Himpl.
+    exact Hdiag.
+    exact H.
+    exact (pr1 (pr2 Q)).
   - intros x Hx.
-    apply HQ.
+    apply (pr2 (pr2 Q)).
     revert Hx.
     apply hinhfun.
-    intros (y,((Qy1,_),(_,Qy2))).
-    now exists y.
+    intros y.
+    exists (pr1 y) ; split.
+    exact (pr1 (pr1 (pr2 y))).
+    exact (pr2 (pr2 (pr2 y))).
 Qed.
 
 Lemma isUS_symm_squareroot_imply_prod_inv {X : UU} (F : (X × X -> hProp) -> hProp) :
@@ -140,18 +153,21 @@ Proof.
   intros P FP.
   generalize (Hsqr P FP).
   apply hinhfun.
-  intros (Q,(FQ,HQ)).
-  exists (λ x, Q x ∧ subset_inv Q x).
+  intros Q.
+  exists (λ x, pr1 Q x ∧ subset_inv (pr1 Q) x).
   split.
   - apply Hand.
-    exact FQ.
-    now apply Hsymm.
+    exact (pr1 (pr2 Q)).
+    apply Hsymm.
+    exact (pr1 (pr2 Q)).
   - intros x Hx.
-    apply HQ.
+    apply (pr2 (pr2 Q)).
     revert Hx.
     apply hinhfun.
-    intros (y,((Qy1,_),(_,Qy2))).
-    now exists y.
+    intros y.
+    exists (pr1 y) ; split.
+    exact (pr1 (pr1 (pr2 y))).
+    exact (pr2 (pr2 (pr2 y))).
 Qed.
 
 Definition isUniformStructure {X : UU} F :=
@@ -257,10 +273,11 @@ Lemma UniformStructure_square {X : UU} (F : UniformStructure X) :
 Proof.
   intros X F P Fp.
   apply UniformStructure_imply with (2 := Fp).
-  intros (x,y) Pxy.
+  intros xy Pxy.
   apply hinhpr.
-  exists x ; split.
+  exists (pr1 xy) ; split.
   now apply (UniformStructure_diag F).
+  rewrite <- tppr.
   exact Pxy.
 Qed.
 
@@ -279,37 +296,44 @@ Definition isUSbase {X : UU} (F : UniformStructure X) (base : (X × X → hProp)
 Lemma isUSbase_pow {X : hSet} (F : UniformStructure X) (B : (X × X → hProp) → hProp) :
   isUSbase F B -> isUSbase F (λ P, ∃ (n : nat) Q, (O < n) × B Q × P = subset_pow Q n).
 Proof.
-  intros X F B (Hincl,Hrep).
+  intros X F B Hbase.
   split.
   - intros P.
     apply hinhuniv.
-    intros (n,(Q,(Hn,(BQ,->)))).
-    destruct n.
-    now apply fromempty.
-    clear Hn.
-    induction n.
-    now apply Hincl.
+    intros n.
+    induction n as [n Q].
+    rewrite (pr2 (pr2 (pr2 Q))).
+    induction n as [ | n _].
+    now generalize (pr1 (pr2 Q)).
+    generalize (pr1 Q) (pr1 (pr2 (pr2 Q))) ;
+      clear Q ;
+      intros Q BQ.
+    induction n as [ | n IHn].
+    now apply (pr1 Hbase).
     rewrite subset_pow_S.
-    generalize (Hrep _ IHn).
+    generalize (pr2 Hbase _ IHn).
     apply hinhuniv.
-    intros (Q',(BQ',HQ')).
-    generalize (UniformStructure_and F _ _ (Hincl _ BQ) (Hincl _ BQ')).
+    intros Q'.
+    generalize (UniformStructure_and F _ _ (pr1 Hbase _ BQ) (pr1 Hbase _ (pr1 (pr2 Q')))).
     apply (UniformStructure_imply F).
-    intros (x,y) (Qx,Q'x).
+    intros xy Hxy.
     apply hinhpr.
-    exists x.
+    exists (pr1 xy).
     split.
     apply (UniformStructure_diag F).
-    now apply Hincl.
-    now apply HQ'.
+    now apply (pr1 Hbase).
+    apply (pr2 (pr2 Q')).
+    rewrite <- tppr.
+    exact (pr2 Hxy).
   - intros P Hp.
-    generalize (Hrep P Hp).
+    generalize (pr2 Hbase P Hp).
     apply hinhfun.
-    intros (Q,(Bq,Hq)).
-    exists Q ; split.
+    intros Q.
+    exists (pr1 Q) ; split.
     apply hinhpr.
-    now exists 1%nat, Q.
-    exact Hq.
+    exists 1%nat, (pr1 Q) ; repeat split.
+    exact (pr1 (pr2 Q)).
+    exact (pr2 (pr2 Q)).
 Qed.
 
 Definition issymmsubset {X : UU} (P : X × X -> hProp) :=
@@ -326,13 +350,17 @@ Lemma issymmsubset_and {X : UU} (F : UniformStructure X) (P : X × X -> hProp) :
   F P -> issymmsubset (λ x, P x ∧ subset_inv P x).
 Proof.
   intros X F P Fp.
-  now intros (x,y) ; split ; intros (Hp,Hp') ; split.
+  intros xy ; rewrite (tppr xy) ; split ; intros Hp ; split.
+  exact (pr2 Hp).
+  exact (pr1 Hp).
+  exact (pr2 Hp).
+  exact (pr1 Hp).
 Qed.
 Lemma issymmsubset_or {X : UU} (F : UniformStructure X) (P : X × X -> hProp) :
   F P -> issymmsubset (λ x, P x ∨ subset_inv P x).
 Proof.
   intros X F P Fp.
-  intros (x,y) ; split ; apply hinhfun ; intros [Hp | Hp'].
+  intros xy ; rewrite (tppr xy) ; split ; apply hinhfun ; apply sumofmaps ; [intros Hp | intros Hp' | intros Hp | intros Hp'].
   now right.
   now left.
   now right.
@@ -349,24 +377,30 @@ Proof.
   - intros P HP.
     refine (hinhfun _ _).
     2: apply (UniformStructure_prod_inv F).
-    intros (Q,(Fq,H)).
-    exists (subset_prod Q (subset_inv Q)).
+    intros Q.
+    exists (subset_prod (pr1 Q) (subset_inv (pr1 Q))).
     repeat split.
-    4: apply H.
-    + apply (UniformStructure_imply) with (2 := Fq).
-      intros (x,y) Hp.
+    4: apply (pr2 (pr2 Q)).
+    + apply (UniformStructure_imply) with (2 := pr1 (pr2 Q)).
+      intros xy Hp.
       apply hinhpr.
-      exists y.
+      exists (pr2 xy).
       split.
+      rewrite <- tppr.
       exact Hp.
       apply (UniformStructure_diag F).
-      now apply (UniformStructure_symm F).
+      apply (UniformStructure_symm F).
+      exact (pr1 (pr2 Q)).
     + apply hinhfun.
-      intros (y,(Hy,Hy')).
-      exists y ; now split.
+      intros y.
+      exists (pr1 y) ; split.
+      exact (pr2 (pr2 y)).
+      exact (pr1 (pr2 y)).
     + apply hinhfun.
-      intros (y,(Hy,Hy')).
-      exists y ; now split.
+      intros y.
+      exists (pr1 y) ; split.
+      exact (pr2 (pr2 y)).
+      exact (pr1 (pr2 y)).
     + exact HP.
 Qed.
 
@@ -374,36 +408,36 @@ Lemma isUSbase_isBaseOfPreFilter {X : UU} (F : UniformStructure X) (base : (X ×
   isUSbase F base -> (isBaseOfPreFilter base).
 Proof.
   intros X F base.
-  intros (Hincl,Hrep).
+  intros Hbase.
   split.
   - intros A B Ha Hb.
-    apply Hrep.
-    now apply UniformStructure_and ; apply Hincl.
-  - generalize (Hrep _ (UniformStructure_true F)).
+    apply (pr2 Hbase).
+    now apply UniformStructure_and ; apply (pr1 Hbase).
+  - generalize (pr2 Hbase _ (UniformStructure_true F)).
     apply hinhfun.
-    intros (A,(Ha,_)).
-    exists A.
-    exact Ha.
+    intros A.
+    exists (pr1 A).
+    exact (pr1 (pr2 A)).
 Qed.
 Lemma isUSbase_isBaseOfFilter {X : UU} (x0 : ∥X∥) (F : UniformStructure X) (base : (X × X -> hProp) -> hProp) :
   isUSbase F base -> (isBaseOfFilter base).
 Proof.
   intros X x0 F base.
-  intros (Hincl,Hrep).
+  intros Hbase.
   repeat split.
   - intros A B Ha Hb.
-    apply Hrep.
-    now apply UniformStructure_and ; apply Hincl.
-  - generalize (Hrep _ (UniformStructure_true F)).
+    apply (pr2 Hbase).
+    now apply UniformStructure_and ; apply (pr1 Hbase).
+  - generalize (pr2 Hbase _ (UniformStructure_true F)).
     apply hinhfun.
-    intros (A,(Ha,_)).
-    exists A.
-    exact Ha.
+    intros A.
+    exists (pr1 A).
+    exact (pr1 (pr2 A)).
   - intros A Ha.
     revert x0.
     apply hinhuniv.
     intros x0.
-    apply Hincl in Ha.
+    apply (pr1 Hbase) in Ha.
     apply hinhpr.
     exists (x0,,x0).
     now apply (UniformStructure_diag F).
@@ -418,9 +452,10 @@ Proof.
   - intros HP.
     apply (pr2 Hbase P HP).
   - apply hinhuniv.
-    intros (A,(Ha,H)).
-    apply UniformStructure_imply with (1 := H).
-    now apply (pr1 Hbase).
+    intros A.
+    apply UniformStructure_imply with (1 := pr2 (pr2 A)).
+    apply (pr1 Hbase).
+    exact (pr1 (pr2 A)).
 Qed.
 
 Lemma isUSbase_PreFilterBase {X : UU} (F : UniformStructure X) (base : (X × X -> hProp) -> hProp) :
@@ -449,94 +484,96 @@ Lemma isUSbase_BaseOfUniformStructure {X : UU} (F : UniformStructure X) (base : 
   isUSbase F base -> isBaseOfUniformStructure base.
 Proof.
   intros X F base.
-  intros (Himpl,Hrep).
+  intros Hbase.
   split.
   now apply (isUSbase_isBaseOfPreFilter F).
   repeat split.
   - intros P Hp.
     apply UniformStructure_diag with F.
-    now apply Himpl.
+    now apply (pr1 Hbase).
   - intros P Hp.
-    apply Hrep.
-    now apply UniformStructure_symm, Himpl.
+    apply (pr2 Hbase).
+    now apply UniformStructure_symm, (pr1 Hbase).
   - intros P Hp.
-    generalize (UniformStructure_squareroot F _ (Himpl _ Hp)).
-    apply hinhuniv ; intros (Q,(Fq,Hq)).
-    generalize (Hrep _ Fq).
+    generalize (UniformStructure_squareroot F _ (pr1 Hbase _ Hp)).
+    apply hinhuniv ; intros Q.
+    generalize (pr2 Hbase _ (pr1 (pr2 Q))).
     apply hinhfun.
-    intros (R,(Hr,H)).
-    exists R.
+    intros R.
+    exists (pr1 R).
     split.
-    exact Hr.
+    exact (pr1 (pr2 R)).
     intros x Hx.
-    apply Hq.
+    apply (pr2 (pr2 Q)).
     revert Hx.
     apply hinhfun.
-    intros (y,(R1,R2)).
-    exists y ; split ;
-    now apply H.
+    intros y.
+    exists (pr1 y) ; split ;
+    apply (pr2 (pr2 R)).
+    exact (pr1 (pr2 y)).
+    exact (pr2 (pr2 y)).
 Qed.
 
 Lemma isBaseOfUniformStructure_USbase {X : UU} (base : (X × X -> hProp) -> hProp) :
   Π Hbase : isBaseOfUniformStructure base,
     isUniformStructure (filterbase base).
 Proof.
-  intros X base ((Hand,Hne),(Hdiag,(Hinv,Hsqr))).
+  intros X base Hbase.
   repeat split.
   - intros A B H.
     apply hinhfun.
-    intros (C,(Hc,Hc')).
-    exists C ; split.
-    exact Hc.
+    intros C.
+    exists (pr1 C) ; split.
+    exact (pr1 (pr2 C)).
     intros x Hx.
-    now apply H, Hc'.
+    now apply H, (pr2 (pr2 C)).
   - apply isfilter_finite_intersection_carac.
-    + revert Hne.
+    + generalize (pr2 (pr1 Hbase)).
       apply hinhfun.
-      intros (A,Ha).
-      exists A ; easy.
+      intros A.
+      exists (pr1 A), (pr2 A) ; easy.
     + intros A B.
       apply hinhuniv2.
-      intros (A',(Ha,Ha')) (B',(Hb,Hb')).
-      generalize (Hand _ _ Ha Hb).
+      intros A' B'.
+      generalize (pr1 (pr1 Hbase) _ _ (pr1 (pr2 A')) (pr1 (pr2 B'))).
       apply hinhfun.
-      intros (C,(Hc,Hc')).
-      exists C ; split.
-      exact Hc.
+      intros C.
+      exists (pr1 C) ; split.
+      exact (pr1 (pr2 C)).
       intros x Cx ; split.
-      apply Ha'.
-      apply (pr1 (Hc' _ Cx)).
-      apply Hb'.
-      apply (pr2 (Hc' _ Cx)).
+      apply (pr2 (pr2 A')).
+      apply (pr1 (pr2 (pr2 C) _ Cx)).
+      apply (pr2 (pr2 B')).
+      apply (pr2 (pr2 (pr2 C) _ Cx)).
   - intros P Hp x.
     revert Hp.
     apply hinhuniv.
-    intros (Q,(Hq,H)).
-    apply H.
-    now apply Hdiag.
+    intros Q.
+    apply (pr2 (pr2 Q)).
+    apply (pr1 (pr2 Hbase)), (pr1 (pr2 Q)).
   - intros P.
     apply hinhuniv.
-    intros (A,(Ha,Ha')).
-    generalize (Hinv _ Ha).
+    intros A.
+    generalize (pr1 (pr2 (pr2 Hbase)) _ (pr1 (pr2 A))).
     apply hinhfun.
-    intros (B,(Hb,Hb')).
-    exists B.
+    intros B.
+    exists (pr1 B).
     split.
-    exact Hb.
+    exact (pr1 (pr2 B)).
     intros x Bx.
-    now apply Ha', Hb'.
+    now apply (pr2 (pr2 A)), (pr2 (pr2 B)).
   - intros P.
     apply hinhuniv.
-    intros (A,(Ha,Ha')).
-    generalize (Hsqr _ Ha).
+    intros A.
+    generalize (pr2 (pr2 (pr2 Hbase)) _ (pr1 (pr2 A))).
     apply hinhfun.
-    intros (B,(Hb,Hb')).
-    exists B.
+    intros B.
+    exists (pr1 B).
     split.
     apply hinhpr.
-    now exists B.
+    now exists (pr1 B), (pr1 (pr2 B)).
     intros x Bx.
-    now apply Ha', Hb'.
+    now apply (pr2 (pr2 A)), (pr2 (pr2 B)).
 Qed.
 
 (** *** Topology in a Uniform Space *)
@@ -558,11 +595,11 @@ Lemma USneighborhood_imply :
 Proof.
   intros x A B H.
   apply hinhfun.
-  intros (Ua,(Fa,Ha)).
-  exists Ua.
+  intros Ua.
+  exists (pr1 Ua).
   split.
-  apply Fa.
-  now intros y H0 ; apply H, Ha.
+  apply (pr1 (pr2 Ua)).
+  now intros y H0 ; apply H, (pr2 (pr2 Ua)).
 Qed.
 Lemma USneighborhood_htrue :
   Π x : X, isfilter_htrue (USneighborhood x).
@@ -579,23 +616,25 @@ Lemma USneighborhood_and :
 Proof.
   intros x A B.
   apply hinhfun2.
-  intros (Ua,(Fa,Ha)) (Ub,(Fb,Hb)).
-  exists (λ x, Ua x ∧ Ub x).
+  intros Ua Ub.
+  exists (λ x, pr1 Ua x ∧ pr1 Ub x).
   split.
-  now apply UniformStructure_and.
-  intros y.
-  intros (Ay,By) ; split.
-  now apply Ha.
-  now apply Hb.
+  apply UniformStructure_and.
+  exact (pr1 (pr2 Ua)).
+  exact (pr1 (pr2 Ub)).
+  intros y Hy ; split.
+  now apply (pr2 (pr2 Ua)), (pr1 Hy).
+  now apply (pr2 (pr2 Ub)), (pr2 Hy).
 Qed.
 Lemma USneighborhood_point :
   Π (x : X) (P : X → hProp), USneighborhood x P → P x.
 Proof.
   intros x A.
   apply hinhuniv.
-  intros (Ua,(Fa,Ha)).
-  apply Ha.
-  now apply UniformStructure_diag with F.
+  intros Ua.
+  apply (pr2 (pr2 Ua)).
+  apply UniformStructure_diag with F.
+  exact (pr1 (pr2 Ua)).
 Qed.
 Lemma USneighborhood_neighborhood :
   Π (x : X) (P : X → hProp),
@@ -605,21 +644,21 @@ Lemma USneighborhood_neighborhood :
 Proof.
   intros x A.
   apply hinhuniv.
-  intros (Ua,(Fa,Ha)).
-  generalize (UniformStructure_squareroot _ _ Fa).
+  intros Ua.
+  generalize (UniformStructure_squareroot _ _ (pr1 (pr2 Ua))).
   apply hinhfun.
-  intros (Ub,(Fb,Hb)).
-  exists (λ y, Ub (x,,y)).
+  intros Ub.
+  exists (λ y, pr1 Ub (x,,y)).
   split.
   apply hinhpr.
-  now exists Ub.
+  now exists (pr1 Ub), (pr1 (pr2 Ub)).
   intros y Qy.
   apply hinhpr.
-  exists Ub.
+  exists (pr1 Ub).
   split.
-  apply Fb.
+  apply (pr1 (pr2 Ub)).
   intros z Hz.
-  apply Ha, Hb.
+  apply (pr2 (pr2 Ua)), (pr2 (pr2 Ub)).
   apply hinhpr.
   now exists y ; split.
 Qed.
@@ -682,14 +721,14 @@ Lemma USlocally2d_correct {X Y : UniformSpace} (x : X) (y : Y) :
     <-> USlocally2d x y P.
 Proof.
   split ; apply hinhfun ;
-  intros (Ax,(Ay,(Hx,(Hy,H)))) ;
-  exists Ax, Ay ; repeat split.
-  - apply (pr1 (USlocally_correct _ _)), Hx.
-  - apply (pr1 (USlocally_correct _ _)), Hy.
-  - apply H.
-  - apply (pr2 (USlocally_correct _ _)), Hx.
-  - apply (pr2 (USlocally_correct _ _)), Hy.
-  - apply H.
+  intros A ;
+  exists (pr1 A), (pr1 (pr2 A)) ; repeat split.
+  - apply (pr1 (USlocally_correct _ _)), (pr1 (pr2 (pr2 A))).
+  - apply (pr1 (USlocally_correct _ _)), (pr1 (pr2 (pr2 (pr2 A)))).
+  - apply (pr2 (pr2 (pr2 (pr2 A)))).
+  - apply (pr2 (USlocally_correct _ _)), (pr1 (pr2 (pr2 A))).
+  - apply (pr2 (USlocally_correct _ _)), (pr1 (pr2 (pr2 (pr2 A)))).
+  - apply (pr2 (pr2 (pr2 (pr2 A)))).
 Qed.
 
 Definition is_filter_USlim {X : UniformSpace} (F : Filter X) (x : X) :=
@@ -748,13 +787,13 @@ Lemma UniformlyContinuous_UScontinuous {X Y : UniformSpace} (f : X → Y) :
 Proof.
   intros X Y f Cf x P.
   apply hinhfun.
-  intros (U,(Yu,Hp)).
-  specialize (Cf _ Yu).
+  intros U.
+  specialize (Cf _ (pr1 (pr2 U))).
   eexists.
   split.
   apply Cf.
   intros y.
-  apply Hp.
+  apply (pr2 (pr2 U)).
 Qed.
 
 Definition UniformSpace_dirprod (X Y : UniformSpace) : UniformSpace.
@@ -769,13 +808,13 @@ Proof.
                × (Π x y, Ux x → Uy y → U ((pr1 x ,, pr1 y) ,, (pr2 x ,, pr2 y)))).
   - intros A B H.
     apply hinhfun.
-    intros (Ux,(Uy,(Hx,(Hy,Ha)))).
-    exists Ux, Uy.
+    intros U.
+    exists (pr1 U), (pr1 (pr2 U)).
     repeat split.
-    exact Hx.
-    exact Hy.
+    exact (pr1 (pr2 (pr2 U))).
+    exact (pr1 (pr2 (pr2 (pr2 U)))).
     intros x y Uxx Uyy.
-    now apply H, Ha.
+    now apply H, (pr2 (pr2 (pr2 (pr2 U)))).
   - apply hinhpr.
     exists (λ _, htrue), (λ _, htrue).
     repeat split.
@@ -783,62 +822,70 @@ Proof.
     + apply UniformStructure_true.
   - intros A B.
     apply hinhfun2.
-    intros (Ax,(Ay,(Xa,(Ya,Ha)))).
-    intros (Bx,(By,(Xb,(Yb,Hb)))).
-    exists (λ x, Ax x ∧ Bx x), (λ y, Ay y ∧ By y).
+    intros A' B'.
+    exists (λ x, pr1 A' x ∧ pr1 B' x), (λ y, pr1 (pr2 A') y ∧ pr1 (pr2 B') y).
     repeat split.
-    now apply UniformStructure_and.
-    now apply UniformStructure_and.
-    apply Ha.
+    apply UniformStructure_and.
+    exact (pr1 (pr2 (pr2 A'))).
+    exact (pr1 (pr2 (pr2 B'))).
+    apply UniformStructure_and.
+    exact (pr1 (pr2 (pr2 (pr2 A')))).
+    exact (pr1 (pr2 (pr2 (pr2 B')))).
+    apply (pr2 (pr2 (pr2 (pr2 A')))).
     apply (pr1 X0).
     apply (pr1 X1).
-    apply Hb.
+    apply (pr2 (pr2 (pr2 (pr2 B')))).
     apply (pr2 X0).
     apply (pr2 X1).
-  - intros P Hp (x,y).
+  - intros P Hp xy.
     revert Hp.
     apply hinhuniv.
-    intros (Ux,(Uy,(Hx,(Hy,Ha)))).
-    apply (Ha (x,,x) (y,,y)).
-    now apply (UniformStructure_diag (pr2 X)).
-    now apply (UniformStructure_diag (pr2 Y)).
+    intros U.
+    rewrite (tppr xy).
+    apply (pr2 (pr2 (pr2 (pr2 U))) (pr1 xy,,pr1 xy) (pr2 xy,,pr2 xy)).
+    now apply (UniformStructure_diag (pr2 X)), (pr1 (pr2 (pr2 U))).
+    now apply (UniformStructure_diag (pr2 Y)), (pr1 (pr2 (pr2 (pr2 U)))).
   - intros P.
     apply hinhfun.
-    intros (Ux,(Uy,(Hx,(Hy,Ha)))).
-    exists (subset_inv Ux), (subset_inv Uy).
+    intros U.
+    exists (subset_inv (pr1 U)), (subset_inv (pr1 (pr2 U))).
     repeat split.
-    now apply UniformStructure_symm.
-    now apply UniformStructure_symm.
+    now apply UniformStructure_symm, (pr1 (pr2 (pr2 U))).
+    now apply UniformStructure_symm, (pr1 (pr2 (pr2 (pr2 U)))).
     intros x y.
-    apply Ha.
+    apply (pr2 (pr2 (pr2 (pr2 U)))).
   - intros P.
     apply hinhuniv.
-    intros (Ux,(Uy,(Hx,(Hy,Ha)))).
-    generalize (UniformStructure_squareroot _ _ Hx) (UniformStructure_squareroot _ _ Hy).
+    intros U.
+    generalize (UniformStructure_squareroot _ _ (pr1 (pr2 (pr2 U)))) (UniformStructure_squareroot _ _ (pr1 (pr2 (pr2 (pr2 U))))).
     apply hinhfun2.
-    intros (Qx,(Xq,Hqx)) (Qy,(Yq,Hqy)).
+    intros Qx Qy.
     exists (λ z : (X × Y) × X × Y,
-                  Qx (pr1 (pr1 z) ,, pr1 (pr2 z))
-                  ∧ Qy (pr2 (pr1 z) ,, pr2 (pr2 z))).
+                  pr1 Qx (pr1 (pr1 z) ,, pr1 (pr2 z))
+                  ∧ pr1 Qy (pr2 (pr1 z) ,, pr2 (pr2 z))).
     split.
     + apply hinhpr.
-      exists Qx, Qy.
+      exists (pr1 Qx), (pr1 Qy).
       repeat split ; simpl.
-      exact Xq.
-      exact Yq.
-      now destruct x.
-      now destruct y.
-    + intros ((x,x'),(y,y')).
+      exact (pr1 (pr2 Qx)).
+      exact (pr1 (pr2 Qy)).
+      now rewrite <- tppr.
+      now rewrite <- tppr.
+    + intros xy.
       apply hinhuniv.
-      intros ((z,z')) ; simpl.
-      intros ((Qxz,Qxz'),(Qzy,Qzy')).
-      apply (Ha (x,,y) (x',,y')).
-      apply Hqx.
+      intros z.
+      rewrite (tppr xy), (tppr (pr1 xy)), (tppr (pr2 xy)).
+      apply (pr2 (pr2 (pr2 (pr2 U))) (pr1 (pr1 xy),,pr1 (pr2 xy)) (pr2 (pr1 xy),,pr2 (pr2 xy))).
+      apply (pr2 (pr2 Qx)).
       apply hinhpr.
-      now exists z.
-      apply Hqy.
+      exists (pr1 (pr1 z)) ; split.
+      exact (pr1 (pr1 (pr2 z))).
+      exact (pr1 (pr2 (pr2 z))).
+      apply (pr2 (pr2 Qy)).
       apply hinhpr.
-      now exists z'.
+      exists (pr2 (pr1 z)) ; split.
+      exact (pr2 (pr1 (pr2 z))).
+      exact (pr2 (pr2 (pr2 z))).
 Defined.
 
 Lemma UniformlyContinuous_pr1 {X Y : UniformSpace} :
@@ -850,7 +897,8 @@ Proof.
   repeat split ; simpl.
   exact Hv.
   apply UniformStructure_true.
-  now intros (x,y).
+  intros xy.
+  now rewrite <- tppr.
 Qed.
 Lemma UniformlyContinuous_pr2 {X Y : UniformSpace} :
   UniformlyContinuous (X := UniformSpace_dirprod X Y) (λ x : X × Y, pr2 x).
@@ -861,7 +909,8 @@ Proof.
   repeat split ; simpl.
   apply UniformStructure_true.
   exact Hv.
-  now intros _ (x,y).
+  intros _ xy.
+  now rewrite <- tppr.
 Qed.
 
 (** ** Complete spaces *)
@@ -876,22 +925,31 @@ Lemma USsmall_square {X : UU} (F : UniformStructure X) (V : X × X -> hProp) (Fv
 Proof.
   intros X F V Fv A B Ha Hb Hex x y.
   apply hinhuniv2.
-  intros [Ax | Bx] [Ay | By].
+  apply (sumofmaps (Z := _ → _)) ; [intros Ax | intros Bx] ;
+  apply sumofmaps ; [intros Ay | intros By | intros Ay | intros By].
   - apply isdiag_square.
     now apply (UniformStructure_diag F).
     now apply Ha.
   - revert Hex.
     apply hinhfun.
-    intros (z,(Az,Bz)).
-    exists z ; split.
-    now apply Ha.
-    now apply Hb.
+    intros z.
+    exists (pr1 z) ; split.
+    apply Ha.
+    exact Ax.
+    exact (pr1 (pr2 z)).
+    apply Hb.
+    exact (pr2 (pr2 z)).
+    exact By.
   - revert Hex.
     apply hinhfun.
-    intros (z,(Az,Bz)).
-    exists z ; split.
-    now apply Hb.
-    now apply Ha.
+    intros z.
+    exists (pr1 z) ; split.
+    apply Hb.
+    exact Bx.
+    exact (pr2 (pr2 z)).
+    apply Ha.
+    exact (pr1 (pr2 z)).
+    exact Ay.
   - apply isdiag_square.
     now apply (UniformStructure_diag F).
     now apply Hb.
@@ -908,21 +966,22 @@ Proof.
   intros X FX F Hf V Hv.
   revert Hf.
   apply hinhuniv.
-  intros (x,Hx).
+  intros x.
   generalize (UniformStructure_prod_inv _ _ Hv).
   apply hinhfun.
-  intros (Q,(Fq,Hq)).
-  exists (λ y : X, Q (y,,x)).
+  intros Q.
+  exists (λ y : X, pr1 Q (y,,pr1 x)).
   split.
   - intros y z Qy Qz.
-    apply Hq.
+    apply (pr2 (pr2 Q)).
     apply hinhpr.
-    now exists x.
-  - apply Hx.
+    now exists (pr1 x).
+  - apply (pr2 x).
     apply hinhpr.
-    exists (subset_inv Q).
+    exists (subset_inv (pr1 Q)).
     split.
-    now apply UniformStructure_symm.
+    apply UniformStructure_symm.
+    exact (pr1 (pr2 Q)).
     easy.
 Qed.
 
@@ -935,14 +994,17 @@ Proof.
   intros V Hv.
   refine (hinhfun _ _).
   2: simple refine (H (λ x : X × X, V (f (pr1 x),,f (pr2 x))) _).
-  - intros (A,(Ha,Fa)).
-    exists (λ y : Y, ∃ x : X, y = f x × A x).
+  - intros A.
+    exists (λ y : Y, ∃ x : X, y = f x × pr1 A x).
     split.
     + intros x' y'.
       apply hinhuniv2.
-      intros (x,(->,Ax)) (y,(->,Ay)).
-      now apply Ha.
-    + revert Fa.
+      intros x y.
+      rewrite (pr1 (pr2 x)), (pr1 (pr2 y)).
+      apply (pr1 (pr2 A)).
+      exact (pr2 (pr2 x)).
+      exact (pr2 (pr2 y)).
+    + generalize (pr2 (pr2 A)).
       apply (filter_imply F).
       intros x Ax.
       apply hinhpr.
