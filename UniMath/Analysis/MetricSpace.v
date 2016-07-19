@@ -225,14 +225,15 @@ Proof.
     apply (isirrefl_StrongOrder lt x).
     now apply (istrans_StrongOrder lt _ y).
   - repeat split.
-    + intros x [ | ] ;
+    + intros x H ; revert H ; apply sumofmaps ;
       apply isirrefl_StrongOrder.
-    + intros x y [Hxy | Hyx].
+    + intros x y ; apply sumofmaps ; [intros Hxy | intros Hyx].
       now right.
       now left.
     + intros x y z [H | H] ;
       generalize (iscotrans_StrongOrder lt _ y _ H) ;
-      apply hinhfun ; intros [H' | H'].
+      apply hinhfun ; apply sumofmaps ;
+      intros H'.
       now left ; left.
       now right ; left.
       now right ; right.
@@ -263,13 +264,13 @@ Lemma minus_pos_lt {X : monoid} {is : islattice X}
       (minus : binop X) (is0 : is_minus is minus):
   Π x y : X, lt 0 (minus x y) -> lt y x.
 Proof.
-  intros.
-  apply (pr2 is_lt' _ _ y) in X0.
-  rewrite lunax, is0 in X0.
+  intros X is lt is_lt is_lt' minus is0 x y H0.
+  apply (pr2 is_lt' _ _ y) in H0.
+  rewrite lunax, is0 in H0.
   rewrite <- (Lmax_eq_l (L := _,,is) x y).
-  exact X0.
+  exact H0.
   apply (notlt_Lle _ _ is_lt).
-  intros H ; revert X0.
+  intros H ; revert H0.
   apply (pr2 (notlt_Lle _ _ is_lt _ _)).
   rewrite Lmax_eq_r.
   apply isrefl_Lle.
@@ -280,12 +281,12 @@ Lemma minus_lt_pos {X : monoid} {is : islattice X}
       (minus : binop X) (is0 : is_minus is minus):
   Π x y : X, lt y x -> lt 0 (minus x y).
 Proof.
-  intros.
+  intros X is lt is_lt is_lt' minus is0 x y H0.
   apply (pr2 is_lt' _ _ y).
   rewrite lunax, is0.
   rewrite (Lmax_eq_l (L := _,,is) x y).
-  exact X0.
-  now apply lt_Lle with (2 := X0).
+  exact H0.
+  now apply lt_Lle with (2 := H0).
 Qed.
 
 Definition ex_minus {X : monoid} (is : islattice X) := Σ minus : binop X, is_minus is minus.
@@ -406,7 +407,7 @@ Proof.
   intros x y z Hxy Hyz.
   generalize (iscotrans_NnMlt x z y Hxy).
   apply hinhuniv.
-  intros [H | H].
+  apply sumofmaps ; intros H.
   exact H.
   now apply (pr2 (notNnMlt_le _ _)) in Hyz.
 Qed.
@@ -418,7 +419,7 @@ Proof.
   intros x y z Hxy Hyz.
   generalize (iscotrans_NnMlt y x z Hyz).
   apply hinhuniv.
-  intros [H | H].
+  apply sumofmaps ; intros H.
   now apply (pr2 (notNnMlt_le _ _)) in Hxy.
   exact H.
 Qed.
