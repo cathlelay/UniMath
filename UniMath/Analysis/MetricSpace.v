@@ -230,7 +230,7 @@ Proof.
     + intros x y ; apply sumofmaps ; [intros Hxy | intros Hyx].
       now right.
       now left.
-    + intros x y z [H | H] ;
+    + intros x y z ; apply sumofmaps ; intros H ;
       generalize (iscotrans_StrongOrder lt _ y _ H) ;
       apply hinhfun ; apply sumofmaps ;
       intros H'.
@@ -456,7 +456,7 @@ Lemma NnMap_lt_0 {X : NonnegativeMonoid} :
 Proof.
   intros X x Hx.
   apply istotal_NnMlt in Hx.
-  destruct Hx as [Hx | Hx].
+  induction Hx as [Hx | Hx].
   apply fromempty.
   revert Hx.
   now apply isnonnegative_NnM'.
@@ -744,66 +744,69 @@ Proof.
     apply (∃ e : NR, 0 < e × Π x y : M, ball x e y -> A (x,,y)).
   - intros A B H.
     apply hinhfun.
-    intros (e,(He,Ha)).
-    exists e ; split.
-    exact He.
+    intros e.
+    exists (pr1 e) ; split.
+    exact (pr1 (pr2 e)).
     intros x y Hxy.
-    now apply H, Ha.
+    now apply H, (pr2 (pr2 e)).
   - generalize (NnM_nottrivial NR).
     apply hinhfun.
-    intros (e,He).
-    now exists e.
+    intros e.
+    now exists (pr1 e), (pr2 e).
   - intros A B.
     apply hinhfun2.
-    intros (ea,(Hea,Ha)) (eb,(Heb,Hb)).
-    exists (NnMmin ea eb).
+    intros ea eb.
+    exists (NnMmin (pr1 ea) (pr1 eb)).
     split.
-    now apply NnMmin_gt.
+    apply NnMmin_gt.
+    exact (pr1 (pr2 ea)).
+    exact (pr1 (pr2 eb)).
     intros x y He.
     split.
-    apply Ha.
+    apply (pr2 (pr2 ea)).
     eapply istrans_NnMlt_le, NnMmin_le_l.
     exact He.
-    apply Hb.
+    apply (pr2 (pr2 eb)).
     eapply istrans_NnMlt_le, NnMmin_le_r.
     exact He.
   - intros A Ha x.
     revert Ha.
     apply hinhuniv.
-    intros (e,(He,Ha)).
-    apply Ha.
-    now apply ball_center.
+    intros e.
+    apply (pr2 (pr2 e)).
+    apply ball_center.
+    exact (pr1 (pr2 e)).
   - intros A.
     apply hinhfun.
-    intros (e,(He,Ha)).
-    exists e ; split.
-    exact He.
+    intros e.
+    exists (pr1 e) ; split.
+    exact (pr1 (pr2 e)).
     intros x y H.
-    apply Ha.
+    apply (pr2 (pr2 e)).
     now apply ball_symm.
   - intros A.
     apply hinhfun.
-    intros (e,(He,Ha)).
+    intros e.
     mkpair.
     intros x.
-    apply (ball (pr1 x) (NnMhalf e) (pr2 x)).
+    apply (ball (pr1 x) (NnMhalf (pr1 e)) (pr2 x)).
     split.
     apply hinhpr.
-    exists (NnMhalf e).
+    exists (NnMhalf (pr1 e)).
     split.
-    apply NnMhalf_pos, He.
+    apply NnMhalf_pos, (pr1 (pr2 e)).
     easy.
-    intros (x,y).
+    intros xy.
     apply hinhuniv.
-    intros (z,(Hxz,Hzy)).
-    apply Ha.
+    intros z.
+    rewrite (tppr xy) ; apply (pr2 (pr2 e)).
     eapply istrans_NnMle_lt, istrans_NnMlt_le.
     eapply istriangle_dist.
     eapply istrans_NnMlt.
     apply NnMplus_lt_l.
-    apply Hzy.
+    apply (pr2 (pr2 z)).
     apply NnMplus_lt_r.
-    apply Hxz.
+    apply (pr1 (pr2 z)).
     apply NnMhalf_carac.
 Defined.
 
@@ -822,21 +825,21 @@ Lemma MSneighborhood_equiv :
   Π x A, USneighborhood metricUniformStructure x A <-> MSneighborhood x A.
 Proof.
   split.
-  - apply hinhuniv ; intros (U,(Hu,Hu')).
-    revert Hu.
+  - apply hinhuniv ; intros U.
+    generalize (pr1 (pr2 U)).
     apply hinhfun.
-    intros  (e,(He,Hu)).
-    exists e ; split.
-    exact He.
+    intros e.
+    exists (pr1 e) ; split.
+    exact (pr1 (pr2 e)).
     intros y Hy.
-    apply Hu', Hu, Hy.
+    apply (pr2 (pr2 U)), (pr2 (pr2 e)), Hy.
   - apply hinhfun.
-    intros (e,(He,H)).
-    exists (λ z, ball (pr1 z) e (pr2 z)).
+    intros e.
+    exists (λ z, ball (pr1 z) (pr1 e) (pr2 z)).
     split.
     apply hinhpr.
-    now exists e.
-    apply H.
+    now exists (pr1 e), (pr1 (pr2 e)).
+    apply (pr2 (pr2 e)).
 Qed.
 
 Lemma MSneighborhood_imply :
@@ -885,14 +888,14 @@ Proof.
   apply_pr2_in MSneighborhood_equiv Hp.
   generalize (USneighborhood_neighborhood _ _ _ Hp).
   apply hinhfun.
-  intros (Q,(Hq,Hq')).
-  exists Q.
+  intros Q.
+  exists (pr1 Q).
   split.
   apply MSneighborhood_equiv.
-  exact Hq.
+  exact (pr1 (pr2 Q)).
   intros y Hy.
   apply MSneighborhood_equiv.
-  apply Hq', Hy.
+  apply (pr2 (pr2 Q)), Hy.
 Qed.
 
 Lemma isNeighborhood_MSneighborhood :
@@ -964,12 +967,12 @@ Proof.
     apply MSlocally_ball, He.
   - intros H P.
     apply hinhuniv.
-    intros (e,(He,He')).
+    intros e.
     eapply (filter_imply F).
     intros y Hy.
-    apply He'.
+    apply (pr2 (pr2 e)).
     apply Hy.
-    apply H, He.
+    apply H, (pr1 (pr2 e)).
 Qed.
 
 (** *** Continuity *)
