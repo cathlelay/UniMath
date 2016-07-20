@@ -990,7 +990,7 @@ Proof.
     split.
     + reflexivity.
     + exact (pr1 (pr2 ny)).
-  - pattern r at 1 ; rewrite (pr1 (pr2 ry)).
+  - pattern r at 1 ;  rewrite (pr1 (pr2 ry)).
     apply multNonnegativeRationals_ltcompat_l.
     exact Hx.
     exact (pr2 (pr2 ny)).
@@ -1283,19 +1283,16 @@ Proof.
             now apply iscomm_multNonnegativeRationals.
             exact (pr1 (pr2 (pr2 xy))).
           * exact (pr2 (pr2 (pr2 xy))).
-      - apply hinhuniv ; intros rx.
-        generalize (pr2 (pr2 rx)).
-        apply hinhuniv ; intros xy.
-        generalize (pr1 (pr2 (pr2 xy))).
-        apply hinhfun ; intros rx'.
+      - apply hinhuniv.
+        intros rx.
+        generalize (pr2 (pr2 rx)) ; apply hinhuniv.
+        intros xy.
+        generalize (pr1 (pr2 (pr2 xy))) ; apply hinhfun ; intros rx'.
         rewrite (pr1 (pr2 rx)), (pr1 (pr2 xy)), (pr1 (pr2 rx')).
-        exists (pr1 rx',snd (pr1 xy)) ; repeat split ; simpl.
-        rewrite <- !isassoc_multNonnegativeRationals, isrinv_NonnegativeRationals, islunit_oneNonnegativeRationals.
-        reflexivity.
-        exact Hx1.
+        exists (pr1 rx',snd (pr1 xy)) ; repeat split.
+        now rewrite <- !isassoc_multNonnegativeRationals, isrinv_NonnegativeRationals, islunit_oneNonnegativeRationals.
         exact (pr2 (pr2 rx')).
-        exact (pr2 (pr2 (pr2 xy))).
-    }
+        exact (pr2 (pr2 (pr2 xy))). }
     rewrite Heq.
     revert c Hc.
     apply Dcuts_NQmult_error.
@@ -1352,7 +1349,7 @@ Lemma Dcuts_inv_in :
 Proof.
   intros x Hx0 Xx.
   unfold neg ; apply (hinhuniv (P := hProppair _ isapropempty)) ; intros l.
-  generalize ((pr1 (pr2 l)) _ Xx) ; intro H.
+  set (H := pr1 (pr2 l) _ Xx).
   rewrite islinv_NonnegativeRationals in H.
   apply (pr2 (notlt_geNonnegativeRationals _ _)) in H.
   now apply H, (pr2 (pr2 (pr2 l))).
@@ -1405,8 +1402,7 @@ Proof.
   intros r.
   apply hinhuniv.
   intros l.
-  generalize (eq0orgt0NonnegativeRationals r) ;
-    apply sumofmaps ; intros Hr0.
+  generalize (eq0orgt0NonnegativeRationals r) ; apply sumofmaps ; intros Hr0.
   - rewrite Hr0 in l |- * ; clear r Hr0.
     revert X_finite.
     apply hinhfun.
@@ -1437,14 +1433,14 @@ Proof.
         now rewrite isrinv_NonnegativeRationals, isrunit_oneNonnegativeRationals.
     + apply ispositive_invNonnegativeRationals.
       now apply ispositive_multNonnegativeRationals.
-  - generalize (between_ltNonnegativeRationals _ _ (pr2 (pr2 (pr2 l)))) ; intros l'.
+  - set (l' := between_ltNonnegativeRationals _ _ (pr2 (pr2 (pr2 l)))).
     apply hinhpr.
-    exists ((pr1 l' / pr1 l) * r)%NRat ; split.
+    exists ((pr1 l'/pr1 l) * r)%NRat ; split.
     + apply hinhpr.
       exists (pr1 l') ; repeat split.
       * intros rx Xrx.
         rewrite isassoc_multNonnegativeRationals.
-        pattern (pr1 l') at 2 ;
+        pattern l' at 1 ;
           rewrite <- (multdivNonnegativeRationals (pr1 l') (pr1 l)), iscomm_multNonnegativeRationals.
         apply multNonnegativeRationals_lecompat_r.
         now apply (pr1 (pr2 l)).
@@ -1469,8 +1465,7 @@ Lemma Dcuts_inv_error_aux : Dcuts_def_error Dcuts_inv_val.
 Proof.
   assert (Π c, (0 < c)%NRat -> hexists (λ q : NonnegativeRationals, X q × ¬ X (q + c))).
   { intros c Hc0.
-    generalize (X_error c Hc0) ; apply hinhuniv ;
-    apply sumofmaps ; [ intros nXc | intros H].
+    generalize (X_error c Hc0) ; apply hinhuniv ; apply sumofmaps ; [ intros nXc | intros H].
     - apply hinhpr.
       exists 0%NRat ; split.
       + exact X_0.
@@ -1554,7 +1549,8 @@ Proof.
       apply hinhpr.
       exists (pr1 l) ; repeat split.
       intros q ; unfold Y.
-      apply hinhuniv ; intros s ; rewrite (pr1 (pr2 s)).
+      apply hinhuniv ; intros s.
+      rewrite (pr1 (pr2 s)).
       rewrite (iscomm_multNonnegativeRationals (pr1 x)), <- isassoc_multNonnegativeRationals.
       rewrite iscomm_multNonnegativeRationals, !isassoc_multNonnegativeRationals, isrinv_NonnegativeRationals, isrunit_oneNonnegativeRationals, iscomm_multNonnegativeRationals.
       apply (pr1 (pr2 l)).
@@ -1729,8 +1725,8 @@ Lemma iscomm_Dcuts_mult : iscomm Dcuts_mult.
 Proof.
   intros x y.
   apply Dcuts_eq_is_eq ; intro r ; split.
-  - apply hinhfun ; intros xy.
-    exists (snd (pr1 xy), fst (pr1 xy)) ; repeat split.
+  - apply hinhfun. intros xy.
+    exists (snd (pr1 xy),fst (pr1 xy)) ; repeat split.
     rewrite iscomm_multNonnegativeRationals.
     exact (pr1 (pr2 xy)).
     exact (pr2 (pr2 (pr2 xy))).
@@ -1762,7 +1758,8 @@ Qed.
 Lemma islapbinop_Dcuts_mult : islapbinop Dcuts_mult.
 Proof.
   intros y x x'.
-  apply sumofmaps ; intros Hlt.
+  apply sumofmaps.
+  intros Hlt.
   - left.
     now apply Dcuts_mult_lt_l with y.
   - right.
@@ -1831,7 +1828,7 @@ Proof.
           - apply hinhpr ; left ; left.
             now apply hinhpr ; left ; right.
           - now apply hinhpr ; left ; right. }
-        { intros yz.
+        { intros yz ; simpl in * |-.
           apply hinhpr ; right ; exists (pr1 yz).
           repeat split.
           - exact (pr1 (pr2 yz)).
