@@ -265,7 +265,6 @@ Proof.
       exact (pr2 n).
 Qed.
 
-
 Lemma isarchhq :
   isarchfld (X := hq) hqgth.
 Proof.
