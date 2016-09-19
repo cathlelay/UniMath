@@ -1001,3 +1001,59 @@ Definition MScontinuous2d_on {NR : NonnegativeMonoid} {U V W : MetricSet NR} (do
       (f x y Hxy).
 Definition MScontinuous2d {NR : NonnegativeMonoid} {U V W : MetricSet NR} (f : U -> V -> W) :=
   Π x y, MScontinuous2d_at f x y.
+
+(** * NonnegativeMonoid is a MetricSet *)
+
+Definition NnMtoMS (NR : NonnegativeMonoid)
+           (is : Π x y z : NR, z < NnMmax x y -> coprod (z < x) (z < y))
+           (is0 : isrdistr (@NnMmax NR) (λ x y : NR, x + y))
+: MetricSet NR.
+Proof.
+  intros NR.
+  intros Hmax Hdistr.
+  mkpair.
+  eexists ; exact (NnMap NR).
+  mkpair.
+  apply (λ x y : NR, NnMmax (x - y) (y - x)).
+  repeat split.
+  - intros x y.
+    apply iscomm_NnMmax.
+  - apply sumofmaps ; intros H.
+    eapply istrans_NnMlt_le, NnMmax_le_r.
+    now apply NnMminus_lt_pos.
+    eapply istrans_NnMlt_le, NnMmax_le_l.
+    now apply NnMminus_lt_pos.
+  - intros H.
+    generalize (Hmax _ _ _ H).
+    clear H ; apply sumofmaps ; intros H.
+    right.
+    apply (NnMplus_lt_r y) in H.
+    rewrite NnMminus_plus, lunax in H.
+    generalize (Hmax _ _ _ H).
+    clear H ; apply sumofmaps ; intros H.
+    exact H.
+    apply fromempty ; revert H.
+    apply isirrefl_NnMlt.
+    left.
+    apply (NnMplus_lt_r x) in H.
+    rewrite NnMminus_plus, lunax in H.
+    generalize (Hmax _ _ _ H).
+    clear H ; apply sumofmaps ; intros H.
+    exact H.
+    apply fromempty ; revert H.
+    apply isirrefl_NnMlt.
+  - intros x y z.
+    change (NnMmax (x - z) (z - x) <=
+            NnMmax (x - y) (y - x) + NnMmax (y - z) (z - y)).
+    apply notNnMlt_le ; intros H.
+    generalize (Hmax _ _ _ H).
+    clear H ; apply sumofmaps ; intros H.
+    apply (NnMplus_lt_r z) in H.
+    rewrite assocax, !Hdistr, !NnMminus_plus in H.
+    generalize (Hmax _ _ _ H).
+    clear H ; apply sumofmaps ;
+    apply_pr2 (notNnMlt_le (X := NR)).
+    admit.
+    admit.
+    admit.
+Admitted.
