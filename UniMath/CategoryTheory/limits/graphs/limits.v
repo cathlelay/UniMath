@@ -1,12 +1,13 @@
-(****************************************************
-  Benedikt Ahrens and Anders Mörtberg, October 2015
-*****************************************************)
-
 (** *************************************************
 
-Contents :
+Contents:
 
-	    Definition of limits via colimits
+- Definition of limits
+- Proof that limits form a property in a (saturated/univalent) category ([isaprop_Lims])
+- Pointwise construction of limits in functor precategories [LimsFunctorCategory]
+- Alternative definition of limits via colimits
+
+Written by: Benedikt Ahrens and Anders Mörtberg, 2015-2016
 
 *****************************************************)
 
@@ -23,7 +24,6 @@ Require Import UniMath.CategoryTheory.limits.graphs.colimits.
 Local Notation "[ C , D , hs ]" := (functor_precategory C D hs).
 
 (** * Definition of limits *)
-
 Section lim_def.
 
 Context {C : precategory} (hsC : has_homsets C).
@@ -243,7 +243,7 @@ simple refine (tpair _ _ _).
   + simpl; intro u.
     assert (XR:=limArrowCommutes CC x cx u).
     eapply pathscomp0; [| apply XR].
-    eapply pathscomp0; [ apply (!assoc _ _ _ _ _ _ _ _ ) |].
+    eapply pathscomp0; [ apply (!assoc _ _ _ ) |].
     apply maponpaths.
     apply z_iso_inv_on_right.
     apply pathsinv0, limArrowCommutes.
@@ -254,7 +254,7 @@ simple refine (tpair _ _ _).
     apply pathsinv0, limArrowUnique; intro u.
     cbn in *.
     eapply pathscomp0; [| apply Hf].
-    eapply pathscomp0. apply (!assoc _ _ _ _ _ _ _ _ ).
+    eapply pathscomp0. apply (!assoc _ _ _ ).
     apply maponpaths.
     apply limArrowCommutes.
 Defined.
@@ -329,7 +329,7 @@ Section Universal_Unique.
 
 Hypothesis H : is_category C.
 
-Lemma isaprop_Lims: isaprop Lims.
+Lemma isaprop_Lims : isaprop Lims.
 Proof.
 apply impred; intro g; apply impred; intro cc.
 apply invproofirrelevance; intros Hccx Hccy.
@@ -787,7 +787,7 @@ simple refine (tpair _ _ _).
   + simpl; intro u.
     assert (XR:=limArrowCommutes CC x cx u).
     eapply pathscomp0; [| apply XR].
-    eapply pathscomp0; [ apply (!assoc _ _ _ _ _ _ _ _ ) |].
+    eapply pathscomp0; [ apply (!assoc _ _ _ ) |].
     apply maponpaths.
     apply z_iso_inv_on_right.
     apply pathsinv0, limArrowCommutes.
@@ -798,7 +798,7 @@ simple refine (tpair _ _ _).
     apply pathsinv0, limArrowUnique; intro u.
     cbn in *.
     eapply pathscomp0; [| apply Hf].
-    eapply pathscomp0. apply (!assoc _ _ _ _ _ _ _ _ ).
+    eapply pathscomp0. apply (!assoc _ _ _ ).
     apply maponpaths.
     apply limArrowCommutes.
 Defined.
@@ -809,9 +809,6 @@ End lim_def.
 Arguments Lims : clear implicits.
 
 Section LimFunctor.
-
-(* TODO: move to opp_precat *)
-
 
 Definition get_diagram (A C : precategory) (hsC : has_homsets C)
   (g : graph) (D : diagram g [A, C, hsC]^op) :

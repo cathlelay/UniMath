@@ -27,7 +27,7 @@ This file also contains proofs that the following functors are (omega-)cocontinu
 - Binary coproduct functor: C^2 -> C, (x,y) |-> x + y
   [is_cocont_bincoproduct_functor] [is_omega_cocont_bincoproduct_functor]
 - General coproduct functor: C^I -> C
-  [is_cocont_indexed_coproduct_functor] [is_omega_cocont_indexed_coproduct_functor]
+  [is_cocont_coproduct_functor] [is_omega_cocont_coproduct_functor]
 - Binary coproduct of functors: F + G : C -> D, x |-> (x,x) |-> (F x,G x) |-> F x
  + G x
   [is_cocont_BinCoproduct_of_functors_alt] [is_cocont_BinCoproduct_of_functors]
@@ -64,15 +64,12 @@ Require Import UniMath.CategoryTheory.category_hset.
 Require Import UniMath.CategoryTheory.category_hset_structures.
 Require Import UniMath.CategoryTheory.limits.initial.
 Require Import UniMath.CategoryTheory.FunctorAlgebras.
-Require Import UniMath.CategoryTheory.limits.FunctorsPointwiseBinProduct.
-Require Import UniMath.CategoryTheory.limits.FunctorsPointwiseBinCoproduct.
-Require Import UniMath.CategoryTheory.limits.FunctorsPointwiseCoproduct.
 Require Import UniMath.CategoryTheory.limits.binproducts.
 Require Import UniMath.CategoryTheory.limits.products.
 Require Import UniMath.CategoryTheory.limits.bincoproducts.
 Require Import UniMath.CategoryTheory.limits.coproducts.
 Require Import UniMath.CategoryTheory.limits.terminal.
-Require Import UniMath.CategoryTheory.limits.cats.limits.
+Require Import UniMath.CategoryTheory.limits.graphs.limits.
 Require Import UniMath.CategoryTheory.BinProductPrecategory.
 Require Import UniMath.CategoryTheory.ProductPrecategory.
 Require Import UniMath.CategoryTheory.equivalences.
@@ -146,7 +143,7 @@ Definition mapchain {C D : precategory} (F : functor C D)
 Definition chain_mor {C : precategory} (c : chain C) {i j} :
   i < j -> C⟦dob c i, dob c j⟧.
 Proof.
-induction j.
+induction j as [|j IHj].
 - intros Hi0.
   destruct (negnatlthn0 0 Hi0).
 - intros Hij.
@@ -159,7 +156,7 @@ Lemma chain_mor_coconeIn {C : precategory} (c : chain C) (x : C)
   (cc : cocone c x) i : Π j (Hij : i < j),
   chain_mor c Hij ;; coconeIn cc j = coconeIn cc i.
 Proof.
-induction j.
+induction j as [|j IHj].
 - intros Hi0.
   destruct (negnatlthn0 _ Hi0).
 - intros Hij; simpl.
@@ -175,7 +172,7 @@ used for any two proofs making it easier to apply. *)
 Lemma chain_mor_right {C : precategory} {c : chain C} {i j} (Hij : i < j) (HSij : S i < j) :
   dmor c (idpath (S i)) ;; chain_mor c HSij = chain_mor c Hij.
 Proof.
-induction j.
+induction j as [|j IHj].
 - destruct (negnatlthn0 _ Hij).
 - simpl.
   destruct (natlehchoice4 _ _ Hij).
@@ -613,7 +610,7 @@ intros c L ccL HccL y ccy.
 mkpair.
 - apply (tpair _ (coconeIn ccy 0)).
   abstract (intro n; rewrite id_left; destruct ccy as [f Hf]; simpl;
-            now induction n; [apply idpath|]; rewrite IHn, <- (Hf n (S n) (idpath _)), id_left).
+            now induction n as [|n IHn]; [apply idpath|]; rewrite IHn, <- (Hf n (S n) (idpath _)), id_left).
 - abstract (intro p; apply subtypeEquality;
               [ intros f; apply impred; intro; apply hsD
               | now simpl; destruct p as [p H]; rewrite <- (H 0), id_left]).
@@ -917,7 +914,7 @@ Proof.
 intros cAB ml ccml Hccml xy ccxy; simpl in *.
 transparent assert (cc : (Π i, cocone (mapdiagram (F i) (mapdiagram (pr_functor I (λ _ : I, A) i) cAB)) (xy i))).
 { intro i; use mk_cocone.
-  - intro n; apply (pr1 ccxy n).
+  - intro n; simple refine (pr1 ccxy n _).
   - abstract (intros m n e; apply (toforallpaths _ _ _ (pr2 ccxy m n e) i)).
 }
 set (X i := HF i _ _ _ (isColimCocone_pr_functor _ _ _ Hccml i) (xy i) (cc i)).
@@ -1014,18 +1011,18 @@ Section coprod_functor.
 
 Context {I : UU} {C : precategory} (PC : Coproducts I C) (hsC : has_homsets C).
 
-Lemma is_cocont_indexed_coproduct_functor :
-  is_cocont (indexed_coproduct_functor _ PC).
+Lemma is_cocont_coproduct_functor :
+  is_cocont (coproduct_functor _ PC).
 Proof.
-apply (left_adjoint_cocont _ (is_left_adjoint_indexed_coproduct_functor _ PC)).
+apply (left_adjoint_cocont _ (is_left_adjoint_coproduct_functor _ PC)).
 - abstract (apply has_homsets_power_precategory; apply hsC).
 - abstract (apply hsC).
 Defined.
 
-Lemma is_omega_cocont_indexed_coproduct_functor :
-  is_omega_cocont (indexed_coproduct_functor _ PC).
+Lemma is_omega_cocont_coproduct_functor :
+  is_omega_cocont (coproduct_functor _ PC).
 Proof.
-now intros c L ccL; apply is_cocont_indexed_coproduct_functor.
+now intros c L ccL; apply is_cocont_coproduct_functor.
 Defined.
 
 End coprod_functor.
@@ -1102,7 +1099,7 @@ apply (is_cocont_functor_composite hsD).
   apply (is_cocont_delta_functor PC hsC).
 apply (is_cocont_functor_composite hsD).
   apply (is_cocont_pair_functor hsC hsD HI HF).
-apply (is_cocont_indexed_coproduct_functor _ hsD).
+apply (is_cocont_coproduct_functor _ hsD).
 Defined.
 
 Lemma is_omega_cocont_coproduct_of_functors_alt (F : Π i, functor C D)
@@ -1113,7 +1110,7 @@ apply (is_omega_cocont_functor_composite hsD).
   apply (is_omega_cocont_delta_functor PC hsC).
 apply (is_omega_cocont_functor_composite hsD).
   apply (is_omega_cocont_pair_functor hsC hsD HI HF).
-apply (is_omega_cocont_indexed_coproduct_functor _ hsD).
+apply (is_omega_cocont_coproduct_functor _ hsD).
 Defined.
 
 Definition omega_cocont_coproduct_of_functors_alt
@@ -1552,9 +1549,10 @@ Variable (T : functor M A).
 
 Local Definition Q (c : C) : functor (c ↓ K) M := cComma_pr1 hsC K c.
 
-Local Definition QT (c : C) := functor_composite (Q c) T.
+Local Definition QT (c : C) : diagram (c ↓ K) A :=
+  diagram_from_functor _ _ (functor_composite (Q c) T).
 
-Local Definition R (c : C) := lim (LA _ (QT c)).
+Local Definition R (c : C) : A := lim (LA _ (QT c)).
 
 Local Definition lambda (c : C) : cone (QT c) (R c) := limCone (LA _ (QT c)).
 

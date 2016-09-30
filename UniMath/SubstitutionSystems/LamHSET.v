@@ -20,14 +20,11 @@ Require Import UniMath.CategoryTheory.FunctorAlgebras.
 Require Import UniMath.CategoryTheory.PointedFunctors.
 Require Import UniMath.CategoryTheory.BinProductPrecategory.
 Require Import UniMath.SubstitutionSystems.Signatures.
-Require Import UniMath.CategoryTheory.limits.FunctorsPointwiseBinCoproduct.
-Require Import UniMath.CategoryTheory.limits.FunctorsPointwiseBinProduct.
 Require Import UniMath.CategoryTheory.EndofunctorsMonoidal.
 Require Import UniMath.CategoryTheory.Monads.
 Require Import UniMath.SubstitutionSystems.BinSumOfSignatures.
 Require Import UniMath.SubstitutionSystems.SubstitutionSystems.
 Require Import UniMath.SubstitutionSystems.LamSignature.
-Require Import UniMath.SubstitutionSystems.Lam.
 Require Import UniMath.SubstitutionSystems.LiftingInitial.
 Require Import UniMath.SubstitutionSystems.MonadsFromSubstitutionSystems.
 Require Import UniMath.SubstitutionSystems.Notation.
@@ -61,7 +58,7 @@ use colimAlgInitial.
     * apply is_omega_cocont_constprod_functor1.
       apply functor_category_has_homsets.
       apply (has_exponentials_functor_HSET _ has_homsets_HSET).
-    * apply cats_LimsHSET.
+    * apply LimsHSET.
 - apply ColimsFunctorCategory; apply ColimsHSET.
 Defined.
 
@@ -71,7 +68,7 @@ Lemma KanExt_HSET : Π Z : precategory_Ptd HSET has_homsets_HSET,
 Proof.
 intro Z.
 apply RightKanExtension_from_limits.
-apply cats_LimsHSET.
+apply LimsHSET.
 Defined.
 
 Definition LamHSS_Initial_HSET : Initial (hss_precategory BinCoproductsHSET Lam_S).
