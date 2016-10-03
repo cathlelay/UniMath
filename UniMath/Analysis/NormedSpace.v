@@ -825,7 +825,7 @@ Proof.
   intros NR K X x.
   apply (pr2 (is_lim_aux _ _ _)).
   intros e He.
-  eapply filter_imply, MSlocally_ball, He.
+  eapply Filter_imply, MSlocally_ball, He.
   intros y Hy.
   apply ball_symm.
   eapply istrans_NnRle_lt, Hy.

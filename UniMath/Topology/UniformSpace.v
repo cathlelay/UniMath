@@ -1005,7 +1005,7 @@ Proof.
       exact (pr2 (pr2 x)).
       exact (pr2 (pr2 y)).
     + generalize (pr2 (pr2 A)).
-      apply (filter_imply F).
+      apply (Filter_imply F).
       intros x Ax.
       apply hinhpr.
       now exists x.

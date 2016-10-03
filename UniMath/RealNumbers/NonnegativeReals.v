@@ -5702,7 +5702,7 @@ Proof.
       generalize (NonnegativeReals_dense _ _ (pr1 (ispositive_halfNonnegativeReals _) Hc)).
       apply hinhuniv.
       intros r.
-      generalize (filter_notempty _ _ (pr2 (pr2 A))).
+      generalize (Filter_notempty _ _ (pr2 (pr2 A))).
       apply hinhuniv.
       intros a.
       generalize (is_Dcuts_error (pr1 a) _ (pr2 (NonnegativeRationals_to_NonnegativeReals_lt _ _) (pr1 (pr2 r)))).
@@ -5738,7 +5738,7 @@ Proof.
         exists (pr1 a - c / 2)%NR.
         split.
         * intros B Fb.
-          generalize (filter_notempty _ _ (filter_and _ _ _ (pr2 (pr2 A)) Fb)).
+          generalize (Filter_notempty _ _ (Filter_and _ _ _ (pr2 (pr2 A)) Fb)).
           apply hinhfun.
           intros b.
           exists (pr1 b).
@@ -5777,16 +5777,16 @@ Proof.
   intros P.
   apply hinhuniv.
   intros e.
-  eapply filter_imply.
+  eapply Filter_imply.
   intros y.
   apply (pr2 (pr2 e)).
   generalize (pr1 e) (pr1 (pr2 e)) ; clear e ; intros e He.
   generalize (Hf _ (pr1 (ispositive_halfNonnegativeReals _) He)).
   apply hinhuniv.
   intros A.
-  eapply filter_imply.
+  eapply Filter_imply.
   intros y Hy.
-  generalize (filter_notempty _ _ (pr2 (pr2 A))).
+  generalize (Filter_notempty _ _ (pr2 (pr2 A))).
   apply hinhuniv.
   intros a.
   rewrite (double_halfNonnegativeReals e).
@@ -5828,7 +5828,7 @@ Proof.
         exists (pr1 a - e / 2)%NR.
         split.
         intros B Fb.
-        generalize (filter_notempty _ _ (filter_and _ _ _ (pr2 (pr2 A)) Fb)).
+        generalize (Filter_notempty _ _ (Filter_and _ _ _ (pr2 (pr2 A)) Fb)).
         apply hinhfun.
         intros b.
         exists (pr1 b).
@@ -5861,7 +5861,7 @@ Proof.
   intros x y.
   refine (pr2 (is_MSlim_aux _ _ _) _).
   intros e He.
-  simple refine (filter_imply (FilterDirprod _ _) _ _ _ _).
+  simple refine (Filter_imply (FilterDirprod _ _) _ _ _ _).
   { intros (x',y').
     apply hconj.
     apply (ball x (e / 2) x').
@@ -5924,7 +5924,7 @@ Proof.
   intros x y.
   refine (pr2 (is_MSlim_aux _ _ _) _).
   intros e He.
-  simple refine (filter_imply (FilterDirprod _ _) _ _ _ _).
+  simple refine (Filter_imply (FilterDirprod _ _) _ _ _ _).
   { intros (x',y').
     apply hconj.
     apply (ball x (e / 2) x').
@@ -6036,7 +6036,7 @@ Proof.
   refine (pr2 (is_MSlim_aux _ _ _) _).
   intros e He.
 
-  simple refine (filter_imply (FilterDirprod _ _) _ _ _ _).
+  simple refine (Filter_imply (FilterDirprod _ _) _ _ _ _).
   { intros (x',y').
     apply hconj.
     apply (ball x (divNonnegativeReals (e / 2) _ (H y)) x').

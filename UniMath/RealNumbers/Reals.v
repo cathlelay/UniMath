@@ -2011,11 +2011,11 @@ Proof.
   intros A.
   apply hinhuniv.
   intros (e,(He,Ha)) ;
-    apply filter_imply with (1 := Ha) ;
+    apply Filter_imply with (1 := Ha) ;
     clear A Ha ;
     simpl in He.
-  refine (filter_imply _ _ _ _ _).
-  2: apply filter_and.
+  refine (Filter_imply _ _ _ _ _).
+  2: apply Filter_and.
   2: apply Hx, MetricSpace.MSlocally_ball, ispositive_halfNonnegativeReals, He.
   clear Hx.
   2: apply Hy, MetricSpace.MSlocally_ball, ispositive_halfNonnegativeReals, He.

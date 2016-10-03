@@ -1,6 +1,7 @@
 (** * Results about Metric Spaces *)
 (** Author: Catherine LELAY. Jan 2016 - *)
 
+Require Import UniMath.Foundations.Algebra.Lattice.
 Require Import UniMath.Topology.Prelim.
 Require Export UniMath.Topology.Filters.
 Require Import UniMath.Topology.Topology.
@@ -9,169 +10,6 @@ Require Import UniMath.RealNumbers.Sets.
 Require Import UniMath.Foundations.Algebra.Apartness.
 
 (** ** Lattice *)
-
-Definition islatticeop {X : hSet} (min max : binop X) :=
-  (isassoc min)
-    × (iscomm min)
-    × (isassoc max)
-    × (iscomm max)
-    × (Π x y : X, min x (max x y) = x)
-    × (Π x y : X, max x (min x y) = x).
-Definition islattice (X : hSet) := Σ min max : binop X, islatticeop min max.
-Definition lattice := Σ X : hSet, islattice X.
-Definition pr1lattice : lattice -> setwith2binop :=
-  λ L : lattice, pr1 L,, pr1 (pr2 L),, pr1 (pr2 (pr2 L)).
-Coercion pr1lattice : lattice >-> setwith2binop.
-
-Section lattice_pty.
-
-Context {L : lattice}.
-
-Definition Lmin : binop L := BinaryOperations.op1.
-Definition Lmax : binop L := BinaryOperations.op2.
-Definition Lle : hrel L :=
-  λ (x y : L), hProppair (Lmin x y = x) (pr2 (pr1 L) (Lmin x y) x).
-
-Local Lemma pr2lattice :
-  (isassoc Lmin)
-    × (iscomm Lmin)
-    × (isassoc Lmax)
-    × (iscomm Lmax)
-    × (Π x y : L, Lmin x (Lmax x y) = x)
-    × (Π x y : L, Lmax x (Lmin x y) = x).
-Proof.
-  apply (pr2 (pr2 (pr2 L))).
-Qed.
-
-Lemma isassoc_Lmin :
-  isassoc Lmin.
-Proof.
-  exact (pr1 pr2lattice).
-Qed.
-Lemma iscomm_Lmin :
-  iscomm Lmin.
-Proof.
-  exact (pr1 (pr2 pr2lattice)).
-Qed.
-Lemma isassoc_Lmax :
-  isassoc Lmax.
-Proof.
-  exact (pr1 (pr2 (pr2 pr2lattice))).
-Qed.
-Lemma iscomm_Lmax :
-  iscomm Lmax.
-Proof.
-  exact (pr1 (pr2 (pr2 (pr2 pr2lattice)))).
-Qed.
-Lemma Lmin_absorb :
-  Π x y : L, Lmin x (Lmax x y) = x.
-Proof.
-  exact (pr1 (pr2 (pr2 (pr2 (pr2 pr2lattice))))).
-Qed.
-Lemma Lmax_absorb :
-  Π x y : L, Lmax x (Lmin x y) = x.
-Proof.
-  exact (pr2 (pr2 (pr2 (pr2 (pr2 pr2lattice))))).
-Qed.
-
-Lemma Lmin_id :
-  Π x : L, Lmin x x = x.
-Proof.
-  intros x.
-  pattern x at 2 ; rewrite <- (Lmax_absorb x x).
-  apply Lmin_absorb.
-Qed.
-Lemma Lmax_id :
-  Π x : L, Lmax x x = x.
-Proof.
-  intros x.
-  pattern x at 2 ; rewrite <- (Lmin_absorb x x).
-  apply Lmax_absorb.
-Qed.
-
-Lemma isrefl_Lle :
-  isrefl Lle.
-Proof.
-  intros x.
-  apply Lmin_id.
-Qed.
-Lemma isantisymm_Lle :
-  isantisymm Lle.
-Proof.
-  intros x y Hxy Hyx.
-  rewrite <- Hxy.
-  pattern y at 2 ; rewrite <- Hyx.
-  apply iscomm_Lmin.
-Qed.
-Lemma istrans_Lle :
-  istrans Lle.
-Proof.
-  intros x y z <- <-.
-  simpl.
-  rewrite !isassoc_Lmin, Lmin_id.
-  reflexivity.
-Qed.
-
-Lemma Lmin_le_l :
-  Π x y : L, Lle (Lmin x y) x.
-Proof.
-  intros x y.
-  simpl.
-  rewrite iscomm_Lmin, <- isassoc_Lmin, Lmin_id.
-  reflexivity.
-Qed.
-Lemma Lmin_le_r :
-  Π x y : L, Lle (Lmin x y) y.
-Proof.
-  intros x y.
-  rewrite iscomm_Lmin.
-  apply Lmin_le_l.
-Qed.
-Lemma Lmax_le_l :
-  Π x y : L, Lle x (Lmax x y).
-Proof.
-  intros x y.
-  simpl.
-  apply Lmin_absorb.
-Qed.
-Lemma Lmax_le_r :
-  Π x y : L, Lle y (Lmax x y).
-Proof.
-  intros x y.
-  rewrite iscomm_Lmax.
-  apply Lmax_le_l.
-Qed.
-
-Lemma Lmin_eq_l :
-  Π x y : L, Lle x y -> Lmin x y = x.
-Proof.
-  intros x y H.
-  apply H.
-Qed.
-Lemma Lmin_eq_r :
-  Π x y : L, Lle y x -> Lmin x y = y.
-Proof.
-  intros x y H.
-  rewrite iscomm_Lmin.
-  apply H.
-Qed.
-
-Lemma Lmax_eq_l :
-  Π x y : L, Lle y x -> Lmax x y = x.
-Proof.
-  intros x y <-.
-  rewrite iscomm_Lmin.
-  apply Lmax_absorb.
-Qed.
-Lemma Lmax_eq_r :
-  Π x y : L, Lle x y -> Lmax x y = y.
-Proof.
-  intros x y H.
-  rewrite iscomm_Lmax.
-  now apply Lmax_eq_l.
-Qed.
-
-End lattice_pty.
 
 Definition islatticelt (L : lattice) (lt : StrongOrder L) :=
   (Π x y : L, (¬ (lt x y)) <-> Lle y x)
@@ -256,67 +94,68 @@ Defined.
 
 Open Scope addmonoid_scope.
 
-Definition is_minus {X : monoid} (is : islattice X) (minus : binop X) :=
-  (Π x y : X, minus x y + y = Lmax (L := _,,is) x y).
+Definition is_minus {X : monoid} {min max : binop X} (is : islatticeop min max) (minus : binop X) :=
+  (Π x y : X, minus x y + y = max x y).
 
-Lemma minus_pos_lt {X : monoid} {is : islattice X}
-      (lt : StrongOrder X) (is_lt : islatticelt (_,,is) lt) (is_lt' : isbinophrel lt)
+Lemma minus_pos_lt {X : monoid} {min max : binop X} {is : islatticeop min max}
+      (lt : StrongOrder X) (is_lt : islatticelt (mklattice is) lt) (is_lt' : isbinophrel lt)
       (minus : binop X) (is0 : is_minus is minus):
   Π x y : X, lt 0 (minus x y) -> lt y x.
 Proof.
-  intros X is lt is_lt is_lt' minus is0 x y H0.
+  intros X min max is lt is_lt is_lt' minus is0 x y H0.
   apply (pr2 is_lt' _ _ y) in H0.
   rewrite lunax, is0 in H0.
-  rewrite <- (Lmax_eq_l (L := _,,is) x y).
+  rewrite <- (Lmax_eq_l (L := (_,,min,,max),,is) x y).
   exact H0.
   apply (notlt_Lle _ _ is_lt).
   intros H ; revert H0.
   apply (pr2 (notlt_Lle _ _ is_lt _ _)).
-  rewrite Lmax_eq_r.
+  rewrite (Lmax_eq_r (L := (_,,min,,max),,is)).
   apply isrefl_Lle.
   now apply lt_Lle with (2 := H).
 Qed.
-Lemma minus_lt_pos {X : monoid} {is : islattice X}
-      (lt : StrongOrder X) (is_lt : islatticelt (_,,is) lt) (is_lt' : isinvbinophrel lt)
+Lemma minus_lt_pos {X : monoid} {min max : binop X} {is : islatticeop min max}
+      (lt : StrongOrder X) (is_lt : islatticelt (mklattice is) lt) (is_lt' : isinvbinophrel lt)
       (minus : binop X) (is0 : is_minus is minus):
   Π x y : X, lt y x -> lt 0 (minus x y).
 Proof.
-  intros X is lt is_lt is_lt' minus is0 x y H0.
+  intros X min max is lt is_lt is_lt' minus is0 x y H0.
   apply (pr2 is_lt' _ _ y).
   rewrite lunax, is0.
-  rewrite (Lmax_eq_l (L := _,,is) x y).
+  change max with (Lmax (L := mklattice is)).
+  rewrite (Lmax_eq_l (L := mklattice is) x y).
   exact H0.
   now apply lt_Lle with (2 := H0).
 Qed.
 
-Definition ex_minus {X : monoid} (is : islattice X) := Σ minus : binop X, is_minus is minus.
+Definition ex_minus {X : monoid} {min max : binop X} (is : islatticeop min max) := Σ minus : binop X, is_minus is minus.
 
-Definition isNonnegativeMonoid {X : monoid} (is : islattice X) (lt : StrongOrder X) :=
+Definition isNonnegativeMonoid {X : monoid} {min max : binop X} (is : islatticeop min max) (lt : StrongOrder X) :=
   (ex_minus is)
-    × (islatticelt (_,,is) lt)
+    × (islatticelt (mklattice is) lt)
     × isbinophrel lt
     × isinvbinophrel lt
-    × (Π x : X, Lle (L := _,,is) 0 x)
+    × (Π x : X, Lle (L := mklattice is) 0 x)
     × (∃ x0, lt 0 x0)
-    × (Π x : X, Σ y : X, (Lle (L := _,,is) (y + y) x) × (lt 0 x -> lt 0 y)).
+    × (Π x : X, Σ y : X, (Lle (L := mklattice is) (y + y) x) × (lt 0 x -> lt 0 y)).
 
 Definition NonnegativeMonoid :=
-  Σ (X : monoid) (is : islattice X) (lt : StrongOrder X), isNonnegativeMonoid is lt.
+  Σ (X : monoid) (min max : binop X) (is : islatticeop min max) (lt : StrongOrder X), isNonnegativeMonoid is lt.
 
 Definition pr1NonnegativeMonoid : NonnegativeMonoid -> monoid := pr1.
 Coercion pr1NonnegativeMonoid : NonnegativeMonoid >-> monoid.
 
 Definition NnMlt (X : NonnegativeMonoid) : StrongOrder X :=
-  pr1 (pr2 (pr2 X)).
+  pr1 (pr2 (pr2 (pr2 (pr2 X)))).
 Definition NnMle (X : NonnegativeMonoid) : PartialOrder X.
 Proof.
   intros X.
   mkpair.
-  apply (Lle (L := _,, pr1 (pr2 X))).
+  apply (Lle (L := mklattice (pr1 (pr2 (pr2 (pr2 X)))))).
   repeat split.
-  - now apply (istrans_Lle (L := _ ,, pr1 (pr2 X))).
-  - now apply (isrefl_Lle (L := _ ,, pr1 (pr2 X))).
-  - now apply (isantisymm_Lle (L := _ ,, pr1 (pr2 X))).
+  - now apply (istrans_Lle (L := mklattice (pr1 (pr2 (pr2 (pr2 X)))))).
+  - now apply (isrefl_Lle (L := mklattice (pr1 (pr2 (pr2 (pr2 X)))))).
+  - now apply (isantisymm_Lle (L := mklattice (pr1 (pr2 (pr2 (pr2 X)))))).
 Defined.
 Definition NnMap (X : NonnegativeMonoid) : tightap X.
 Proof.
@@ -324,17 +163,17 @@ Proof.
   simple refine (tightapfromlt _ _ _ _).
   - apply NnMlt.
   - apply (pr1 (NnMle _)).
-  - apply (pr1 (pr2 (pr2 (pr2 (pr2 X))))).
-  - now apply (isantisymm_Lle (L := _ ,, pr1 (pr2 X))).
+  - apply (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))).
+  - now apply (isantisymm_Lle (L := mklattice (pr1 (pr2 (pr2 (pr2 X)))))).
 Defined.
 Definition NnMmin {X : NonnegativeMonoid} : binop X :=
-  Lmin (L := _,,(pr1 (pr2 X))).
+  Lmin (L := mklattice (pr1 (pr2 (pr2 (pr2 X))))).
 Definition NnMmax {X : NonnegativeMonoid} : binop X :=
-  Lmax (L := _,,(pr1 (pr2 X))).
+  Lmax (L := mklattice (pr1 (pr2 (pr2 (pr2 X))))).
 Definition NnMminus {X : NonnegativeMonoid} : binop X :=
-  (pr1 (pr1 (pr2 (pr2 (pr2 X))))).
+  (pr1 (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))).
 Definition NnMhalf {X : NonnegativeMonoid} : unop X :=
-  λ x : X, (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))) x)).
+  λ x : X, (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))))) x)).
 
 Local Notation "0" := (0%addmonoid).
 Local Notation "x + y" := ((x + y)%addmonoid).
@@ -364,7 +203,7 @@ Lemma notNnMlt_le {X : NonnegativeMonoid} :
   Π x y : X, (¬ (x < y)) <-> (y <= x).
 Proof.
   intros X.
-  now apply (pr1 (pr2 (pr2 (pr2 (pr2 X))))).
+  now apply (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))).
 Qed.
 Lemma isirrefl_NnMlt {X : NonnegativeMonoid} :
   Π x : X, ¬ (x < x).
@@ -428,7 +267,7 @@ Lemma isnonnegative_NnM {X : NonnegativeMonoid} :
   Π x : X, 0 <= x.
 Proof.
   intros X.
-  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))).
+  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X)))))))))).
 Qed.
 Lemma isnonnegative_NnM' {X : NonnegativeMonoid} :
   Π x : X, ¬ (x < 0).
@@ -442,13 +281,13 @@ Lemma NnMplus_lt_l {X : NonnegativeMonoid} :
   Π k x y : X, x < y -> k + x < k + y.
 Proof.
   intros X k x y.
-  apply (pr1 (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))).
+  apply (pr1 (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))))).
 Qed.
 Lemma NnMplus_lt_r {X : NonnegativeMonoid} :
   Π k x y : X, x < y -> x + k < y + k.
 Proof.
   intros X k x y.
-  apply (pr2 (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))).
+  apply (pr2 (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))))).
 Qed.
 
 Lemma NnMap_lt_0 {X : NonnegativeMonoid} :
@@ -474,98 +313,98 @@ Lemma NnM_nottrivial (X : NonnegativeMonoid) :
   ∃ x0 : X, 0 < x0.
 Proof.
   intros X.
-  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))))).
+  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))))))).
 Qed.
 
 Lemma NnMmin_le_l {X : NonnegativeMonoid} :
   Π x y : X, NnMmin x y <= x.
 Proof.
   intros X.
-  apply (Lmin_le_l (L := _,,(pr1 (pr2 X)))).
+  apply (Lmin_le_l (L := mklattice (pr1 (pr2 (pr2 (pr2 X)))))).
 Qed.
 Lemma NnMmin_le_r {X : NonnegativeMonoid} :
   Π x y : X, NnMmin x y <= y.
 Proof.
   intros X.
-  apply (Lmin_le_r (L := _,,(pr1 (pr2 X)))).
+  apply (Lmin_le_r (L := mklattice (pr1 (pr2 (pr2 (pr2 X)))))).
 Qed.
 Lemma NnMmin_gt {X : NonnegativeMonoid} :
   Π x y z : X, z < x -> z < y -> z < NnMmin x y.
 Proof.
   intros X.
-  apply (Lmin_lt (_,,(pr1 (pr2 X)))).
-  apply (pr1 (pr2 (pr2 (pr2 (pr2 X))))).
+  apply (Lmin_lt (mklattice (pr1 (pr2 (pr2 (pr2 X)))))).
+  apply (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))).
 Qed.
 
 Lemma NnMmax_le_l {X : NonnegativeMonoid} :
   Π x y : X, x <= NnMmax x y.
 Proof.
   intros X.
-  apply (Lmax_le_l (L := _,,(pr1 (pr2 X)))).
+  apply (Lmax_le_l (L := mklattice (pr1 (pr2 (pr2 (pr2 X)))))).
 Qed.
 Lemma NnMmax_le_r {X : NonnegativeMonoid} :
   Π x y : X, y <= NnMmax x y.
 Proof.
   intros X.
-  apply (Lmax_le_r (L := _,,(pr1 (pr2 X)))).
+  apply (Lmax_le_r (L := mklattice (pr1 (pr2 (pr2 (pr2 X)))))).
 Qed.
 Lemma NnMmax_gt {X : NonnegativeMonoid} :
   Π x y z : X, x < z -> y < z -> NnMmax x y < z.
 Proof.
   intros X.
-  apply (Lmax_lt (_,,(pr1 (pr2 X)))).
-  apply (pr1 (pr2 (pr2 (pr2 (pr2 X))))).
+  apply (Lmax_lt (mklattice (pr1 (pr2 (pr2 (pr2 X)))))).
+  apply (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))).
 Qed.
 
 Lemma iscomm_NnMmin {X : NonnegativeMonoid} :
   iscomm (NnMmin (X := X)).
 Proof.
   intros X.
-  apply (iscomm_Lmin (L := _,,(pr1 (pr2 X)))).
+  apply (iscomm_Lmin (L := mklattice (pr1 (pr2 (pr2 (pr2 X)))))).
 Qed.
 Lemma isassoc_NnMmin {X : NonnegativeMonoid} :
   isassoc (NnMmin (X := X)).
 Proof.
   intros X.
-  apply (isassoc_Lmin (L := _,,(pr1 (pr2 X)))).
+  apply (isassoc_Lmin (L := mklattice (pr1 (pr2 (pr2 (pr2 X)))))).
 Qed.
 
 Lemma iscomm_NnMmax {X : NonnegativeMonoid} :
   iscomm (NnMmax (X := X)).
 Proof.
   intros X.
-  apply (iscomm_Lmax (L := _,,(pr1 (pr2 X)))).
+  apply (iscomm_Lmax (L := mklattice (pr1 (pr2 (pr2 (pr2 X)))))).
 Qed.
 Lemma isassoc_NnMmax {X : NonnegativeMonoid} :
   isassoc (NnMmax (X := X)).
 Proof.
   intros X.
-  apply (isassoc_Lmax (L := _,,(pr1 (pr2 X)))).
+  apply (isassoc_Lmax (L := mklattice (pr1 (pr2 (pr2 (pr2 X)))))).
 Qed.
 
 Lemma NnMmin_eq_l {X : NonnegativeMonoid} :
   Π (x y : X), x <= y → NnMmin x y = x.
 Proof.
   intros X.
-  apply (Lmin_eq_l (L := _,,(pr1 (pr2 X)))).
+  apply (Lmin_eq_l (L := mklattice (pr1 (pr2 (pr2 (pr2 X)))))).
 Qed.
 Lemma NnMmin_eq_r {X : NonnegativeMonoid} :
   Π (x y : X), y <= x → NnMmin x y = y.
 Proof.
   intros X.
-  apply (Lmin_eq_r (L := _,,(pr1 (pr2 X)))).
+  apply (Lmin_eq_r (L := mklattice (pr1 (pr2 (pr2 (pr2 X)))))).
 Qed.
 Lemma NnMmax_eq_l {X : NonnegativeMonoid} :
   Π (x y : X), y <= x → NnMmax x y = x.
 Proof.
   intros X.
-  apply (Lmax_eq_l (L := _,,(pr1 (pr2 X)))).
+  apply (Lmax_eq_l (L := mklattice (pr1 (pr2 (pr2 (pr2 X)))))).
 Qed.
 Lemma NnMmax_eq_r {X : NonnegativeMonoid} :
   Π (x y : X), x <= y → NnMmax x y = y.
 Proof.
   intros X.
-  apply (Lmax_eq_r (L := _,,(pr1 (pr2 X)))).
+  apply (Lmax_eq_r (L := mklattice (pr1 (pr2 (pr2 (pr2 X)))))).
 Qed.
 
 Lemma NnMminus_lt_pos {X : NonnegativeMonoid} :
@@ -573,29 +412,29 @@ Lemma NnMminus_lt_pos {X : NonnegativeMonoid} :
 Proof.
   intros X.
   eapply minus_lt_pos.
-  apply (pr1 (pr2 (pr2 (pr2 (pr2 X))))).
-  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))).
-  exact (pr2 (pr1 (pr2 (pr2 (pr2 X))))).
+  apply (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))).
+  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))))).
+  exact (pr2 (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))).
 Qed.
 
 Lemma NnMminus_plus {X : NonnegativeMonoid} :
   Π x y : X, (NnMminus x y) + y = NnMmax x y.
 Proof.
   intros X x y.
-  apply (pr2 (pr1 (pr2 (pr2 (pr2 X))))).
+  apply (pr2 (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))).
 Qed.
 
 Lemma NnMhalf_carac {X : NonnegativeMonoid} :
   Π x : X, NnMhalf x + NnMhalf x <= x.
 Proof.
   intros X x.
-  exact (pr1 (pr2 ((pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))))) x))).
+  exact (pr1 (pr2 ((pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))))))) x))).
 Qed.
 Lemma NnMhalf_pos {X : NonnegativeMonoid} :
   Π x : X, 0 < x -> 0 < NnMhalf x.
 Proof.
   intros X x.
-  exact (pr2 (pr2 ((pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))))) x))).
+  exact (pr2 (pr2 ((pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))))))) x))).
 Qed.
 
 (** ** Definition of metric spaces *)
@@ -968,7 +807,7 @@ Proof.
   - intros H P.
     apply hinhuniv.
     intros e.
-    eapply (filter_imply F).
+    eapply (Filter_imply F).
     intros y Hy.
     apply (pr2 (pr2 e)).
     apply Hy.
