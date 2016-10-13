@@ -481,6 +481,45 @@ Qed.
 
 Lemma isassoc_abgrfrac_min :
   isassoc abgrfrac_min.
+Proof.
+  intros x y z.
+  unfold abgrfrac_min.
+  set (x' := abgrfracelt (min,, max,, is) minus is0 is1 is2 x).
+  set (y' := abgrfracelt (min,, max,, is) minus is0 is1 is2 y).
+  set (z' := abgrfracelt (min,, max,, is) minus is0 is1 is2 z).
+
+  generalize (abgrfracelt_correct' (min,, max,, is) minus is0 is1 is2 x).
+  fold x'.
+  rewrite abgrfracelt_simpl.
+  intros Hx'.
+
+  generalize (abgrfracelt_correct' (min,, max,, is) minus is0 is1 is2 y).
+  fold y'.
+  rewrite abgrfracelt_simpl.
+  intros Hy'.
+
+  generalize (abgrfracelt_correct' (min,, max,, is) minus is0 is1 is2 z).
+  fold z'.
+  rewrite abgrfracelt_simpl.
+  intros Hz'.
+
+  rewrite !(abgrfracelt_simpl (min,, max,, is)),
+          !rewrite_pr1_tpair, !rewrite_pr2_tpair.
+
+  rewrite (abgrfrac_setquotpr_equiv (max (pr2 x') (pr2 y'))), is3, is0.
+  rewrite (abgrfrac_setquotpr_equiv (min (pr1 x') (pr1 y'))), assocax, (commax _ (max _ _) (min _ _)),
+          <- assocax, is2, is0.
+  apply pathsinv0.
+
+  rewrite (abgrfrac_setquotpr_equiv (max (pr2 y') (pr2 z'))), is3, is0.
+  rewrite (abgrfrac_setquotpr_equiv (min (pr1 y') (pr1 z'))), assocax, (commax _ (max _ _) (min _ _)),
+          <- assocax, is2, is0.
+  rewrite iscomm_Lmax.
+  apply pathsinv0.
+
+  unfold Lmax.
+  rewrite rewrite_pr2_tpair, rewrite_pr1_tpair.
+
 Admitted.
 
 Lemma iscomm_abgrfrac_max :
