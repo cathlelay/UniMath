@@ -8,6 +8,8 @@ Require Export UniMath.RealNumbers.NonnegativeReals.
 
 Open Scope NR_scope.
 
+Set Default Timeout 10.
+
 (** ** Definition *)
 
 (** *** [commrng] *)
@@ -1306,9 +1308,9 @@ Proof.
     unfold x, y, hr_to_NRpos, hr_to_NRneg.
     tryif primitive_projections then idtac else rewrite <- tppr.
     apply hr_to_NR_bij. }
-  generalize (Cauchy_seq_impl_ex_lim_seq x (Cauchy_seq_pr1 u Cu)).
+  generalize (Cauchy_seq_impl_is_lim_seq x (Cauchy_seq_pr1 u Cu)).
   set (lx := Cauchy_lim_seq x (Cauchy_seq_pr1 u Cu)) ; clearbody lx ; intro Hx.
-  generalize (Cauchy_seq_impl_ex_lim_seq y (Cauchy_seq_pr2 u Cu)).
+  generalize (Cauchy_seq_impl_is_lim_seq y (Cauchy_seq_pr2 u Cu)).
   set (ly := Cauchy_lim_seq y (Cauchy_seq_pr2 u Cu)) ; clearbody ly ; intro Hy.
   exists (NR_to_hr (lx,,ly)).
   intros c Hc.
