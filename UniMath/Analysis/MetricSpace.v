@@ -1,7 +1,7 @@
 (** * Results about Metric Spaces *)
 (** Author: Catherine LELAY. Jan 2016 - *)
 
-Require Import UniMath.Foundations.Algebra.Lattice.
+Require Export UniMath.Foundations.Algebra.Lattice.
 Require Import UniMath.Topology.Prelim.
 Require Export UniMath.Topology.Filters.
 Require Import UniMath.Topology.Topology.
@@ -191,7 +191,7 @@ End NnM_pr.
 
 Local Notation "0" := (0%addmonoid).
 Local Notation "x + y" := ((x + y)%addmonoid).
-Local Notation "x # y" := (NnMap _ x y).
+Local Notation "x ≠ y" := (NnMap _ x y).
 Local Notation "x < y" :=  (NnMlt _ x y).
 Local Notation "x <= y" :=  (NnMle _ x y).
 
@@ -214,7 +214,7 @@ Proof.
   exact (pr1 (pr1 (pr2 (NnMap X)))).
 Qed.
 Lemma istotal_NnMlt :
-  Π x y : X, x # y <-> (x < y) ⨿ (y < x).
+  Π x y : X, x ≠ y <-> (x < y) ⨿ (y < x).
 Proof.
   easy.
 Qed.
@@ -244,6 +244,12 @@ Lemma NnMlt_le :
   Π x y : X, x < y -> x <= y.
 Proof.
   apply Llt_Lle.
+Qed.
+
+Lemma isrefl_NnMle :
+  Π x : X, (x <= x).
+Proof.
+  apply isrefl_Lle.
 Qed.
 
 Lemma istrans_NnMlt_le :
@@ -295,7 +301,7 @@ Proof.
 Qed.
 
 Lemma NnMap_lt_0 :
-  Π x : X, x # 0 -> 0 < x.
+  Π x : X, x ≠ 0 -> 0 < x.
 Proof.
   intros x Hx.
   apply istotal_NnMlt in Hx.
@@ -306,7 +312,7 @@ Proof.
   exact Hx.
 Qed.
 Lemma NnMlt_ap :
-  Π x y : X, x < y -> x # y.
+  Π x y : X, x < y -> x ≠ y.
 Proof.
   intros x y H.
   apply (pr2 (istotal_NnMlt _ _)).
@@ -362,73 +368,74 @@ Proof.
   apply isassoc_Lmin.
 Qed.
 
-Lemma iscomm_NnMmax {X : NonnegativeMonoid} :
-  iscomm (NnMmax (X := X)).
+Lemma iscomm_NnMmax :
+  iscomm NnMmax.
 Proof.
-  intros X.
-  apply (iscomm_Lmax (L := mklattice (pr1 (pr2 (pr2 (pr2 X)))))).
+  apply iscomm_Lmax.
 Qed.
-Lemma isassoc_NnMmax {X : NonnegativeMonoid} :
-  isassoc (NnMmax (X := X)).
+Lemma isassoc_NnMmax :
+  isassoc NnMmax.
 Proof.
-  intros X.
-  apply (isassoc_Lmax (L := mklattice (pr1 (pr2 (pr2 (pr2 X)))))).
+  apply isassoc_Lmax.
 Qed.
 
-Lemma NnMmin_eq_l {X : NonnegativeMonoid} :
+Lemma NnMmin_eq_l :
   Π (x y : X), x <= y → NnMmin x y = x.
 Proof.
-  intros X.
-  apply (Lmin_eq_l (L := mklattice (pr1 (pr2 (pr2 (pr2 X)))))).
+  apply Lmin_eq_l.
 Qed.
-Lemma NnMmin_eq_r {X : NonnegativeMonoid} :
+Lemma NnMmin_eq_r :
   Π (x y : X), y <= x → NnMmin x y = y.
 Proof.
-  intros X.
-  apply (Lmin_eq_r (L := mklattice (pr1 (pr2 (pr2 (pr2 X)))))).
+  apply Lmin_eq_r.
 Qed.
-Lemma NnMmax_eq_l {X : NonnegativeMonoid} :
+Lemma NnMmax_eq_l :
   Π (x y : X), y <= x → NnMmax x y = x.
 Proof.
-  intros X.
-  apply (Lmax_eq_l (L := mklattice (pr1 (pr2 (pr2 (pr2 X)))))).
+  apply Lmax_eq_l.
 Qed.
-Lemma NnMmax_eq_r {X : NonnegativeMonoid} :
+Lemma NnMmax_eq_r :
   Π (x y : X), x <= y → NnMmax x y = y.
 Proof.
-  intros X.
-  apply (Lmax_eq_r (L := mklattice (pr1 (pr2 (pr2 (pr2 X)))))).
+  apply Lmax_eq_r.
 Qed.
 
-Lemma NnMminus_lt_pos {X : NonnegativeMonoid} :
+Lemma NnMminus_plus :
+  Π x y : X, (x - y) + y = NnMmax x y.
+Proof.
+  exact (pr2 (pr1 (pr2 (pr2 X)))).
+Qed.
+
+Lemma NnMminus_lt_pos :
   Π x y : X, y < x -> 0 < NnMminus x y.
 Proof.
-  intros X.
-  eapply minus_lt_pos.
-  apply (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))).
-  exact (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))))).
-  exact (pr2 (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))).
+  apply minus_lt_pos.
+  apply (pr1 (pr2 (pr2 (pr2 (pr2  X))))).
+  exact NnMminus_plus.
 Qed.
 
-Lemma NnMminus_plus {X : NonnegativeMonoid} :
-  Π x y : X, (NnMminus x y) + y = NnMmax x y.
+Lemma NnM_dense :
+  Π x y : X, x < y → ∃ z : X, x < z × z < y.
 Proof.
-  intros X x y.
-  apply (pr2 (pr1 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))).
+  exact (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))).
+Qed.
+Lemma NnM_cut :
+  Π x : X, 0 < x → ∃ y z : X, x = y + z × 0 < y × 0 < z.
+Proof.
+  intros x Hx.
+  generalize (NnM_dense _ _ Hx).
+  apply hinhfun.
+  intros z.
+  exists (x - pr1 z), (pr1 z).
+  repeat split.
+  - rewrite NnMminus_plus.
+    apply pathsinv0, NnMmax_eq_l.
+    apply NnMlt_le, (pr2 (pr2 z)).
+  - apply NnMminus_lt_pos, (pr2 (pr2 z)).
+  - apply (pr1 (pr2 z)).
 Qed.
 
-Lemma NnMhalf_carac {X : NonnegativeMonoid} :
-  Π x : X, NnMhalf x + NnMhalf x <= x.
-Proof.
-  intros X x.
-  exact (pr1 (pr2 ((pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))))))) x))).
-Qed.
-Lemma NnMhalf_pos {X : NonnegativeMonoid} :
-  Π x : X, 0 < x -> 0 < NnMhalf x.
-Proof.
-  intros X x.
-  exact (pr2 (pr2 ((pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 (pr2 X))))))))))) x))).
-Qed.
+End NnM_pty.
 
 (** ** Definition of metric spaces *)
 
@@ -450,7 +457,7 @@ Defined.
 Definition issepp_isdist : hProp.
 Proof.
   simple refine (hProppair _ _).
-  apply (Π x y : X, (x ≠ y)%tap <-> (0%addmonoid < (dist x y))).
+  apply (Π x y : X, (x ≠ y)%tap <-> (0 < (dist x y))).
   apply impred_isaprop ; intros x.
   apply impred_isaprop ; intros y.
   apply isapropdirprod.
@@ -581,7 +588,7 @@ Proof.
     exact (pr1 (pr2 e)).
     intros x y Hxy.
     now apply H, (pr2 (pr2 e)).
-  - generalize (NnM_nottrivial NR).
+  - generalize (NnM_nottrivial (X := NR)).
     apply hinhfun.
     intros e.
     now exists (pr1 e), (pr2 e).
@@ -617,16 +624,21 @@ Proof.
     apply (pr2 (pr2 e)).
     now apply ball_symm.
   - intros A.
-    apply hinhfun.
+    apply hinhuniv.
     intros e.
+    generalize (NnM_cut (pr1 e) (pr1 (pr2 e))).
+    apply hinhfun.
+    intros e'.
     mkpair.
     intros x.
-    apply (ball (pr1 x) (NnMhalf (pr1 e)) (pr2 x)).
+    apply (ball (pr1 x) (NnMmin (pr1 e') (pr1 (pr2 e'))) (pr2 x)).
     split.
     apply hinhpr.
-    exists (NnMhalf (pr1 e)).
+    exists (NnMmin (pr1 e') (pr1 (pr2 e'))).
     split.
-    apply NnMhalf_pos, (pr1 (pr2 e)).
+    apply NnMmin_gt.
+    apply (pr1 (pr2 (pr2 (pr2 e')))).
+    apply (pr2 (pr2 (pr2 (pr2 e')))).
     easy.
     intros xy.
     apply hinhuniv.
@@ -636,10 +648,15 @@ Proof.
     eapply istriangle_dist.
     eapply istrans_NnMlt.
     apply NnMplus_lt_l.
+    eapply istrans_NnMlt_le.
     apply (pr2 (pr2 z)).
+    apply NnMmin_le_r.
     apply NnMplus_lt_r.
+    eapply istrans_NnMlt_le.
     apply (pr1 (pr2 z)).
-    apply NnMhalf_carac.
+    apply NnMmin_le_l.
+    rewrite <- (pr1 (pr2 (pr2 e'))).
+    apply isrefl_NnMle.
 Defined.
 
 End Balls.
@@ -846,12 +863,12 @@ Proof.
   mkpair.
   eexists ; exact (NnMap NR).
   mkpair.
-  apply (λ x y : NR, NnMmax (x - y) (y - x)).
+  apply (λ x y : NR, NnMmax (NnMminus x y) (NnMminus y x)).
   repeat split.
   - intros x y.
     apply iscomm_NnMmax.
   - apply sumofmaps ; intros H.
-    eapply istrans_NnMlt_le, NnMmax_le_r.
+    eapply istrans_NnMlt_le, NnMmax_ge_r.
     now apply NnMminus_lt_pos.
     eapply istrans_NnMlt_le, NnMmax_ge_l.
     now apply NnMminus_lt_pos.
@@ -875,8 +892,8 @@ Proof.
     apply fromempty ; revert H.
     apply isirrefl_NnMlt.
   - intros x y z.
-    change (NnMmax (x - z) (z - x) <=
-            NnMmax (x - y) (y - x) + NnMmax (y - z) (z - y)).
+    change (NnMmax (NnMminus x z) (NnMminus z x) <=
+            NnMmax (NnMminus x y) (NnMminus y x) + NnMmax (NnMminus y z) (NnMminus z y)).
     apply notNnMlt_le ; intros H.
     generalize (Hmax _ _ _ H).
     clear H ; apply sumofmaps ; intros H.
