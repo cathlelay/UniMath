@@ -8,6 +8,9 @@ Unset Automatic Introduction. (* This line has to be removed for the file to com
 
 Require Export UniMath.Foundations.NumberSystems.RationalNumbers.
 Require Export UniMath.Foundations.Algebra.Archimedean.
+Require Export UniMath.Foundations.Algebra.Lattice.
+
+Set Default Timeout 10.
 
 Open Scope hq_scope.
 
@@ -314,6 +317,40 @@ Proof.
   rewrite !hqmaxopp_opphqmin.
   apply maponpaths, iscomm_hqmin.
 Qed.
+Lemma isabsorb_hqmin_hqmax :
+  Π x y : hq, hqmin x (hqmax x y) = x.
+Proof.
+  intros x y.
+  unfold hqmin, hqmax.
+  induction (hqgthorleh x y) as [Hxy | Hxy].
+  - change (sumofmaps (λ _ : x > y, x) (λ _ : x <= y, y) (ii1 Hxy)) with x.
+    induction (hqgthorleh x x) as [Hxx | Hxx].
+    reflexivity.
+    reflexivity.
+  - change (sumofmaps (λ _ : x > y, x) (λ _ : x <= y, y) (ii2 Hxy)) with y.
+    induction (hqgthorleh x y) as [Hxy' | Hxy'].
+    apply fromempty.
+    revert Hxy'.
+    apply Hxy.
+    reflexivity.
+Qed.
+Lemma isabsorb_hqmax_hqmin :
+  Π x y : hq, hqmax x (hqmin x y) = x.
+Proof.
+  intros x y.
+  unfold hqmin, hqmax.
+  induction (hqgthorleh x y) as [Hxy | Hxy].
+  - change (sumofmaps (λ _ : x > y, y) (λ _ : x <= y, x) (ii1 Hxy)) with y.
+    induction (hqgthorleh x y) as [Hxy' | Hxy'].
+    reflexivity.
+    apply fromempty.
+    revert Hxy.
+    apply Hxy'.
+  - change (sumofmaps (λ _ : x > y, y) (λ _ : x <= y, x) (ii2 Hxy)) with x.
+    induction (hqgthorleh x x) as [Hxx | Hxx].
+    reflexivity.
+    reflexivity.
+Qed.
 
 Lemma islatticeop_hq :
   islatticeop hqmin hqmax.
@@ -323,6 +360,48 @@ Proof.
   - exact iscomm_hqmin.
   - exact isassoc_hqmax.
   - exact iscomm_hqmax.
+  - exact isabsorb_hqmin_hqmax.
+  - exact isabsorb_hqmax_hqmin.
+Qed.
+
+Definition islattice_hq : islattice hq :=
+  hqmin ,, hqmax ,, islatticeop_hq.
+
+Lemma Lle_hqleh :
+  Π x y : hq, x <= y <-> Lle islattice_hq x y.
+Proof.
+  intros x y.
+  split.
+  - intros H.
+    change (hqmin x y = x).
+    unfold hqmin.
+    induction (hqgthorleh x y) as [ Hxy | Hxy ].
+    + apply fromempty.
+      revert Hxy.
+      exact H.
+    + reflexivity.
+  - intros H.
+    rewrite <- H.
+    change (hqmin x y <= y).
+    unfold hqmin.
+    induction (hqgthorleh x y) as [Hxy | Hxy].
+    + exact (isreflhqleh _).
+    + exact Hxy.
+Qed.
+
+Lemma isrdistr_hqmax_hqplus :
+  isrdistr hqmax hqplus.
+Proof.
+  intros x y k.
+  unfold hqmax.
+  induction (hqgthorleh x y) as [H | H] ;
+    induction (hqgthorleh (x + k) (y + k)) as [H0 | H0].
+  - reflexivity.
+  - apply fromempty, H0.
+    apply hqgthandplusr, H.
+  - apply fromempty, H.
+    apply (hqgthandplusrinv _ _ k), H0.
+  - reflexivity.
 Qed.
 
 (** ** hq is archimedean *)
