@@ -942,14 +942,35 @@ Lemma ispositive_minusNonnegativeRationals :
   Π x y : NonnegativeRationals, (x < y) <-> (0 < y - x).
 Proof.
   intros x y.
-  split ; intro Hlt.
-  - apply_pr2 (plusNonnegativeRationals_ltcompat_r x).
-    rewrite islunit_zeroNonnegativeRationals, minusNonnegativeRationals_plus_r.
-    + exact Hlt.
-    + now apply lt_leNonnegativeRationals, Hlt.
-  - apply (pr1 (plusNonnegativeRationals_ltcompat_r x _ _)) in Hlt.
-    rewrite islunit_zeroNonnegativeRationals, minusNonnegativeRationals_plus in Hlt.
-
+  unfold minusNonnegativeRationals, hnnq_minus, hq_to_hnnq_set.
+  generalize (hq_to_hnnq_set_subproof (pr1 y - pr1 x)%hq).
+  unfold hqmax.
+  induction (hqgthorleh 0%hq (pr1 y - pr1 x)%hq) as [H | H].
+  - change (sumofmaps (λ _ : (0 > pr1 y - pr1 x), 0)
+                      (λ _ : 0 <= pr1 y - pr1 x, pr1 y - pr1 x)
+                      (ii1 H))%hq with 0%hq.
+    intros Hxy.
+    split ; intros Hlt.
+    + apply fromempty.
+      revert H.
+      change (0 <= pr1 y - pr1 x)%hq.
+      apply hq0leminus, hqlthtoleh.
+      exact Hlt.
+    + apply fromempty, Hxy.
+      exact Hlt.
+  - change (sumofmaps (λ _ : 0 > pr1 y - pr1 x, 0)
+                      (λ _ : 0 <= pr1 y - pr1 x, pr1 y - pr1 x)
+                      (ii2 H))%hq with (pr1 y - pr1 x)%hq.
+    clear H ; intros H.
+    split ; intros Hlt.
+    + apply (hqlthandplusrinv _ _ (pr1 x)).
+      change (0 + pr1 x < pr1 y + - pr1 x + pr1 x)%hq.
+      rewrite hqplusassoc, hqlminus, hqplusl0, hqplusr0.
+      exact Hlt.
+    + apply (hqlthandplusrinv _ _ (- pr1 x)).
+      change (pr1 x - pr1 x < pr1 y - pr1 x)%hq.
+      rewrite hqrminus.
+      exact Hlt.
 Qed.
 
 Lemma minusNonnegativeRationals_le :

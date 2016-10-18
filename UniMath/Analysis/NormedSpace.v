@@ -7,8 +7,6 @@ Require Export UniMath.Topology.Filters.
 Require Import UniMath.Analysis.MetricSpace.
 Require Import UniMath.RealNumbers.Sets.
 
-Set Default Timeout 10.
-
 (** ** Nonnegative Rig *)
 
 Definition isNonnegativeRig {X : rig} (is : islatticewithlt X) :=
@@ -585,15 +583,14 @@ Definition norm {NR : NonnegativeRig} {K : absrng NR} {X : NormedModule K} : (X 
 Definition absrng_to_NormedModule {NR : NonnegativeRig} (K : absrng NR) : NormedModule K.
 Proof.
   intros NR K.
-  simple refine (tpair _ _ _).
-  - simple refine (tpair _ _ _).
+  mkpair.
+  - mkpair.
     apply rngaddabgr, (pr1 K).
-    simple refine (tpair _ _ _).
+    mkpair.
     apply absrng_ap.
-    simple refine (tpair _ _ _).
-    intros x y.
-    apply (x * y)%rng.
-    repeat split ; simpl.
+    mkpair.
+    apply (@BinaryOperations.op2 K).
+    repeat split.
     + exact (pr1 (pr1 (pr2 (pr2 (pr2 K))))).
     + exact (pr2 (pr1 (pr2 (pr2 (pr2 K))))).
     + intros a x y.
@@ -605,7 +602,7 @@ Proof.
     + intros x.
       rewrite rnglmultminus, rnglunax2.
       reflexivity.
-  - simple refine (tpair _ _ _).
+  - mkpair.
     apply abs.
     repeat split.
     + exact (pr1 (issepp_abs x)).
