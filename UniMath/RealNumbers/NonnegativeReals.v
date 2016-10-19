@@ -12,6 +12,8 @@ Local Open Scope NRat_scope.
 Local Open Scope Dcuts_scope.
 Local Open Scope tap_scope.
 
+Set Default Timeout 300.
+
 (** ** Definition of Dedekind cuts *)
 
 Definition Dcuts_def_bot (X : hsubtypes NonnegativeRationals) : UU :=
@@ -33,7 +35,7 @@ Proof.
   exact (pr1 (pr2 y)).
 Qed.
 Lemma Dcuts_def_open_lt {X : hsubtypes NonnegativeRationals} {x : NonnegativeRationals}
-      (y : Dcuts_def_open_acc X x) : x < Dcuts_def_open_x y.
+      (y : Dcuts_def_open_acc X x) : x < (Dcuts_def_open_x y).
 Proof.
   intros X x y.
   exact (pr2 (pr2 y)).
@@ -3353,6 +3355,9 @@ Proof.
     + now apply hinhpr ; left ; right.
 Qed.
 
+Definition extminus_Dcuts : extminus (X := (_,,_),,isabmonoidop_Dcuts_plus) islattice_Dcuts :=
+  Dcuts_minus ,, Dcuts_minus_plus_max.
+
 Lemma Dcuts_minus_correct_l:
   Π x y z : Dcuts, x = Dcuts_plus y z -> z = Dcuts_minus x y.
 Proof.
@@ -3424,8 +3429,7 @@ Lemma Dcuts_minus_eq_zero:
   Π x y : Dcuts, x <= y -> Dcuts_minus x y = 0.
 Proof.
   intros X Y Hxy.
-  apply (tminus_eq_0 (X := (_,,_),,isabmonoidop_Dcuts_plus) islattice_Dcuts).
-  intros x y ; apply Dcuts_minus_plus_max.
+  apply (tminus_eq_0 extminus_Dcuts).
   apply Dcuts_plus_eqcompat_l.
   now apply Dcuts_le_lattice_compat.
 Qed.

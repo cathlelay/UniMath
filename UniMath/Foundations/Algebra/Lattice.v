@@ -237,12 +237,20 @@ Definition istminus {X : abmonoid} (is : islattice X) (minus : binop X) :=
 Definition extminus {X : abmonoid} (is : islattice X) :=
   Σ minus : binop X, istminus is minus.
 
+Definition tminus {X : abmonoid} {is : islattice X} (ex : extminus is) : binop X :=
+  pr1 ex.
+
+Lemma istminus_ex {X : abmonoid} {is : islattice X} (ex : extminus is) :
+  Π x y : X, tminus ex x y + y = Lmax is x y.
+Proof.
+  apply (pr2 ex).
+Qed.
+
 Section tminus_pty.
 
 Context {X : abmonoid}
-        (is : islattice X)
-        (minus : binop X)
-        (is0 : istminus is minus)
+        {is : islattice X}
+        (ex : extminus is)
         (is1 : Π x y z : X, y + x = z + x → y = z)
         (is2 : isrdistr (Lmax is) op)
         (is3 : isrdistr (Lmin is) op)
@@ -250,53 +258,53 @@ Context {X : abmonoid}
         (is5 : isrdistr (Lmax is) (Lmin is)).
 
 Lemma tminus_0_r :
-  Π x : X, minus x 0 = Lmax is x 0.
+  Π x : X, tminus ex x 0 = Lmax is x 0.
 Proof.
   intros x.
-  rewrite <- (runax _ (minus _ _)).
-  apply is0.
+  rewrite <- (runax _ (tminus _ _ _)).
+  apply (istminus_ex).
 Qed.
 
 Lemma tminus_eq_0 :
-  Π x y : X, Lle is x y → minus x y = 0.
+  Π x y : X, Lle is x y → tminus ex x y = 0.
 Proof.
   intros x y H.
   apply (is1 y).
-  rewrite is0, lunax.
+  rewrite istminus_ex, lunax.
   apply Lmax_eq_r, H.
 Qed.
 
 Lemma tminus_0_l_ge0 :
-  Π x : X, Lle is 0 x → minus 0 x = 0.
+  Π x : X, Lle is 0 x → tminus ex 0 x = 0.
 Proof.
   intros x Hx.
   apply tminus_eq_0, Hx.
 Qed.
 Lemma tminus_0_l_le0 :
-  Π x : X, Lle is x 0 → minus 0 x + x = 0.
+  Π x : X, Lle is x 0 → tminus ex 0 x + x = 0.
 Proof.
   intros x Hx.
-  rewrite is0.
+  rewrite istminus_ex.
   apply Lmax_eq_l, Hx.
 Qed.
 
 Lemma tminus_ge_0 :
-  Π x y : X, Lle is 0 (minus x y).
+  Π x y : X, Lle is 0 (tminus ex x y).
 Proof.
   intros x y.
   apply (op_le_r' _ is1 is3 y).
-  rewrite is0, lunax.
+  rewrite istminus_ex, lunax.
   apply Lmax_ge_r.
 Qed.
 
 Lemma tminus_le :
   Π x y : X,
           Lle is 0 x → Lle is 0 y
-          → Lle is (minus x y) x.
+          → Lle is (tminus ex x y) x.
 Proof.
   intros x y Hx Hy.
   apply (op_le_r' _ is1 is3 y).
-  rewrite is0.
+  rewrite istminus_ex.
   apply Lmax_le.
   - apply is5.
   - apply istrans_Lle with (0 + x).
@@ -310,71 +318,95 @@ Proof.
     + now apply op_le_r.
 Qed.
 
+Lemma tminus_tminus :
+  Π x y, Lle is 0 x → Lle is x y → tminus ex y (tminus ex y x) = x.
+Proof.
+  intros x y Hx Hxy.
+  apply (is1 (tminus ex y x)).
+  rewrite (commax _ x), !istminus_ex.
+  rewrite !Lmax_eq_l.
+  - reflexivity.
+  - exact Hxy.
+  - apply tminus_le.
+    apply istrans_Lle with x.
+    exact Hx.
+    exact Hxy.
+    exact Hx.
+Qed.
+
 Lemma tminus_le_r :
-  Π k x y : X, Lle is x y → Lle is (minus x k) (minus y k).
+  Π k x y : X, Lle is x y → Lle is (tminus ex x k) (tminus ex y k).
 Proof.
   intros k x y <-.
   apply (is1 k).
-  rewrite is3, !is0.
+  rewrite is3, !istminus_ex.
   rewrite is4, isassoc_Lmin, Lmin_id.
   reflexivity.
 Qed.
 
 Lemma tminus_Lmax_l :
-  Π k x y : X, minus (Lmax is x y) k = Lmax is (minus x k) (minus y k).
+  Π k x y : X, tminus ex (Lmax is x y) k = Lmax is (tminus ex x k) (tminus ex y k).
 Proof.
   intros k x y.
   apply (is1 k).
-  rewrite is2, !is0.
+  rewrite is2, !istminus_ex.
   rewrite !isassoc_Lmax, (iscomm_Lmax _ k), isassoc_Lmax, Lmax_id.
   reflexivity.
 Qed.
 Lemma tminus_Lmin_l :
-  Π k x y : X, minus (Lmin is x y) k = Lmin is (minus x k) (minus y k).
+  Π k x y : X, tminus ex (Lmin is x y) k = Lmin is (tminus ex x k) (tminus ex y k).
 Proof.
   intros k x y.
   apply (is1 k).
-  rewrite is3, !is0.
+  rewrite is3, !istminus_ex.
   apply is4.
 Qed.
 
 Lemma tminus_le_l :
-  Π k x y : X, Lle is y x → Lle is (minus k x) (minus k y).
+  Π k x y : X, Lle is y x → Lle is (tminus ex k x) (tminus ex k y).
 Proof.
   intros k x y H.
   apply (is1 y).
-  rewrite is3, is0.
+  rewrite is3, istminus_ex.
   apply (is1 x).
-  rewrite is3, assocax, (commax _ y), <- assocax, is0.
+  rewrite is3, assocax, (commax _ y), <- assocax, istminus_ex.
   rewrite !is2, (commax _ y), <- is4, !(commax _ k), <- is3, H.
   reflexivity.
 Qed.
 
 End tminus_pty.
 
+Lemma abgr_tminus {X : abgr} (is : islattice X) :
+  isrdistr (Lmax is) op →
+  istminus (X := abgrtoabmonoid X) is (λ x y : X, Lmax is 0 (x + grinv X y)).
+Proof.
+  intros H x y.
+  rewrite H, assocax, grlinvax, lunax, runax.
+  apply iscomm_Lmax.
+Qed.
+
 (** *** Truncated minus and abgrfrac *)
 
 Section abgrfrac_minus.
 
 Context {X : abmonoid}
-        (is : islattice X)
-        (minus : binop X)
-        (is0 : istminus is minus)
+        {is : islattice X}
+        (ex : extminus is)
         (is1 : Π x y z : X, y + x = z + x → y = z)
         (is2 : isrdistr (Lmax is) op)
         (is3 : isrdistr (Lmin is) op)
         (is4 : isrdistr (Lmax is) (Lmin is)).
 
 Lemma iscomprel_tminus :
-    iscomprelfun (eqrelabgrfrac X) (λ x, minus (pr1 x) (pr2 x)).
+    iscomprelfun (eqrelabgrfrac X) (λ x, tminus ex (pr1 x) (pr2 x)).
 Proof.
   intros x y.
   simple refine (hinhuniv (P := hProppair _ _) _).
   apply (pr2 (pr1 (pr1 X))).
   intros c.
   apply (is1 (pr2 x + pr2 y + pr1 c)).
-  rewrite <- 2!assocax, is0.
-  rewrite (commax _ (pr2 x)), <- 2!assocax, is0.
+  rewrite <- 2!assocax, istminus_ex.
+  rewrite (commax _ (pr2 x)), <- 2!assocax, istminus_ex.
   rewrite !is2, (pr2 c), (commax _ (pr2 x)).
   reflexivity.
 Qed.
@@ -391,7 +423,7 @@ Proof.
 Defined.
 
 Lemma abgrfracelt_simpl (c : X × X) :
-  abgrfracelt (setquotpr _ c) = (minus (pr1 c) (pr2 c) ,, minus (pr2 c) (pr1 c)).
+  abgrfracelt (setquotpr _ c) = tminus ex (pr1 c) (pr2 c) ,, tminus ex (pr2 c) (pr1 c).
 Proof.
   unfold abgrfracelt.
   unfold grinv ; simpl.
@@ -413,7 +445,7 @@ Proof.
   rewrite abgrfracelt_simpl.
   apply hinhpr.
   exists 0 ; simpl.
-  rewrite (commax _ (pr1 (pr1 c))), !is0.
+  rewrite (commax _ (pr1 (pr1 c))), !(istminus_ex ex).
   now rewrite iscomm_Lmax.
 Qed.
 
@@ -442,9 +474,8 @@ Section lattice_abgrfrac.
 
 Context {X : abmonoid}
         {min max : binop X}
-        (is : islatticeop min max)
-        (minus : binop X)
-        (is0 : istminus (_,,_,,is) minus)
+        {is : islatticeop min max}
+        (ex : extminus (min,,max,,is))
         (is1 : Π x y z : X, y + x = z + x → y = z)
         (is2 : isrdistr max op)
         (is3 : isrdistr min op)
@@ -457,11 +488,11 @@ Proof.
   apply setquotpr.
   split.
   - apply min.
-    apply (pr1 (abgrfracelt (_,,_,,is) minus is0 is1 is2 x)).
-    apply (pr1 (abgrfracelt (_,,_,,is) minus is0 is1 is2 y)).
+    apply (pr1 (abgrfracelt ex is1 is2 x)).
+    apply (pr1 (abgrfracelt ex is1 is2 y)).
   - apply max.
-    apply (pr2 (abgrfracelt (_,,_,,is) minus is0 is1 is2 x)).
-    apply (pr2 (abgrfracelt (_,,_,,is) minus is0 is1 is2 y)).
+    apply (pr2 (abgrfracelt ex is1 is2 x)).
+    apply (pr2 (abgrfracelt ex is1 is2 y)).
 Defined.
 
 Definition abgrfrac_max : binop (abgrfrac X).
@@ -470,11 +501,11 @@ Proof.
   apply setquotpr.
   split.
   - apply max.
-    apply (pr1 (abgrfracelt (_,,_,,is) minus is0 is1 is2 x)).
-    apply (pr1 (abgrfracelt (_,,_,,is) minus is0 is1 is2 y)).
+    apply (pr1 (abgrfracelt ex is1 is2 x)).
+    apply (pr1 (abgrfracelt ex is1 is2 y)).
   - apply min.
-    apply (pr2 (abgrfracelt (_,,_,,is) minus is0 is1 is2 x)).
-    apply (pr2 (abgrfracelt (_,,_,,is) minus is0 is1 is2 y)).
+    apply (pr2 (abgrfracelt ex is1 is2 x)).
+    apply (pr2 (abgrfracelt ex is1 is2 y)).
 Defined.
 
 Lemma iscomm_abgrfrac_min :
@@ -482,8 +513,8 @@ Lemma iscomm_abgrfrac_min :
 Proof.
   intros x y.
   unfold abgrfrac_min.
-  set (x' := abgrfracelt (min,, max,, is) minus is0 is1 is2 x).
-  set (y' := abgrfracelt (min,, max,, is) minus is0 is1 is2 y).
+  set (x' := abgrfracelt ex is1 is2 x).
+  set (y' := abgrfracelt ex is1 is2 y).
   rewrite (iscomm_Lmin (_,,_,,is)), (iscomm_Lmax (_,,_,,is)).
   reflexivity.
 Qed.
@@ -493,41 +524,34 @@ Lemma isassoc_abgrfrac_min :
 Proof.
   intros x y z.
   unfold abgrfrac_min.
-  set (x' := abgrfracelt (min,, max,, is) minus is0 is1 is2 x).
-  set (y' := abgrfracelt (min,, max,, is) minus is0 is1 is2 y).
-  set (z' := abgrfracelt (min,, max,, is) minus is0 is1 is2 z).
+  set (x' := abgrfracelt ex is1 is2 x).
+  set (y' := abgrfracelt ex is1 is2 y).
+  set (z' := abgrfracelt ex is1 is2 z).
 
-  generalize (abgrfracelt_correct' (min,, max,, is) minus is0 is1 is2 x).
+  generalize (abgrfracelt_correct' ex is1 is2 x).
   fold x'.
   rewrite abgrfracelt_simpl.
   intros Hx'.
 
-  generalize (abgrfracelt_correct' (min,, max,, is) minus is0 is1 is2 y).
+  generalize (abgrfracelt_correct' ex is1 is2 y).
   fold y'.
   rewrite abgrfracelt_simpl.
   intros Hy'.
 
-  generalize (abgrfracelt_correct' (min,, max,, is) minus is0 is1 is2 z).
+  generalize (abgrfracelt_correct' ex is1 is2 z).
   fold z'.
   rewrite abgrfracelt_simpl.
   intros Hz'.
 
-  rewrite !(abgrfracelt_simpl (min,, max,, is)),
+  rewrite !(abgrfracelt_simpl ex),
           !rewrite_pr1_tpair, !rewrite_pr2_tpair.
 
-  rewrite (abgrfrac_setquotpr_equiv (max (pr2 x') (pr2 y'))), is3, is0.
+  rewrite (abgrfrac_setquotpr_equiv (max (pr2 x') (pr2 y'))), is3, istminus_ex.
   rewrite (abgrfrac_setquotpr_equiv (min (pr1 x') (pr1 y'))), assocax, (commax _ (max _ _) (min _ _)),
-          <- assocax, is2, is0.
-  apply pathsinv0.
-
-  rewrite (abgrfrac_setquotpr_equiv (max (pr2 y') (pr2 z'))), is3, is0.
-  rewrite (abgrfrac_setquotpr_equiv (min (pr1 y') (pr1 z'))), assocax, (commax _ (max _ _) (min _ _)),
-          <- assocax, is2, is0.
-  rewrite iscomm_Lmax.
-  apply pathsinv0.
-
+  <- assocax, is2, istminus_ex.
   unfold Lmax.
   rewrite rewrite_pr2_tpair, rewrite_pr1_tpair.
+
 
 Admitted.
 
@@ -536,8 +560,8 @@ Lemma iscomm_abgrfrac_max :
 Proof.
   intros x y.
   unfold abgrfrac_max.
-  set (x' := abgrfracelt (min,, max,, is) minus is0 is1 is2 x).
-  set (y' := abgrfracelt (min,, max,, is) minus is0 is1 is2 y).
+  set (x' := abgrfracelt ex is1 is2 x).
+  set (y' := abgrfracelt ex is1 is2 y).
   rewrite (iscomm_Lmin (_,,_,,is)), (iscomm_Lmax (_,,_,,is)).
   reflexivity.
 Qed.
@@ -551,20 +575,20 @@ Lemma isabsorb_abgrfrac_max_min :
 Proof.
   intros x y.
   unfold abgrfrac_max, abgrfrac_min.
-  set (x' := abgrfracelt (min,, max,, is) minus is0 is1 is2 x).
-  set (y' := abgrfracelt (min,, max,, is) minus is0 is1 is2 y).
+  set (x' := abgrfracelt ex is1 is2 x).
+  set (y' := abgrfracelt ex is1 is2 y).
 
-  generalize (abgrfracelt_correct' (min,, max,, is) minus is0 is1 is2 x).
+  generalize (abgrfracelt_correct' ex is1 is2 x).
   fold x'.
   rewrite abgrfracelt_simpl.
   intros Hx'.
 
-  generalize (abgrfracelt_correct' (min,, max,, is) minus is0 is1 is2 y).
+  generalize (abgrfracelt_correct' ex is1 is2 y).
   fold y'.
   rewrite abgrfracelt_simpl.
   intros Hy'.
 
-  rewrite !(abgrfracelt_simpl (min,, max,, is)),
+  rewrite !(abgrfracelt_simpl ex),
           !rewrite_pr1_tpair, !rewrite_pr2_tpair.
   rewrite (Lmax_eq_l (min,, max,, is)), (Lmin_eq_l (min,, max,, is)).
 
@@ -574,13 +598,11 @@ Proof.
   - pattern x' at 1 ; rewrite <- Hx', rewrite_pr2_tpair.
     refine (istrans_Lle _ _ _ _ _ _).
     + apply tminus_le_r.
-      exact is0.
       exact is1.
       exact is3.
       exact is5.
       apply (Lmax_ge_l (min,,max,,is)).
     + apply tminus_le_l.
-      exact is0.
       exact is1.
       exact is2.
       exact is3.
@@ -588,7 +610,6 @@ Proof.
       apply (Lmin_le_l (min,,max,,is)).
   - refine (istrans_Lle _ _ _ _ _ _).
     + apply tminus_le.
-      exact is0.
       exact is1.
       exact is3.
       exact is4.
@@ -609,20 +630,20 @@ Lemma isabsorb_abgrfrac_min_max :
 Proof.
   intros x y.
   unfold abgrfrac_max, abgrfrac_min.
-  set (x' := abgrfracelt (min,, max,, is) minus is0 is1 is2 x).
-  set (y' := abgrfracelt (min,, max,, is) minus is0 is1 is2 y).
+  set (x' := abgrfracelt ex is1 is2 x).
+  set (y' := abgrfracelt ex is1 is2 y).
 
-  generalize (abgrfracelt_correct' (min,, max,, is) minus is0 is1 is2 x).
+  generalize (abgrfracelt_correct' ex is1 is2 x).
   fold x'.
   rewrite abgrfracelt_simpl.
   intros Hx'.
 
-  generalize (abgrfracelt_correct' (min,, max,, is) minus is0 is1 is2 y).
+  generalize (abgrfracelt_correct' ex is1 is2 y).
   fold y'.
   rewrite abgrfracelt_simpl.
   intros Hy'.
 
-  rewrite !(abgrfracelt_simpl (min,, max,, is)),
+  rewrite !(abgrfracelt_simpl ex),
           !rewrite_pr1_tpair, !rewrite_pr2_tpair.
   rewrite (Lmin_eq_l (min,, max,, is)), (Lmax_eq_l (min,, max,, is)).
 
@@ -631,7 +652,6 @@ Proof.
 
   - refine (istrans_Lle _ _ _ _ _ _).
     + apply tminus_le.
-      exact is0.
       exact is1.
       exact is3.
       exact is4.
@@ -648,13 +668,11 @@ Proof.
   - pattern x' at 1 ; rewrite <- Hx', rewrite_pr1_tpair.
     refine (istrans_Lle _ _ _ _ _ _).
     + apply tminus_le_r.
-      exact is0.
       exact is1.
       exact is3.
       exact is5.
       apply (Lmax_ge_l (min,,max,,is)).
     + apply tminus_le_l.
-      exact is0.
       exact is1.
       exact is2.
       exact is3.
