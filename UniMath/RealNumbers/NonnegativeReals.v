@@ -5564,11 +5564,11 @@ Proof.
     generalize (isarchrig_1 _ H _ _ (pr2 (NonnegativeRationals_to_NonnegativeReals_lt (pr1 r2) (pr1 r1)) (pr1 (pr2 r1)))).
     apply hinhfun.
     intros n.
-    exists (pr1 n).
-    change ((1%rig + nattorig (pr1 n) * y2)%rng < (nattorig (pr1 n) * y1)%rng).
+    simple refine (mk_isarchrig_1_acc _ _ _ _ _).
+    exact (isarchrig_1_val n).
     eapply istrans_le_lt_ltNonnegativeReals, istrans_lt_le_ltNonnegativeReals.
-    2: apply NonnegativeRationals_to_NonnegativeReals_lt, (pr2 n).
-    rewrite NonnegativeRationals_to_NonnegativeReals_plus, NonnegativeRationals_to_NonnegativeReals_mult, NonnegativeRationals_to_NonnegativeReals_nattorig.
+    2: apply NonnegativeRationals_to_NonnegativeReals_lt, (isarchrig_1_pty n).
+    rewrite NonnegativeRationals_to_NonnegativeReals_plus, NonnegativeRationals_to_NonnegativeReals_mult,  NonnegativeRationals_to_NonnegativeReals_nattorig.
     apply plusNonnegativeReals_lecompat_r, multNonnegativeReals_lecompat_r'.
     apply lt_leNonnegativeReals, (pr1 (pr2 r2)).
     rewrite NonnegativeRationals_to_NonnegativeReals_mult, NonnegativeRationals_to_NonnegativeReals_nattorig.
@@ -5580,18 +5580,18 @@ Proof.
     generalize (isarchrig_2 _ H (pr1 r)).
     apply hinhfun.
     intros n.
-    exists (pr1 n).
-    change (x < (nattorig (pr1 n))).
+    simple refine (mk_isarchrig_2_acc _ _ _ _).
+    exact (isarchrig_2_val n).
     apply istrans_le_lt_ltNonnegativeReals with (NonnegativeRationals_to_NonnegativeReals (pr1 r)).
     apply NonnegativeRationals_to_Dcuts_notin_le.
     exact (pr2 r).
     rewrite <- NonnegativeRationals_to_NonnegativeReals_nattorig.
     apply NonnegativeRationals_to_NonnegativeReals_lt.
-    exact (pr2 n).
+    exact (isarchrig_2_pty n).
   - intros x.
     apply hinhpr.
-    exists 1%nat.
-    change (0 < (nattorig 1 + x)%rng).
+    simple refine (mk_isarchrig_3_acc _ _ _ _).
+    exact 1%nat.
     apply istrans_lt_le_ltNonnegativeReals with 1.
     apply ispositive_oneNonnegativeReals.
     apply plusNonnegativeReals_le_l.
