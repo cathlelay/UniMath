@@ -1516,18 +1516,19 @@ Lemma NRNRtoR_inv_pos :
     NRNRtoR (invNonnegativeReals x Hrn) 0%NR = Rinv (NRNRtoR x 0%NR) Hr.
 Proof.
   intros x Hrn Hr.
-  rewrite <- (isrunit_CFone_CFmult (NRNRtoR (invNonnegativeReals x Hrn) 0%NR)), <- (isrunit_CFone_CFmult (Rinv (NRNRtoR x 0%NR) Hr)).
-  rewrite <- (isrinv_CFinv (X := Reals) (NRNRtoR x 0%NR) Hr).
+  rewrite <- (isrunit_CFone_CFmult (NRNRtoR (invNonnegativeReals x Hrn) 0%NR)).
+  refine (pathscomp0 (pathsinv0 _) _).
+  refine (maponpaths (λ x, (_ * x)%CF) _).
+  refine (isrinv_CFinv (X := Reals) (NRNRtoR x 0%NR) Hr).
   rewrite <- !(isassoc_CFmult (X := Reals)).
-  apply (maponpaths (λ x, (x * _)%CF)).
-  rewrite <- NRNRtoR_mult.
-  unfold Rinv.
-  rewrite (islinv_CFinv (X := Reals) (NRNRtoR x 0%NR) Hr).
+  refine (pathscomp0 (pathsinv0 _) _).
+  refine (maponpaths (λ x, (x * _)%CF) _).
+  refine (NRNRtoR_mult _ _ _ _).
   rewrite !israbsorb_zero_multNonnegativeReals, islabsorb_zero_multNonnegativeReals.
   rewrite !isrunit_zero_plusNonnegativeReals.
   rewrite islinv_invNonnegativeReals.
-  apply NRNRtoR_one.
-Qed.
+  refine (islunit_CFone_CFmult _).
+Timeout 60 Qed.
 Lemma NRNRtoR_inv_neg :
   Π (x : NonnegativeReals) Hrn Hr,
     NRNRtoR 0%NR (invNonnegativeReals x Hrn) = Rinv (NRNRtoR 0%NR x) Hr.
@@ -1544,7 +1545,7 @@ Proof.
   rewrite !islunit_zero_plusNonnegativeReals.
   rewrite islinv_invNonnegativeReals.
   apply NRNRtoR_one.
-Qed.
+Timeout 60 Qed.
 
 Lemma Rabs_NRNRtoR :
   Π x y : NonnegativeReals,
