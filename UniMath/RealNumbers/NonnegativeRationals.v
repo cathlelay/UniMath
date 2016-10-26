@@ -13,7 +13,7 @@ Opaque hq.
 
 Open Scope hq_scope.
 
-Set Default Timeout 10.
+Set Default Timeout 5.
 
 (** * Definition of non-negative rational numbers *)
 
@@ -1259,7 +1259,8 @@ Proof.
     exact Hx0.
     exact Hy.
     apply multNonnegativeRationals_lecompat_r.
-    now apply lt_leNonnegativeRationals.
+    apply lt_leNonnegativeRationals.
+    exact Hx.
 Qed.
 Lemma multNonnegativeRationals_le_lt:
   Π x x' y y' : NonnegativeRationals,
@@ -1573,7 +1574,7 @@ Proof.
   generalize (hqlehchoice 0%hq 2%hq (hqlthtoleh 0%hq 2%hq hq2_gt0)) ;
   apply coprod_rect ; intros H2.
   apply subtypeEquality_prop ; simpl pr1.
-  rewrite !(hqmultcomm x), <- hqldistr, hqmultcomm.
+  rewrite (hqmultcomm x), <- hqldistr, hqmultcomm.
   apply hqplusdiv2.
   apply fromempty ; generalize hq2_gt0.
   rewrite H2.
@@ -1598,134 +1599,166 @@ Proof.
     exact Hx.
 Qed.
 
-(** ** NQmax *)
+(** ** maxNonnegativeRationals *)
 
-Definition NQmax : binop NonnegativeRationals.
+Lemma maxNonnegativeRationals_eq_zero :
+  Π x y : NonnegativeRationals, maxNonnegativeRationals x y = 0 -> (x = 0) × (y = 0).
 Proof.
   intros x y.
-  refine (sumofmaps _ _ (isdecrel_leNonnegativeRationals x y)) ; intros _.
-  exact y.
-  exact x.
-Defined.
-Lemma NQmax_eq_zero :
-  Π x y : NonnegativeRationals, NQmax x y = 0 -> (x = 0) × (y = 0).
-Proof.
-  intros x y.
-  unfold NQmax.
-  generalize (isdecrel_leNonnegativeRationals x y).
-  apply (coprod_rect (λ _, _ → _)) ; [ intros Hle | intros Hlt] ; intro H ; simpl in H ; split.
-  - apply NonnegativeRationals_eq0_le0.
-    apply istrans_leNonnegativeRationals with (1 := Hle).
-    now rewrite H ; apply isrefl_leNonnegativeRationals.
-  - exact H.
-  - exact H.
-  - apply NonnegativeRationals_eq0_le0 ; rewrite <- H.
-    now apply lt_leNonnegativeRationals, notge_ltNonnegativeRationals.
+  unfold maxNonnegativeRationals, hnnq_max.
+  generalize (hnnq_max_subproof x y).
+  unfold hqmax.
+  induction (hqgthorleh (pr1 x) (pr1 y)) as [H | H].
+  - change (sumofmaps (λ _ : (pr1 x > pr1 y)%hq, pr1 x) (λ _ : (pr1 x <= pr1 y)%hq, pr1 y)
+                      (ii1 H)) with (pr1 x).
+    intros Hx Hx0.
+    split.
+    + apply subtypeEquality_prop.
+      apply (maponpaths pr1 Hx0).
+    + apply subtypeEquality_prop.
+      apply isantisymmhqleh.
+      rewrite <- (maponpaths pr1 Hx0).
+      apply hqlthtoleh.
+      exact H.
+      exact (pr2 y).
+  - change (sumofmaps (λ _ : (pr1 x > pr1 y)%hq, pr1 x) (λ _ : (pr1 x <= pr1 y)%hq, pr1 y)
+                      (ii2 H)) with (pr1 y).
+    intros Hy Hy0.
+    split.
+    + apply subtypeEquality_prop.
+      apply isantisymmhqleh.
+      rewrite <- (maponpaths pr1 Hy0).
+      exact H.
+      exact (pr2 x).
+    + apply subtypeEquality_prop.
+      apply (maponpaths pr1 Hy0).
 Qed.
-Lemma NQmax_case :
+Lemma maxNonnegativeRationals_case_strong :
   Π (P : NonnegativeRationals -> UU),
-  Π x y : NonnegativeRationals, P x -> P y -> P (NQmax x y).
+  Π x y : NonnegativeRationals, (y <= x -> P x) -> (x <= y -> P y) -> P (maxNonnegativeRationals x y).
 Proof.
   intros P x y Hx Hy.
-  unfold NQmax.
-  generalize (isdecrel_leNonnegativeRationals x y).
-  now apply coprod_rect.
+  unfold maxNonnegativeRationals, hnnq_max.
+  generalize (hnnq_max_subproof x y).
+  unfold hqmax.
+  induction (hqgthorleh (pr1 x) (pr1 y)) as [H | H].
+  - change (sumofmaps (λ _ : (pr1 x > pr1 y)%hq, pr1 x)
+                      (λ _ : (pr1 x <= pr1 y)%hq, pr1 y) (ii1 H)) with (pr1 x).
+    intros n.
+    assert (H0 : x = (pr1 x,, n)).
+    apply subtypeEquality_prop.
+    reflexivity.
+    rewrite <- H0.
+    apply Hx.
+    apply hqlthtoleh.
+    exact H.
+  - change (sumofmaps (λ _ : (pr1 x > pr1 y)%hq, pr1 x)
+                      (λ _ : (pr1 x <= pr1 y)%hq, pr1 y) (ii2 H)) with (pr1 y).
+    intros n.
+    assert (H0 : y = (pr1 y,, n)).
+    apply subtypeEquality_prop.
+    reflexivity.
+    rewrite <- H0.
+    apply Hy.
+    exact H.
 Qed.
-Lemma NQmax_case_strong :
+Lemma maxNonnegativeRationals_case :
   Π (P : NonnegativeRationals -> UU),
-  Π x y : NonnegativeRationals, (y <= x -> P x) -> (x <= y -> P y) -> P (NQmax x y).
+  Π x y : NonnegativeRationals, P x -> P y -> P (maxNonnegativeRationals x y).
 Proof.
   intros P x y Hx Hy.
-  unfold NQmax.
-  generalize ( isdecrel_leNonnegativeRationals x y).
-  apply coprod_rect ; [intros Hle | intros Hlt].
-  - now apply Hy.
-  - apply Hx.
-    now apply lt_leNonnegativeRationals, notge_ltNonnegativeRationals.
+  now apply maxNonnegativeRationals_case_strong.
 Qed.
-Lemma iscomm_NQmax :
-  Π x y, NQmax x y = NQmax y x.
+Lemma iscomm_maxNonnegativeRationals :
+  Π x y, maxNonnegativeRationals x y = maxNonnegativeRationals y x.
 Proof.
   intros x y.
-  apply NQmax_case_strong ; intro Hle ;
-  apply NQmax_case_strong ; intro Hle'.
+  apply maxNonnegativeRationals_case_strong ; intro Hle ;
+  apply maxNonnegativeRationals_case_strong ; intro Hle'.
   - now apply isantisymm_leNonnegativeRationals.
   - reflexivity.
   - reflexivity.
   - now apply isantisymm_leNonnegativeRationals.
 Qed.
-Lemma NQmax_le_l :
-  Π x y : NonnegativeRationals, x <= NQmax x y.
+Lemma maxNonnegativeRationals_le_l :
+  Π x y : NonnegativeRationals, x <= maxNonnegativeRationals x y.
 Proof.
   intros x y.
-  apply NQmax_case_strong ; intro Hle.
+  apply maxNonnegativeRationals_case_strong ; intro Hle.
   - apply isrefl_leNonnegativeRationals.
   - exact Hle.
 Qed.
-Lemma NQmax_le_r :
-  Π x y : NonnegativeRationals, y <= NQmax x y.
+Lemma maxNonnegativeRationals_le_r :
+  Π x y : NonnegativeRationals, y <= maxNonnegativeRationals x y.
 Proof.
   intros x y.
-  rewrite iscomm_NQmax.
-  now apply NQmax_le_l.
+  rewrite iscomm_maxNonnegativeRationals.
+  now apply maxNonnegativeRationals_le_l.
 Qed.
 
-(** ** NQmin *)
+(** ** minNonnegativeRationals *)
 
-Definition NQmin : binop NonnegativeRationals.
-Proof.
-  intros x y.
-  refine (sumofmaps _ _ (isdecrel_leNonnegativeRationals x y)) ; intros _.
-  exact x.
-  exact y.
-Defined.
-
-Lemma NQmin_case :
+Lemma minNonnegativeRationals_case_strong :
   Π (P : NonnegativeRationals -> UU),
-  Π x y : NonnegativeRationals, P x -> P y -> P (NQmin x y).
+  Π x y : NonnegativeRationals, (x <= y -> P x) -> (y <= x -> P y) -> P (minNonnegativeRationals x y).
 Proof.
   intros P x y Hx Hy.
-  unfold NQmin.
-  generalize (isdecrel_leNonnegativeRationals x y).
-  now apply coprod_rect.
+  unfold minNonnegativeRationals, hnnq_min.
+  generalize (hnnq_min_subproof x y).
+  unfold hqmin.
+  induction (hqgthorleh (pr1 x) (pr1 y)) as [H | H].
+  - change (sumofmaps (λ _ : (pr1 x > pr1 y)%hq, pr1 y)
+                      (λ _ : (pr1 x <= pr1 y)%hq, pr1 x) (ii1 H)) with (pr1 y).
+    intros n.
+    assert (H0 : y = (pr1 y,, n)).
+    apply subtypeEquality_prop.
+    reflexivity.
+    rewrite <- H0.
+    apply Hy.
+    apply hqlthtoleh.
+    exact H.
+  - change (sumofmaps (λ _ : (pr1 x > pr1 y)%hq, pr1 y)
+                      (λ _ : (pr1 x <= pr1 y)%hq, pr1 x) (ii2 H)) with (pr1 x).
+    intros n.
+    assert (H0 : x = (pr1 x,, n)).
+    apply subtypeEquality_prop.
+    reflexivity.
+    rewrite <- H0.
+    apply Hx.
+    exact H.
 Qed.
-Lemma NQmin_case_strong :
+Lemma minNonnegativeRationals_case :
   Π (P : NonnegativeRationals -> UU),
-  Π x y : NonnegativeRationals, (x <= y -> P x) -> (y <= x -> P y) -> P (NQmin x y).
+  Π x y : NonnegativeRationals, P x -> P y -> P (minNonnegativeRationals x y).
 Proof.
   intros P x y Hx Hy.
-  unfold NQmin.
-  generalize ( isdecrel_leNonnegativeRationals x y).
-  apply coprod_rect ; [intros Hle | intros Hlt].
-  - now apply Hx.
-  - apply Hy.
-    now apply lt_leNonnegativeRationals, notge_ltNonnegativeRationals.
+  now apply minNonnegativeRationals_case_strong.
 Qed.
-Lemma iscomm_NQmin :
-  Π x y, NQmin x y = NQmin y x.
+Lemma iscomm_minNonnegativeRationals :
+  Π x y, minNonnegativeRationals x y = minNonnegativeRationals y x.
 Proof.
   intros x y.
-  apply NQmin_case_strong ; intro Hle ;
-  apply NQmin_case_strong ; intro Hle'.
+  apply minNonnegativeRationals_case_strong ; intro Hle ;
+  apply minNonnegativeRationals_case_strong ; intro Hle'.
   - now apply isantisymm_leNonnegativeRationals.
   - reflexivity.
   - reflexivity.
   - now apply isantisymm_leNonnegativeRationals.
 Qed.
-Lemma NQmin_ge_l :
-  Π x y : NonnegativeRationals, NQmin x y <= x.
+Lemma minNonnegativeRationals_ge_l :
+  Π x y : NonnegativeRationals, minNonnegativeRationals x y <= x.
 Proof.
   intros x y.
-  apply NQmin_case_strong ; intro Hle.
+  apply minNonnegativeRationals_case_strong ; intro Hle.
   - apply isrefl_leNonnegativeRationals.
   - exact Hle.
 Qed.
-Lemma NQmin_ge_r :
-  Π x y : NonnegativeRationals, NQmin x y <= y.
+Lemma minNonnegativeRationals_ge_r :
+  Π x y : NonnegativeRationals, minNonnegativeRationals x y <= y.
 Proof.
   intros x y.
-  rewrite iscomm_NQmin.
-  now apply NQmin_ge_l.
+  rewrite iscomm_minNonnegativeRationals.
+  now apply minNonnegativeRationals_ge_l.
 Qed.
 
 (** ** intpart *)
@@ -1800,20 +1833,20 @@ Proof.
   mkpair.
   apply (commrigtorig (pr1 NonnegativeRationals)).
   mkpair.
-  exists NQmin, NQmax.
+  exists minNonnegativeRationals, NQmax.
   repeat split.
   { intros x y z.
-    unfold NQmin at 2 ; destruct isdecrel_leNonnegativeRationals ;
-    unfold NQmin at 3 ; destruct isdecrel_leNonnegativeRationals.
+    unfold minNonnegativeRationals at 2 ; destruct isdecrel_leNonnegativeRationals ;
+    unfold minNonnegativeRationals at 3 ; destruct isdecrel_leNonnegativeRationals.
     assert (h1 : (x <= z)%NRat)
       by (now apply istrans_leNonnegativeRationals with y).
-    unfold NQmin ; destruct isdecrel_leNonnegativeRationals.
+    unfold minNonnegativeRationals ; destruct isdecrel_leNonnegativeRationals.
     destruct isdecrel_leNonnegativeRationals.
     reflexivity.
     now apply fromempty, n.
     now apply fromempty, n.
     reflexivity.
-    unfold NQmin ; destruct isdecrel_leNonnegativeRationals.
+    unfold minNonnegativeRationals ; destruct isdecrel_leNonnegativeRationals.
     destruct isdecrel_leNonnegativeRationals.
     now apply fromempty, n.
     reflexivity.
@@ -1824,13 +1857,13 @@ Proof.
       apply istrans_leNonnegativeRationals with z.
       exact h.
       now apply lt_leNonnegativeRationals, notge_ltNonnegativeRationals. }
-    unfold NQmin ; destruct isdecrel_leNonnegativeRationals.
+    unfold minNonnegativeRationals ; destruct isdecrel_leNonnegativeRationals.
     now apply fromempty, n.
     destruct isdecrel_leNonnegativeRationals.
     now apply fromempty, n1.
     reflexivity. }
   { intros x y.
-    unfold NQmin ; destruct isdecrel_leNonnegativeRationals.
+    unfold minNonnegativeRationals ; destruct isdecrel_leNonnegativeRationals.
     destruct isdecrel_leNonnegativeRationals.
     now apply isantisymm_leNonnegativeRationals.
     reflexivity.
@@ -1868,12 +1901,12 @@ Proof.
     reflexivity. }
   { intros x y ; apply iscomm_NQmax. }
   { intros x y.
-    unfold NQmin ; destruct isdecrel_leNonnegativeRationals.
+    unfold minNonnegativeRationals ; destruct isdecrel_leNonnegativeRationals.
     reflexivity.
     apply fromempty, n, NQmax_le_l. }
   { intros x y.
     unfold NQmax ; destruct isdecrel_leNonnegativeRationals.
-    unfold NQmin in h |- *.
+    unfold minNonnegativeRationals in h |- *.
     destruct isdecrel_leNonnegativeRationals.
     reflexivity.
     now apply fromempty, n.
@@ -1889,9 +1922,9 @@ Proof.
     now apply lt_leNonnegativeRationals, notge_ltNonnegativeRationals. }
   split.
   split.
-  { change (∀ x y : NonnegativeRationals, (¬ (x < y)%NRat) <-> NQmin y x = y).
+  { change (∀ x y : NonnegativeRationals, (¬ (x < y)%NRat) <-> minNonnegativeRationals y x = y).
     intros x y.
-    unfold NQmin ; destruct isdecrel_leNonnegativeRationals ; split.
+    unfold minNonnegativeRationals ; destruct isdecrel_leNonnegativeRationals ; split.
     intros _.
     reflexivity.
     intros _.
@@ -1902,9 +1935,9 @@ Proof.
     intros ->.
     now apply isirrefl_ltNonnegativeRationals. }
   split.
-  { change (∀ x y z : NonnegativeRationals, (z < x)%NRat -> (z < y)%NRat -> (z < NQmin x y)%NRat).
+  { change (∀ x y z : NonnegativeRationals, (z < x)%NRat -> (z < y)%NRat -> (z < minNonnegativeRationals x y)%NRat).
     intros x y z Hx Hy.
-    unfold NQmin ; destruct isdecrel_leNonnegativeRationals.
+    unfold minNonnegativeRationals ; destruct isdecrel_leNonnegativeRationals.
     exact Hx.
     exact Hy. }
   { change (∀ x y z : NonnegativeRationals, (x < z)%NRat -> (y < z)%NRat -> (NQmax x y < z)%NRat).

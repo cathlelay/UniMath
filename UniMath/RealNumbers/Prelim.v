@@ -10,7 +10,7 @@ Require Export UniMath.Foundations.NumberSystems.RationalNumbers.
 Require Export UniMath.Foundations.Algebra.Archimedean.
 Require Export UniMath.Foundations.Algebra.Lattice.
 
-Set Default Timeout 10.
+Set Default Timeout 5.
 
 Open Scope hq_scope.
 
