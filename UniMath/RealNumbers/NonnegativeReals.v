@@ -12,6 +12,8 @@ Local Open Scope NRat_scope.
 Local Open Scope Dcuts_scope.
 Local Open Scope tap_scope.
 
+Set Default Timeout 100.
+
 (** ** Definition of Dedekind cuts *)
 
 Definition Dcuts_def_bot (X : hsubtypes NonnegativeRationals) : UU :=
@@ -4032,19 +4034,11 @@ Proof.
           pattern (c / 2)%NRat at 2 ;
             rewrite (NQhalf_double (c / 2)%NRat), isassoc_plusNonnegativeRationals.
           now apply plusNonnegativeRationals_le_r. }
-<<<<<<< HEAD
         { apply (U_bot (pr1 N)) with (1 := Dcuts_plus_x_in xy).
           apply_pr2 (plusNonnegativeRationals_lecompat_r (Dcuts_plus_y xy)).
           rewrite <- (Dcuts_plus_rw xy).
           set (_c_ := c).
           change (pr1 q + c / 2 / 2 + Dcuts_plus_y xy <= _c_ + pr1 eps)%NRat.
-=======
-        { apply (U_bot (pr1 N)) with (1 := pr1 (pr2 (pr2 xy))).
-          apply_pr2 (plusNonnegativeRationals_lecompat_r (pr2 (pr1 xy))).
-          rewrite <- (pr1 (pr2 xy)).
-          set (_c_ := c).
-          change (pr1 q + c / 2 / 2 + pr2 (pr1 xy) <= _c_ + pr1 eps)%NRat.
->>>>>>> dev
           rewrite (NQhalf_double _c_), !isassoc_plusNonnegativeRationals.
           eapply istrans_leNonnegativeRationals.
           apply plusNonnegativeRationals_lecompat_r.
@@ -5787,9 +5781,9 @@ Proof.
   - intros x y.
     apply iscomm_maxNonnegativeReals.
   - intros [Hlt|Hlt].
-    + eapply istrans_lt_le_ltNonnegativeReals, maxNonnegativeReals_le_r.
+    + eapply istrans_lt_le_ltNonnegativeReals, maxNonnegativeReals_ge_r.
       apply ispositive_minusNonnegativeReals, Hlt.
-    + eapply istrans_lt_le_ltNonnegativeReals, maxNonnegativeReals_le_l.
+    + eapply istrans_lt_le_ltNonnegativeReals, maxNonnegativeReals_ge_l.
       apply ispositive_minusNonnegativeReals, Hlt.
   - apply hinhuniv.
     intros (r,(_)).
@@ -5887,10 +5881,10 @@ Proof.
         intros y.
         generalize (pr1 (pr2 A) _ _ (pr2 a) (pr2 (pr2 y))).
         apply_pr2 notlt_leNonnegativeReals.
-        eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_r.
+        eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_r.
         apply_pr2 (plusNonnegativeReals_lecompat_l (pr1 a)).
         rewrite <- maxNonnegativeReals_minus_plus.
-        eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
+        eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_l.
         eapply istrans_leNonnegativeReals, (pr1 (pr2 y)).
         pattern c at 3 ;
           rewrite (double_halfNonnegativeReals c).
@@ -5918,12 +5912,12 @@ Proof.
           rewrite <- maxNonnegativeReals_minus_plus.
           apply maxNonnegativeReals_le.
           eapply istrans_leNonnegativeReals.
-          apply (maxNonnegativeReals_le_l _ (pr1 b)).
+          apply (maxNonnegativeReals_ge_l _ (pr1 b)).
           rewrite maxNonnegativeReals_minus_plus, iscomm_plusNonnegativeReals.
           apply (pr1 (plusNonnegativeReals_lecompat_r _ _ _)).
           apply lt_leNonnegativeReals.
           eapply istrans_le_lt_ltNonnegativeReals, (pr1 (pr2 A) _ _ (pr2 a) (pr1 (pr2 b))).
-          apply maxNonnegativeReals_le_l.
+          apply maxNonnegativeReals_ge_l.
           apply plusNonnegativeReals_le_r.
           apply (pr2 (pr2 b)).
         * simpl.
@@ -5936,12 +5930,12 @@ Proof.
           intros b.
           generalize (pr1 (pr2 A) _ _ (pr2 a) (pr2 (pr2 b))).
           apply_pr2 notlt_leNonnegativeReals.
-          eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_r.
+          eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_r.
           apply_pr2 (plusNonnegativeReals_lecompat_l (pr1 a)).
           rewrite <- maxNonnegativeReals_minus_plus, iscomm_plusNonnegativeReals.
-          eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
+          eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_l.
           eapply istrans_leNonnegativeReals, (pr1 (pr2 b)).
-          apply maxNonnegativeReals_le_l. }
+          apply maxNonnegativeReals_ge_l. }
 
   set (x := Dcuts_of_Dcuts _ _ _).
 
@@ -5978,12 +5972,12 @@ Proof.
         apply istrans_leNonnegativeReals with (pr1 c).
         apply (pr1 (pr2 c)).
         eapply istrans_leNonnegativeReals.
-        apply (maxNonnegativeReals_le_l _ (pr1 a)).
+        apply (maxNonnegativeReals_ge_l _ (pr1 a)).
         rewrite maxNonnegativeReals_minus_plus.
         apply (pr1 (plusNonnegativeReals_lecompat_l _ _ _)).
         apply lt_leNonnegativeReals.
         eapply istrans_le_lt_ltNonnegativeReals, (pr1 (pr2 A)).
-        apply maxNonnegativeReals_le_l.
+        apply maxNonnegativeReals_ge_l.
         apply (pr2 (pr2 c)).
         apply (pr2 a).
       * apply plusNonnegativeReals_le_r.
@@ -5991,7 +5985,7 @@ Proof.
       rewrite <- maxNonnegativeReals_minus_plus.
       apply maxNonnegativeReals_le.
       * eapply istrans_leNonnegativeReals.
-        apply (maxNonnegativeReals_le_l _ (e / 2)).
+        apply (maxNonnegativeReals_ge_l _ (e / 2)).
         rewrite maxNonnegativeReals_minus_plus, iscomm_plusNonnegativeReals.
         apply (pr1 (plusNonnegativeReals_lecompat_r _ _ _)).
         intros r Hr.
@@ -6008,12 +6002,12 @@ Proof.
         rewrite <- maxNonnegativeReals_minus_plus.
         apply maxNonnegativeReals_le.
         eapply istrans_leNonnegativeReals.
-        apply (maxNonnegativeReals_le_l _ (pr1 b)).
+        apply (maxNonnegativeReals_ge_l _ (pr1 b)).
         rewrite maxNonnegativeReals_minus_plus, iscomm_plusNonnegativeReals.
         apply (pr1 (plusNonnegativeReals_lecompat_r _ _ _)).
         apply lt_leNonnegativeReals.
         eapply istrans_le_lt_ltNonnegativeReals, (pr1 (pr2 A) _ _ (pr2 a) (pr1 (pr2 b))).
-        apply maxNonnegativeReals_le_l.
+        apply maxNonnegativeReals_ge_l.
         apply plusNonnegativeReals_le_r.
         apply (pr2 (pr2 b)).
         exact Hr.
@@ -6118,13 +6112,13 @@ Proof.
           rewrite !isassoc_plusNonnegativeReals, <- !maxNonnegativeReals_minus_plus.
           rewrite !isldistr_Dcuts_max_plus, <- !maxNonnegativeReals_minus_plus.
           apply Dcuts_max_le.
-          eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_r.
-          eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
-          eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
-          eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
-          apply maxNonnegativeReals_le_l.
-          eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
-          eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
+          eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_r.
+          eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_l.
+          eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_l.
+          eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_l.
+          apply maxNonnegativeReals_ge_l.
+          eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_l.
+          eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_l.
           eapply istrans_leNonnegativeReals, plusNonnegativeReals_le_r.
           apply plusNonnegativeReals_le_l.
         * apply_pr2 (plusNonnegativeReals_lecompat_r y').
@@ -6134,15 +6128,15 @@ Proof.
           rewrite !isassoc_plusNonnegativeReals, <- !maxNonnegativeReals_minus_plus.
           rewrite !isldistr_Dcuts_max_plus, <- !maxNonnegativeReals_minus_plus.
           apply Dcuts_max_le.
-          eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
-          eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
-          eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_r.
-          eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
-          apply maxNonnegativeReals_le_r.
-          eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
-          eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
-          eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_r.
-          eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_r.
+          eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_l.
+          eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_l.
+          eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_r.
+          eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_l.
+          apply maxNonnegativeReals_ge_r.
+          eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_l.
+          eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_l.
+          eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_r.
+          eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_r.
           apply plusNonnegativeReals_le_r.
       + apply_pr2 (plusNonnegativeReals_lecompat_r (x - y)%NR).
         rewrite !isldistr_Dcuts_max_plus, !(iscomm_plusNonnegativeReals (x - y)), <- maxNonnegativeReals_minus_plus.
@@ -6154,14 +6148,14 @@ Proof.
           rewrite !isassoc_plusNonnegativeReals, <- !maxNonnegativeReals_minus_plus.
           rewrite !isldistr_Dcuts_max_plus, <- !maxNonnegativeReals_minus_plus.
           apply Dcuts_max_le.
-          eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
-          eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_r.
-          eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
-          eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
-          apply maxNonnegativeReals_le_l.
-          eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
-          eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
-          eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_r.
+          eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_l.
+          eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_r.
+          eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_l.
+          eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_l.
+          apply maxNonnegativeReals_ge_l.
+          eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_l.
+          eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_l.
+          eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_r.
           eapply istrans_leNonnegativeReals, plusNonnegativeReals_le_r.
           apply plusNonnegativeReals_le_r.
         * apply_pr2 (plusNonnegativeReals_lecompat_r y).
@@ -6171,13 +6165,13 @@ Proof.
           rewrite !isassoc_plusNonnegativeReals, <- !maxNonnegativeReals_minus_plus.
           rewrite !isldistr_Dcuts_max_plus, <- !maxNonnegativeReals_minus_plus.
           apply Dcuts_max_le.
-          eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_r.
-          eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_r.
-          eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_r.
-          eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
-          apply maxNonnegativeReals_le_r.
-          eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
-          eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
+          eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_r.
+          eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_r.
+          eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_r.
+          eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_l.
+          apply maxNonnegativeReals_ge_r.
+          eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_l.
+          eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_l.
           eapply istrans_leNonnegativeReals, plusNonnegativeReals_le_r.
           apply plusNonnegativeReals_le_l.
     - apply plusNonnegativeReals_ltcompat.
@@ -6228,13 +6222,13 @@ Proof.
       rewrite <- !maxNonnegativeReals_minus_plus.
       rewrite !isldistr_max_multNonnegativeReals.
       apply maxNonnegativeReals_le.
-      eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
-      eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
-      eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
-      apply maxNonnegativeReals_le_l.
-      eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
-      eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
-      eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_r.
+      eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_l.
+      eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_l.
+      eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_l.
+      apply maxNonnegativeReals_ge_l.
+      eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_l.
+      eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_l.
+      eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_r.
       apply plusNonnegativeReals_le_r.
     - apply_pr2 (plusNonnegativeReals_lecompat_r (x * y)).
       rewrite !isldistr_max_plusNonnegativeReals, <- !isassoc_plusNonnegativeReals, !(iscomm_plusNonnegativeReals (x * y)), <- !isldistr_plus_multNonnegativeReals.
@@ -6244,13 +6238,13 @@ Proof.
       rewrite <- !maxNonnegativeReals_minus_plus.
       rewrite !isrdistr_max_multNonnegativeReals.
       apply maxNonnegativeReals_le.
-      eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_r.
-      eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_r.
-      eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
-      apply maxNonnegativeReals_le_l.
-      eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_r.
-      eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_r.
-      eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_r.
+      eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_r.
+      eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_r.
+      eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_l.
+      apply maxNonnegativeReals_ge_l.
+      eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_r.
+      eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_r.
+      eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_r.
       apply plusNonnegativeReals_le_l.
     - apply plusNonnegativeReals_ltcompat.
       + eapply istrans_le_lt_ltNonnegativeReals.
@@ -6268,12 +6262,12 @@ Proof.
         apply multNonnegativeReals_lecompat_r'.
         instantiate (1 := (y + 1)%NR).
         eapply istrans_leNonnegativeReals.
-        apply maxNonnegativeReals_le_l.
+        apply maxNonnegativeReals_ge_l.
         rewrite maxNonnegativeReals_minus_plus, iscomm_plusNonnegativeReals.
         apply plusNonnegativeReals_lecompat_r.
         eapply istrans_leNonnegativeReals, Dcuts_min_le_r.
         eapply istrans_leNonnegativeReals, lt_leNonnegativeReals, Hy.
-        apply maxNonnegativeReals_le_r.
+        apply maxNonnegativeReals_ge_r.
         eapply istrans_lt_le_ltNonnegativeReals.
         eapply multNonnegativeReals_ltcompat_l.
         apply ispositive_apNonnegativeReals, H.
@@ -6364,11 +6358,11 @@ Proof.
     apply_pr2 (plusNonnegativeReals_lecompat_r (x / 2)).
     rewrite <- double_halfNonnegativeReals.
     eapply istrans_leNonnegativeReals.
-    apply maxNonnegativeReals_le_l.
+    apply maxNonnegativeReals_ge_l.
     rewrite maxNonnegativeReals_minus_plus.
     apply plusNonnegativeReals_lecompat_l.
     eapply istrans_leNonnegativeReals, lt_leNonnegativeReals.
-    apply maxNonnegativeReals_le_l.
+    apply maxNonnegativeReals_ge_l.
     eapply istrans_lt_le_ltNonnegativeReals, Dcuts_min_le_r.
     apply Hy.
 Qed.

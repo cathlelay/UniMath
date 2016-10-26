@@ -1968,10 +1968,10 @@ Proof.
     unfold Rabs, hr_abs.
     destruct Hx as [Hx | Hx].
     + apply_pr2_in hr_to_NR_negative Hx.
-      eapply istrans_lt_le_ltNonnegativeReals, maxNonnegativeReals_le_r.
+      eapply istrans_lt_le_ltNonnegativeReals, maxNonnegativeReals_ge_r.
       apply ispositive_apNonnegativeReals, (pr2 Hx).
     + apply_pr2_in hr_to_NR_positive Hx.
-      eapply istrans_lt_le_ltNonnegativeReals, maxNonnegativeReals_le_l.
+      eapply istrans_lt_le_ltNonnegativeReals, maxNonnegativeReals_ge_l.
       apply ispositive_apNonnegativeReals, (pr1 Hx).
   - intros Hx.
     generalize (maxNonnegativeReals_lt' _ _ _ Hx) ; clear Hx.
@@ -2070,24 +2070,24 @@ Proof.
     apply maxNonnegativeReals_le.
     + rewrite <- !isassoc_plusNonnegativeReals, (iscomm_plusNonnegativeReals _ x'), isassoc_plusNonnegativeReals, <- (isassoc_plusNonnegativeReals _ _ (_+_)%NR).
       apply plusNonnegativeReals_lecompat.
-      * eapply istrans_leNonnegativeReals, plusNonnegativeReals_lecompat_r, maxNonnegativeReals_le_l.
+      * eapply istrans_leNonnegativeReals, plusNonnegativeReals_lecompat_r, maxNonnegativeReals_ge_l.
         rewrite iscomm_plusNonnegativeReals, <- maxNonnegativeReals_minus_plus.
-        apply maxNonnegativeReals_le_l.
-      * eapply istrans_leNonnegativeReals, plusNonnegativeReals_lecompat_l, maxNonnegativeReals_le_r.
+        apply maxNonnegativeReals_ge_l.
+      * eapply istrans_leNonnegativeReals, plusNonnegativeReals_lecompat_l, maxNonnegativeReals_ge_r.
         rewrite <- maxNonnegativeReals_minus_plus.
-        apply maxNonnegativeReals_le_l.
+        apply maxNonnegativeReals_ge_l.
     + apply plusNonnegativeReals_le_r.
   - apply_pr2 (plusNonnegativeReals_lecompat_l (x + y')%NR).
     rewrite <- maxNonnegativeReals_minus_plus.
     apply maxNonnegativeReals_le.
     + rewrite (iscomm_plusNonnegativeReals (maxNonnegativeReals _ _)), <- !isassoc_plusNonnegativeReals, (iscomm_plusNonnegativeReals _ y'), isassoc_plusNonnegativeReals, <- (isassoc_plusNonnegativeReals _ _ (_+_)%NR).
       apply plusNonnegativeReals_lecompat.
-      * eapply istrans_leNonnegativeReals, plusNonnegativeReals_lecompat_r, maxNonnegativeReals_le_l.
+      * eapply istrans_leNonnegativeReals, plusNonnegativeReals_lecompat_r, maxNonnegativeReals_ge_l.
         rewrite iscomm_plusNonnegativeReals, <- maxNonnegativeReals_minus_plus.
-        apply maxNonnegativeReals_le_l.
-      * eapply istrans_leNonnegativeReals, plusNonnegativeReals_lecompat_l, maxNonnegativeReals_le_r.
+        apply maxNonnegativeReals_ge_l.
+      * eapply istrans_leNonnegativeReals, plusNonnegativeReals_lecompat_l, maxNonnegativeReals_ge_r.
         rewrite <- maxNonnegativeReals_minus_plus.
-        apply maxNonnegativeReals_le_l.
+        apply maxNonnegativeReals_ge_l.
     + apply plusNonnegativeReals_le_r.
 Qed.
 
@@ -2139,14 +2139,14 @@ Proof.
       generalize (maponpaths pr1 Hx) ; simpl ; intros Hx'.
       pattern x at 1 ; rewrite Hx', <- maxNonnegativeReals_minus_plus.
       apply maxNonnegativeReals_le.
-      eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
-      eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
+      eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_l.
+      eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_l.
       apply plusNonnegativeReals_le_l.
-      eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
-      eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_r.
+      eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_l.
+      eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_r.
       apply plusNonnegativeReals_le_r.
-      eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
-      apply maxNonnegativeReals_le_r.
+      eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_l.
+      apply maxNonnegativeReals_ge_r.
     * apply_pr2 (plusNonnegativeReals_lecompat_l (x + y')%NR).
       rewrite <- isassoc_plusNonnegativeReals, <- maxNonnegativeReals_minus_plus.
       rewrite !isrdistr_max_plusNonnegativeReals, <- maxNonnegativeReals_minus_plus.
@@ -2154,13 +2154,13 @@ Proof.
       generalize (maponpaths pr1 Hy) ; simpl ; intros Hy'.
       pattern y at 1 ; rewrite Hy', <- maxNonnegativeReals_minus_plus.
       apply maxNonnegativeReals_le.
-      eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_r.
-      eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
+      eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_r.
+      eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_l.
       apply plusNonnegativeReals_le_r.
-      eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_r.
-      eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_r.
+      eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_r.
+      eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_r.
       apply plusNonnegativeReals_le_r.
-      eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
+      eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_l.
       apply plusNonnegativeReals_le_r.
     * apply eqNonnegativeReals_le.
       unfold Rminus, CFminus.
@@ -2199,13 +2199,13 @@ Proof.
       generalize (maponpaths (pr2 (P := λ _, _)) Hx) ; simpl ; intros Hx'.
       pattern x' at 1 ; rewrite Hx', <- maxNonnegativeReals_minus_plus.
       apply maxNonnegativeReals_le.
-      eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_r.
-      eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
+      eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_r.
+      eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_l.
       apply plusNonnegativeReals_le_l.
-      eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_r.
-      eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_r.
+      eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_r.
+      eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_r.
       apply plusNonnegativeReals_le_r.
-      eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
+      eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_l.
       apply plusNonnegativeReals_le_r.
     * apply_pr2 (plusNonnegativeReals_lecompat_l (x' + y)%NR).
       rewrite <- isassoc_plusNonnegativeReals, <- maxNonnegativeReals_minus_plus.
@@ -2214,14 +2214,14 @@ Proof.
       generalize (maponpaths (pr2 (P := λ _, _)) Hy) ; simpl ; intros Hy'.
       pattern y' at 1 ; rewrite Hy', <- maxNonnegativeReals_minus_plus.
       apply maxNonnegativeReals_le.
-      eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
-      eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
+      eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_l.
+      eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_l.
       apply plusNonnegativeReals_le_r.
-      eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
-      eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_r.
+      eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_l.
+      eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_r.
       apply plusNonnegativeReals_le_r.
-      eapply istrans_leNonnegativeReals, maxNonnegativeReals_le_l.
-      apply maxNonnegativeReals_le_r.
+      eapply istrans_leNonnegativeReals, maxNonnegativeReals_ge_l.
+      apply maxNonnegativeReals_ge_r.
     * apply eqNonnegativeReals_le.
       unfold Rminus, CFminus.
       apply maponpaths, map_on_two_paths, maponpaths ; reflexivity.
