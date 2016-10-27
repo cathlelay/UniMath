@@ -6,6 +6,8 @@ Require Export UniMath.Topology.Filters.
 Require Import UniMath.Foundations.Algebra.DivisionRig.
 Require Import UniMath.Foundations.Algebra.ConstructiveStructures.
 
+Unset Automatic Introduction.
+
 Section Open.
 
 Context {X : UU}.

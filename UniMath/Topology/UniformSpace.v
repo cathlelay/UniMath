@@ -5,6 +5,7 @@
 Require Export UniMath.Topology.Prelim.
 Require Export UniMath.Topology.Filters.
 
+Unset Automatic Introduction.
 
 (** ** Uniform Spaces *)
 (** *** Definitions *)
@@ -43,8 +44,8 @@ Proof.
   - reflexivity.
 Qed.
 
-Lemma isassoc_subset_prod {X : UU} :
-  isassoc (X := tpair _ _ (Utilities.funspace_isaset isasethProp)) (subset_prod (X := X)).
+Lemma isassoc_subset_prod {X : hSet} :
+  isassoc (X := tpair _ _ (impredfun 2 (X × X) hProp isasethProp)) (subset_prod (X := X)).
 Proof.
   intros X.
   intros A B C.

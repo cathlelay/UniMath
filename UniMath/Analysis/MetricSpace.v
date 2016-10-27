@@ -13,56 +13,6 @@ Set Default Timeout 10.
 
 (** ** Lattice *)
 
-Definition islatticewithltrel {X : hSet} (is : islattice X) (lt : StrongOrder X) :=
-  (Π x y : X, (¬ (lt x y)) <-> Lle is y x)
-    × (Π x y z : X, lt z x -> lt z y -> lt z (Lmin is x y))
-    × (Π x y z : X, lt x z -> lt y z -> lt (Lmax is x y) z).
-
-Definition islatticewithlt (X : hSet) :=
-  Σ (is : islattice X) (lt : StrongOrder X), islatticewithltrel is lt.
-
-Definition islattice_islatticewithlt {X : hSet} : islatticewithlt X → islattice X :=
-  pr1.
-Coercion islattice_islatticewithlt : islatticewithlt >-> islattice.
-
-Section latticewithlt.
-
-Context {X : hSet}
-        (is : islatticewithlt X).
-
-Definition Llt : StrongOrder X :=
-  pr1 (pr2 is).
-
-Lemma notLlt_Lle :
-  Π x y : X, (¬ (Llt x y)) <-> Lle is y x.
-Proof.
-  apply (pr1 (pr2 (pr2 is))).
-Qed.
-Lemma Llt_Lle :
-  Π x y : X, Llt x y -> Lle is x y.
-Proof.
-  intros x y H.
-  apply notLlt_Lle.
-  intro H0.
-  eapply isirrefl_StrongOrder.
-  eapply istrans_StrongOrder.
-  exact H.
-  exact H0.
-Qed.
-
-Lemma Lmin_Llt :
-  Π x y z : X, Llt z x -> Llt z y -> Llt z (Lmin is x y).
-Proof.
-  apply (pr1 (pr2 (pr2 (pr2 is)))).
-Qed.
-Lemma Lmax_lt  :
-  Π x y z : X, Llt x z -> Llt y z -> Llt (Lmax is x y) z.
-Proof.
-  apply (pr2 (pr2 (pr2 (pr2 is)))).
-Qed.
-
-End latticewithlt.
-
 Definition apfromlt {X : hSet} (lt : StrongOrder X) : aprel X.
 Proof.
   intros X lt.

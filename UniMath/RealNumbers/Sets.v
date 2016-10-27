@@ -6,6 +6,7 @@ Require Export UniMath.Foundations.Basics.Sets
                UniMath.Ktheory.QuotientSet.
 Require Import UniMath.Foundations.Algebra.BinaryOperations
                UniMath.Foundations.Algebra.Apartness.
+Require Import UniMath.Foundations.Algebra.Lattice. (* to remove wher StrongOrder is moved *)
 
 (** ** Subsets *)
 
@@ -43,39 +44,6 @@ Definition isrefl_po : isrefl R :=
   pr2 (pr2 R).
 
 End po_pty.
-
-(** ** Strong Order *)
-
-Definition isStrongOrder {X : UU} (R : hrel X) := istrans R × iscotrans R × isirrefl R.
-Definition StrongOrder (X : UU) := Σ R : hrel X, isStrongOrder R.
-Definition pairStrongOrder {X : UU} (R : hrel X) (is : isStrongOrder R) : StrongOrder X :=
-  tpair (fun R : hrel X => isStrongOrder R ) R is.
-Definition pr1StrongOrder {X : UU} : StrongOrder X → hrel X := pr1.
-Coercion  pr1StrongOrder : StrongOrder >-> hrel.
-
-Section so_pty.
-
-Context {X : UU}.
-Context (R : StrongOrder X).
-
-Definition istrans_StrongOrder : istrans R :=
-  pr1 (pr2 R).
-Definition iscotrans_StrongOrder : iscotrans R :=
-  pr1 (pr2 (pr2 R)).
-Definition isirrefl_StrongOrder : isirrefl R :=
-  pr2 (pr2 (pr2 R)).
-
-End so_pty.
-
-Definition isStrongOrder_quotrel {X : UU} {R : eqrel X} {L : hrel X} (is : iscomprelrel R L) :
-  isStrongOrder L → isStrongOrder (quotrel is).
-Proof.
-  intros X R L is H.
-  repeat split.
-  - apply istransquotrel, (pr1 H).
-  - apply iscotransquotrel, (pr1 (pr2 H)).
-  - apply isirreflquotrel, (pr2 (pr2 H)).
-Defined.
 
 (** ** Reverse orderse *)
 (** or how easily define ge x y := le x y *)
