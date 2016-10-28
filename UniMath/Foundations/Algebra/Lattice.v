@@ -275,6 +275,33 @@ Proof.
   exact H0.
 Qed.
 
+Lemma istrans_Llt_Lle :
+  Π x y z : X, Llt x y → Lle is y z → Llt x z.
+Proof.
+  intros x y z Hlt Hle.
+  generalize (iscotrans_StrongOrder _ _ z _ Hlt).
+  apply hinhuniv.
+  apply sumofmaps ; intros H.
+  - exact H.
+  - apply fromempty.
+    refine (pr2 (notLlt_Lle _ _) _ _).
+    exact Hle.
+    exact H.
+Qed.
+Lemma istrans_Lle_Llt :
+  Π x y z : X, Lle is x y → Llt y z → Llt x z.
+Proof.
+  intros x y z Hle Hlt.
+  generalize (iscotrans_StrongOrder _ _ x _ Hlt).
+  apply hinhuniv.
+  apply sumofmaps ; intros H.
+  - apply fromempty.
+    refine (pr2 (notLlt_Lle _ _) _ _).
+    exact Hle.
+    exact H.
+  - exact H.
+Qed.
+
 Lemma Lmin_Llt :
   Π x y z : X, Llt z x -> Llt z y -> Llt z (Lmin is x y).
 Proof.
@@ -571,6 +598,40 @@ Proof.
   rewrite H, assocax, grlinvax, lunax, runax.
   apply iscomm_Lmax.
 Qed.
+
+Definition extminuswithlt {X : abmonoid} (is : islatticewithlt X) :=
+  Σ (ex : extminus is), Π x y : X, Llt is 0 (tminus ex y x) → Llt is x y.
+Definition extminuswithlt_extminus {X : abmonoid} (is : islatticewithlt X) :
+  extminuswithlt is → extminus is := pr1.
+Coercion extminuswithlt_extminus : extminuswithlt >-> extminus.
+
+Section tminus_lt.
+
+Context {X : abmonoid}
+        (is : islatticewithlt X)
+        (ex : extminuswithlt is)
+        (is0 : Π x y z : X, Llt is y z → Llt is (y + x) (z + x))
+        (is1 : Π x y z : X, Llt is (y + x) (z + x) → Llt is y z).
+
+Lemma tminus_pos :
+  Π x y : X, Llt is x y → Llt is 0 (tminus ex y x).
+Proof.
+  intros x y.
+  intros H.
+  apply (is1 x).
+  rewrite lunax, istminus_ex.
+  rewrite Lmax_eq_l.
+  exact H.
+  apply Llt_Lle, H.
+Qed.
+
+Lemma tminus_pos' :
+  Π x y : X, Llt is 0 (tminus ex y x) → Llt is x y.
+Proof.
+  exact (pr2 ex).
+Qed.
+
+End tminus_lt.
 
 (** *** Truncated minus and abgrfrac *)
 
