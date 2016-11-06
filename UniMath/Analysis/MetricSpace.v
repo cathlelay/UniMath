@@ -57,16 +57,16 @@ Defined.
 
 Open Scope addmonoid_scope.
 
-Section tminus_lt.
+Section truncminus_lt.
 
 Context {X : abmonoid}
         {is : islatticewithlt X}
         (Hlt : isbinophrel (Llt is))
         (Hlt' : isinvbinophrel (Llt is))
         (minus : binop X)
-        (is0 : istminus is minus).
+        (is0 : istruncminus is minus).
 
-Lemma tminus_pos :
+Lemma truncminus_pos :
   Π x y : X, Llt is 0 (minus x y) -> Llt is y x.
 Proof.
   intros x y H0.
@@ -92,12 +92,12 @@ Proof.
   now apply Llt_Lle.
 Qed.
 
-End tminus_lt.
+End truncminus_lt.
 
 (** ** Nonnegative Monoid *)
 
 Definition isNonnegativeMonoid {X : abmonoid} (is : islatticewithlt X) :=
-  (extminus is)
+  (extruncminus is)
     × isbinophrel (Llt is)
     × isinvbinophrel (Llt is)
     × (Π x : X, Lle is 0 x)

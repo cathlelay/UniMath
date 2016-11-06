@@ -594,7 +594,9 @@ Proof.
   - exact H.
   - apply isantisymmhqleh.
     exact H.
-    exact H0.
+    intros H1.
+    apply H0.
+    exact H1.
   - rewrite H0.
     apply (isirreflhqgth y).
 Qed.
@@ -630,7 +632,7 @@ Proof.
     + exact nothqlth_hqmin.
     + exact hqmin_gt.
     + exact hqmax_lt.
-Defined.
+Timeout 10 Defined.
 
 Lemma Lmin_hqmin :
   Lmin islattice_hq = hqmin.
@@ -638,14 +640,14 @@ Proof.
   unfold Lmin, islattice_hq.
   simpl.
   reflexivity.
-Qed.
+Timeout 10 Qed.
 Lemma Lmax_hqmax :
   Lmax islattice_hq = hqmax.
 Proof.
   unfold Lmax, islattice_hq.
   simpl.
   reflexivity.
-Qed.
+Timeout 20 Qed.
 
 Lemma Lle_hqleh :
   Π x y : hq, x <= y <-> Lle islattice_hq x y.
@@ -735,21 +737,21 @@ Proof.
   - reflexivity.
 Qed.
 
-Definition hqtminus : binop hq :=
+Definition hqtruncminus : binop hq :=
   λ x y : hq, hqmax 0 (x - y).
-Lemma istminus_hq :
-  istminus (X := rngaddabgr hq) islattice_hq hqtminus.
+Lemma istruncminus_hq :
+  istruncminus (X := rngaddabgr hq) islattice_hq hqtruncminus.
 Proof.
-  unfold hqtminus.
+  unfold hqtruncminus.
   rewrite <- Lmax_hqmax.
-  apply (abgr_tminus (X := rngaddabgr hq) islattice_hq).
+  apply (abgr_truncminus (X := rngaddabgr hq) islattice_hq).
   exact isrdistr_hqmax_hqplus.
 Qed.
 
-Lemma hqtminus_pos :
-  Π x y : hq, x < y <-> 0 < hqtminus y x.
+Lemma hqtruncminus_pos :
+  Π x y : hq, x < y <-> 0 < hqtruncminus y x.
 Proof.
-  unfold hqtminus.
+  unfold hqtruncminus.
   intros x y ; split.
   - intros H.
     apply hqmax_lth_l.
@@ -765,11 +767,11 @@ Proof.
     exact H.
 Qed.
 
-Definition extminus_hq : extminuswithlt (X := rngaddabgr hq) islattice_hq.
+Definition extruncminus_hq : extruncminuswithlt (X := rngaddabgr hq) islattice_hq.
 Proof.
   mkpair.
-  exact (hqtminus,, istminus_hq).
-  exact (λ x y : hq, pr2 (hqtminus_pos x y)).
+  exact (hqtruncminus,, istruncminus_hq).
+  exact (λ x y : hq, pr2 (hqtruncminus_pos x y)).
 Defined.
 
 (** ** hq is archimedean *)

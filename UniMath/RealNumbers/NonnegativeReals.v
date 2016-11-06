@@ -3360,8 +3360,17 @@ Proof.
     + now apply hinhpr ; left ; right.
 Qed.
 
-Definition extminus_Dcuts : extminus (X := (_,,_),,isabmonoidop_Dcuts_plus) islattice_Dcuts :=
+Definition extruncminus_Dcuts : extruncminus (X := (_,,_),,isabmonoidop_Dcuts_plus) islattice_Dcuts :=
   Dcuts_minus ,, Dcuts_minus_plus_max.
+
+Lemma Dcuts_minus_eq_zero:
+  Π x y : Dcuts, x <= y -> Dcuts_minus x y = 0.
+Proof.
+  intros X Y Hxy.
+  apply (truncminus_eq_0 extruncminus_Dcuts).
+  apply Dcuts_plus_eqcompat_l.
+  now apply Dcuts_le_lattice_compat.
+Qed.
 
 Lemma Dcuts_minus_correct_l:
   Π x y z : Dcuts, x = Dcuts_plus y z -> z = Dcuts_minus x y.
