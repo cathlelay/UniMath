@@ -733,21 +733,21 @@ Proof.
   - reflexivity.
 Qed.
 
-Definition hqtminus : binop hq :=
+Definition hqtruncminus : binop hq :=
   λ x y : hq, hqmax 0 (x - y).
-Lemma istminus_hq :
-  istminus (X := rngaddabgr hq) islattice_hq hqtminus.
+Lemma istruncminus_hq :
+  istruncminus (X := rngaddabgr hq) islattice_hq hqtruncminus.
 Proof.
-  unfold hqtminus.
+  unfold hqtruncminus.
   rewrite <- Lmax_hqmax.
-  apply (abgr_tminus (X := rngaddabgr hq) islattice_hq).
+  apply (abgr_truncminus (X := rngaddabgr hq) islattice_hq).
   exact isrdistr_hqmax_hqplus.
 Qed.
 
-Lemma hqtminus_pos :
-  Π x y : hq, x < y <-> 0 < hqtminus y x.
+Lemma hqtruncminus_pos :
+  Π x y : hq, x < y <-> 0 < hqtruncminus y x.
 Proof.
-  unfold hqtminus.
+  unfold hqtruncminus.
   intros x y ; split.
   - intros H.
     apply hqmax_lth_l.
@@ -763,11 +763,11 @@ Proof.
     exact H.
 Qed.
 
-Definition extminus_hq : extminuswithlt (X := rngaddabgr hq) islattice_hq.
+Definition extruncminus_hq : extruncminuswithlt (X := rngaddabgr hq) islattice_hq.
 Proof.
   mkpair.
-  exact (hqtminus,, istminus_hq).
-  exact (λ x y : hq, pr2 (hqtminus_pos x y)).
+  exact (hqtruncminus,, istruncminus_hq).
+  exact (λ x y : hq, pr2 (hqtruncminus_pos x y)).
 Defined.
 
 (** ** hq is archimedean *)

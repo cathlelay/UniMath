@@ -943,7 +943,7 @@ Proof.
   unfold minusNonnegativeRationals, hnnq_minus, hq_to_hnnq_set.
   generalize (hq_to_hnnq_set_subproof (pr1 y - pr1 x)%hq).
   intros H.
-  apply hqtminus_pos.
+  apply hqtruncminus_pos.
 Qed.
 
 Lemma minusNonnegativeRationals_le :
