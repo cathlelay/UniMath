@@ -725,48 +725,95 @@ Section lattice_abgrfrac.
 
 Context {X : abmonoid}
         {min max : binop X}
-        {is : islatticeop min max}
-        (ex : extruncminus (min,,max,,is))
-        (is1 : Π x y z : X, y + x = z + x → y = z)
-        (is2 : isrdistr max op)
-        (is3 : isrdistr min op)
-        (is4 : isrdistr max min)
-        (is5 : isrdistr min max).
+        (is : islatticeop min max)
+        (Hmin : isrdistr min op)
+        (Hmax : isrdistr max op).
+
+Local Lemma abgrfrac_lattice_help :
+  Π (f : X → X → X),
+  isrdistr f op →
+  iscomprelrelfun2 (binopeqrelabgrfrac X) (binopeqrelabgrfrac X)
+                   (λ x y : abmonoiddirprod X X,
+                            f (pr1 x + pr2 y) (pr1 y + pr2 x),,
+                              (pr2 x + pr2 y)).
+Proof.
+  intros f Hf.
+  intros x y x' y'.
+  apply hinhfun2.
+  intros c c'.
+  simpl.
+  mkpair.
+  - exact (pr1 c + pr1 c').
+  - rewrite !Hf.
+    apply map_on_two_paths.
+    + simple refine (pathscomp0 _ _).
+      * exact ((pr1 x + pr2 y + pr1 c) + (pr2 x' + pr2 y' + pr1 c')).
+      * rewrite !assocax ;
+        apply maponpaths.
+        do 2 (rewrite commax, !assocax ;
+              apply maponpaths).
+        rewrite commax, !assocax.
+        reflexivity.
+      * rewrite (pr2 c).
+        rewrite !assocax ;
+          apply maponpaths.
+        (do 3 rewrite commax, !assocax) ;
+          apply maponpaths.
+        do 2 (rewrite commax, !assocax ;
+              apply maponpaths).
+        exact (commax _ _ _).
+    + simple refine (pathscomp0 _ _).
+      * exact ((pr1 x' + pr2 y' + pr1 c') + (pr2 x + pr2 y + pr1 c)).
+      * rewrite !assocax ;
+        apply maponpaths.
+        (do 2 rewrite commax, !assocax) ;
+          apply maponpaths.
+        rewrite commax, !assocax.
+        reflexivity.
+      * rewrite (pr2 c').
+        rewrite !assocax ;
+          apply maponpaths.
+        do 2 ((do 3 rewrite commax, !assocax) ;
+              apply maponpaths).
+        rewrite commax, !assocax ;
+          apply maponpaths.
+        exact (commax _ _ _).
+Qed.
 
 Definition abgrfrac_min : binop (abgrfrac X).
 Proof.
-  intros x y.
-  apply setquotpr.
-  split.
-  - apply min.
-    apply (pr1 (abgrfracelt ex is1 is2 x)).
-    apply (pr1 (abgrfracelt ex is1 is2 y)).
-  - apply max.
-    apply (pr2 (abgrfracelt ex is1 is2 x)).
-    apply (pr2 (abgrfracelt ex is1 is2 y)).
+  simple refine (setquotfun2 _ _ _ _).
+  - intros x y.
+    split.
+    exact (min (pr1 x + pr2 y) (pr1 y + pr2 x)).
+    exact (pr2 x + pr2 y).
+  - apply abgrfrac_lattice_help.
+    exact Hmin.
 Defined.
 
 Definition abgrfrac_max : binop (abgrfrac X).
 Proof.
-  intros x y.
-  apply setquotpr.
-  split.
-  - apply max.
-    apply (pr1 (abgrfracelt ex is1 is2 x)).
-    apply (pr1 (abgrfracelt ex is1 is2 y)).
-  - apply min.
-    apply (pr2 (abgrfracelt ex is1 is2 x)).
-    apply (pr2 (abgrfracelt ex is1 is2 y)).
+  simple refine (setquotfun2 _ _ _ _).
+  - intros x y.
+    split.
+    exact (max (pr1 x + pr2 y) (pr1 y + pr2 x)).
+    exact (pr2 x + pr2 y).
+  - apply abgrfrac_lattice_help.
+    exact Hmax.
 Defined.
 
 Lemma iscomm_abgrfrac_min :
   iscomm abgrfrac_min.
 Proof.
   intros x y.
+  generalize (pr1 (pr2 x)) (pr1 (pr2 y)).
+  simple refine (hinhuniv2 (P := _ ,, _) _).
+  apply (pr2 (pr1 (pr1 (abgrfrac X)))).
+  intros x' y' ; simpl.
+  rewrite <- (setquotl0 _ x x'), <- (setquotl0 _ y y').
   unfold abgrfrac_min.
-  set (x' := abgrfracelt ex is1 is2 x).
-  set (y' := abgrfracelt ex is1 is2 y).
-  rewrite (iscomm_Lmin (_,,_,,is)), (iscomm_Lmax (_,,_,,is)).
+  rewrite !setquotfun2comm.
+  rewrite (iscomm_Lmin (min,, max,, is)), (commax _ (pr2 (pr1 x'))).
   reflexivity.
 Qed.
 
@@ -774,161 +821,189 @@ Lemma isassoc_abgrfrac_min :
   isassoc abgrfrac_min.
 Proof.
   intros x y z.
+  generalize (pr1 (pr2 x)) (pr1 (pr2 y)).
+  simple refine (hinhuniv2 (P := _ ,, _) _).
+  apply (pr2 (pr1 (pr1 (abgrfrac X)))).
+  intros x' y'.
+  generalize (pr1 (pr2 z)).
+  simple refine (hinhuniv _).
+  intros z' ; simpl.
+  rewrite <- (setquotl0 _ x x'), <- (setquotl0 _ y y'), <- (setquotl0 _ z z').
   unfold abgrfrac_min.
-  set (x' := abgrfracelt ex is1 is2 x).
-  set (y' := abgrfracelt ex is1 is2 y).
-  set (z' := abgrfracelt ex is1 is2 z).
-
-  generalize (abgrfracelt_correct' ex is1 is2 x).
-  fold x'.
-  rewrite abgrfracelt_simpl.
-  intros Hx'.
-
-  generalize (abgrfracelt_correct' ex is1 is2 y).
-  fold y'.
-  rewrite abgrfracelt_simpl.
-  intros Hy'.
-
-  generalize (abgrfracelt_correct' ex is1 is2 z).
-  fold z'.
-  rewrite abgrfracelt_simpl.
-  intros Hz'.
-
-  rewrite !(abgrfracelt_simpl ex),
-          !rewrite_pr1_tpair, !rewrite_pr2_tpair.
-
-  rewrite (abgrfrac_setquotpr_equiv (max (pr2 x') (pr2 y'))), is3, istruncminus_ex.
-  rewrite (abgrfrac_setquotpr_equiv (min (pr1 x') (pr1 y'))), assocax, (commax _ (max _ _) (min _ _)),
-  <- assocax, is2, istruncminus_ex.
-  unfold Lmax.
-  rewrite rewrite_pr2_tpair, rewrite_pr1_tpair.
-
-
-Admitted.
+  rewrite !setquotfun2comm.
+  rewrite !rewrite_pr1_tpair, !rewrite_pr2_tpair.
+  rewrite !Hmin.
+  rewrite !(isassoc_Lmin (min,, max,, is)), !assocax.
+  rewrite !(commax _ (pr2 (pr1 x'))).
+  reflexivity.
+Qed.
 
 Lemma iscomm_abgrfrac_max :
   iscomm abgrfrac_max.
 Proof.
   intros x y.
+  generalize (pr1 (pr2 x)) (pr1 (pr2 y)).
+  simple refine (hinhuniv2 (P := _ ,, _) _).
+  apply (pr2 (pr1 (pr1 (abgrfrac X)))).
+  intros x' y' ; simpl.
+  rewrite <- (setquotl0 _ x x'), <- (setquotl0 _ y y').
   unfold abgrfrac_max.
-  set (x' := abgrfracelt ex is1 is2 x).
-  set (y' := abgrfracelt ex is1 is2 y).
-  rewrite (iscomm_Lmin (_,,_,,is)), (iscomm_Lmax (_,,_,,is)).
+  rewrite !setquotfun2comm.
+  rewrite (iscomm_Lmax (min,, max,, is)), (commax _ (pr2 (pr1 x'))).
   reflexivity.
 Qed.
 
 Lemma isassoc_abgrfrac_max :
   isassoc abgrfrac_max.
-Admitted.
+Proof.
+  intros x y z.
+  generalize (pr1 (pr2 x)) (pr1 (pr2 y)).
+  simple refine (hinhuniv2 (P := _ ,, _) _).
+  apply (pr2 (pr1 (pr1 (abgrfrac X)))).
+  intros x' y'.
+  generalize (pr1 (pr2 z)).
+  simple refine (hinhuniv _).
+  intros z' ; simpl.
+  rewrite <- (setquotl0 _ x x'), <- (setquotl0 _ y y'), <- (setquotl0 _ z z').
+  unfold abgrfrac_max.
+  rewrite !setquotfun2comm.
+  rewrite !rewrite_pr1_tpair, !rewrite_pr2_tpair.
+  rewrite !Hmax.
+  rewrite !(isassoc_Lmax (min,, max,, is)), !assocax.
+  rewrite !(commax _ (pr2 (pr1 x'))).
+  reflexivity.
+Qed.
 
 Lemma isabsorb_abgrfrac_max_min :
   Π x y : abgrfrac X, abgrfrac_max x (abgrfrac_min x y) = x.
 Proof.
   intros x y.
+  generalize (pr1 (pr2 x)) (pr1 (pr2 y)).
+  simple refine (hinhuniv2 (P := _ ,, _) _).
+  apply (pr2 (pr1 (pr1 (abgrfrac X)))).
+  intros x' y' ; simpl.
+  rewrite <- (setquotl0 _ x x'), <- (setquotl0 _ y y').
   unfold abgrfrac_max, abgrfrac_min.
-  set (x' := abgrfracelt ex is1 is2 x).
-  set (y' := abgrfracelt ex is1 is2 y).
-
-  generalize (abgrfracelt_correct' ex is1 is2 x).
-  fold x'.
-  rewrite abgrfracelt_simpl.
-  intros Hx'.
-
-  generalize (abgrfracelt_correct' ex is1 is2 y).
-  fold y'.
-  rewrite abgrfracelt_simpl.
-  intros Hy'.
-
-  rewrite !(abgrfracelt_simpl ex),
-          !rewrite_pr1_tpair, !rewrite_pr2_tpair.
-  rewrite (Lmax_eq_l (min,, max,, is)), (Lmin_eq_l (min,, max,, is)).
-
-  - rewrite <- tppr.
-    apply abgrfracelt_correct.
-
-  - pattern x' at 1 ; rewrite <- Hx', rewrite_pr2_tpair.
-    refine (istrans_Lle _ _ _ _ _ _).
-    + apply truncminus_le_r.
-      exact is1.
-      exact is3.
-      exact is5.
-      apply (Lmax_ge_l (min,,max,,is)).
-    + apply truncminus_le_l.
-      exact is1.
-      exact is2.
-      exact is3.
-      exact is5.
-      apply (Lmin_le_l (min,,max,,is)).
-  - refine (istrans_Lle _ _ _ _ _ _).
-    + apply truncminus_le.
-      exact is1.
-      exact is3.
-      exact is4.
-      apply Lmin_ge.
-      rewrite <- Hx', rewrite_pr1_tpair.
-      now apply truncminus_ge_0.
-      rewrite <- Hy', rewrite_pr1_tpair.
-      now apply truncminus_ge_0.
-      refine (istrans_Lle _ _ _ _ _ _).
-      2: apply (Lmax_ge_l (_,,_,,is)).
-      rewrite <- Hx', rewrite_pr2_tpair.
-      now apply truncminus_ge_0.
-    + apply Lmin_le_l.
+  rewrite !setquotfun2comm.
+  rewrite !rewrite_pr1_tpair, !rewrite_pr2_tpair.
+  rewrite !(commax _ (pr2 (pr1 x'))), <- assocax, <- Hmax.
+  rewrite <- (abgrfrac_setquotpr_equiv (pr2 (pr1 x'))).
+  rewrite (Lmax_absorb (min,, max,, is)).
+  rewrite !(commax _ (pr2 (pr1 y'))),
+  <- (abgrfrac_setquotpr_equiv (pr2 (pr1 y'))).
+  rewrite <- tppr.
+  reflexivity.
 Qed.
 
 Lemma isabsorb_abgrfrac_min_max :
   Π x y : abgrfrac X, abgrfrac_min x (abgrfrac_max x y) = x.
 Proof.
   intros x y.
+  generalize (pr1 (pr2 x)) (pr1 (pr2 y)).
+  simple refine (hinhuniv2 (P := _ ,, _) _).
+  apply (pr2 (pr1 (pr1 (abgrfrac X)))).
+  intros x' y' ; simpl.
+  rewrite <- (setquotl0 _ x x'), <- (setquotl0 _ y y').
   unfold abgrfrac_max, abgrfrac_min.
-  set (x' := abgrfracelt ex is1 is2 x).
-  set (y' := abgrfracelt ex is1 is2 y).
-
-  generalize (abgrfracelt_correct' ex is1 is2 x).
-  fold x'.
-  rewrite abgrfracelt_simpl.
-  intros Hx'.
-
-  generalize (abgrfracelt_correct' ex is1 is2 y).
-  fold y'.
-  rewrite abgrfracelt_simpl.
-  intros Hy'.
-
-  rewrite !(abgrfracelt_simpl ex),
-          !rewrite_pr1_tpair, !rewrite_pr2_tpair.
-  rewrite (Lmin_eq_l (min,, max,, is)), (Lmax_eq_l (min,, max,, is)).
-
-  - rewrite <- tppr.
-    apply abgrfracelt_correct.
-
-  - refine (istrans_Lle _ _ _ _ _ _).
-    + apply truncminus_le.
-      exact is1.
-      exact is3.
-      exact is4.
-      apply Lmin_ge.
-      rewrite <- Hx', rewrite_pr2_tpair.
-      now apply truncminus_ge_0.
-      rewrite <- Hy', rewrite_pr2_tpair.
-      now apply truncminus_ge_0.
-      refine (istrans_Lle _ _ _ _ _ _).
-      2: apply (Lmax_ge_l (_,,_,,is)).
-      rewrite <- Hx', rewrite_pr1_tpair.
-      now apply truncminus_ge_0.
-    + apply Lmin_le_l.
-  - pattern x' at 1 ; rewrite <- Hx', rewrite_pr1_tpair.
-    refine (istrans_Lle _ _ _ _ _ _).
-    + apply truncminus_le_r.
-      exact is1.
-      exact is3.
-      exact is5.
-      apply (Lmax_ge_l (min,,max,,is)).
-    + apply truncminus_le_l.
-      exact is1.
-      exact is2.
-      exact is3.
-      exact is5.
-      apply (Lmin_le_l (min,,max,,is)).
+  rewrite !setquotfun2comm.
+  rewrite !rewrite_pr1_tpair, !rewrite_pr2_tpair.
+  rewrite !(commax _ (pr2 (pr1 x'))), <- assocax, <- Hmin.
+  rewrite <- (abgrfrac_setquotpr_equiv (pr2 (pr1 x'))).
+  rewrite (Lmin_absorb (min,, max,, is)).
+  rewrite !(commax _ (pr2 (pr1 y'))),
+  <- (abgrfrac_setquotpr_equiv (pr2 (pr1 y'))).
+  rewrite <- tppr.
+  reflexivity.
 Qed.
 
 End lattice_abgrfrac.
+
+Lemma abgrfrac_islatticeop (X : abmonoid) (is : islattice X) :
+  Π (Hmin : isrdistr (Lmin is) op) (Hmax : isrdistr (Lmax is) op),
+  islatticeop (abgrfrac_min Hmin) (abgrfrac_max Hmax).
+Proof.
+  intros X is Hmin Hmax.
+  repeat split.
+  - apply (isassoc_abgrfrac_min (pr2 (pr2 is))).
+  - apply (iscomm_abgrfrac_min (pr2 (pr2 is))).
+  - apply (isassoc_abgrfrac_max (pr2 (pr2 is))).
+  - apply (iscomm_abgrfrac_max (pr2 (pr2 is))).
+  - apply (isabsorb_abgrfrac_min_max (pr2 (pr2 is))).
+  - apply (isabsorb_abgrfrac_max_min (pr2 (pr2 is))).
+Qed.
+
+Definition abgrfrac_islattice (X : abmonoid) (is : islattice X)
+           (Hmin : isrdistr (Lmin is) op) (Hmax : isrdistr (Lmax is) op) : islattice (abgrfrac X).
+Proof.
+  intros X is Hmin Hmax.
+  mkpair.
+  exact (abgrfrac_min Hmin).
+  mkpair.
+  exact (abgrfrac_max Hmax).
+  apply abgrfrac_islatticeop.
+Defined.
+
+Lemma isbinophrel_abgrfrac_Lle (X : abmonoid) (is : islattice X)
+      (Hmin : isrdistr (Lmin is) op) (Hmax : isrdistr (Lmax is) op) :
+  isbinophrel (Lle is).
+Proof.
+  intros X is Hmin Hmax.
+  split.
+  - intros a b c H.
+    rewrite !(commax _ c).
+    apply op_le_r.
+    exact Hmin.
+    exact H.
+  - intros a b c H.
+    apply op_le_r.
+    exact Hmin.
+    exact H.
+Qed.
+
+Lemma abgrfrac_Lle (X : abmonoid) (is : islattice X)
+      (Hmin : isrdistr (Lmin is) op) (Hmax : isrdistr (Lmax is) op) :
+  Π x y : abgrfrac X, abgrfracrel X (isbinophrel_abgrfrac_Lle X is Hmin Hmax) x y <-> Lle (abgrfrac_islattice X is Hmin Hmax) x y.
+Proof.
+  intros X is Hmin Hmax.
+  intros x y.
+  generalize (pr1 (pr2 x)) (pr1 (pr2 y)).
+  simple refine (hinhuniv2 (P := _ ,, _) _).
+  - apply isapropdirprod ;
+    apply isapropimpl, propproperty.
+  - intros x' y'.
+    change (abgrfracrel X (isbinophrel_abgrfrac_Lle X is Hmin Hmax) x y <->
+            abgrfrac_min Hmin x y = x).
+    rewrite <- (setquotl0 _ x x'), <- (setquotl0 _ y y').
+    unfold abgrfracrel, quotrel, abgrfrac_min.
+    rewrite setquotuniv2comm, setquotfun2comm.
+    split ; intros H.
+    + apply iscompsetquotpr.
+      revert H.
+      apply hinhfun.
+      intros c.
+      exists (pr1 c).
+      simpl in c |- *.
+      rewrite (assocax X), (commax _ _ (pr1 c)), <- (assocax X).
+      rewrite Hmin.
+      refine (pathscomp0 _ _).
+      refine (maponpaths (λ x, x + _) _).
+      apply (pr2 c).
+      rewrite !(assocax X) ;
+        apply maponpaths.
+      do 2 rewrite commax, assocax.
+      reflexivity.
+    + generalize (invmap (weqpathsinsetquot _ _ _) H).
+      apply hinhfun.
+      simpl.
+      intros c.
+      exists (pr2 (pr1 x') + pr1 c).
+      rewrite <- Hmin.
+      rewrite <- assocax.
+      refine (pathscomp0 _ _).
+      apply (pr2 c).
+      rewrite !(assocax X) ;
+        apply maponpaths.
+      rewrite commax, assocax.
+      apply maponpaths.
+      apply commax.
+Qed.
