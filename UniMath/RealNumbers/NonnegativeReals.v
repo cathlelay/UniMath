@@ -85,8 +85,8 @@ Definition Dcuts_def_error (X : hsubtypes NonnegativeRationals) : UU :=
   Π r : NonnegativeRationals, 0 < r → (¬ (X r)) ∨ Dcuts_def_error_acc X r.
 Opaque Dcuts_def_error_acc.
 
-Lemma Dcuts_def_error_finite (X : hsubtypes NonnegativeRationals) :
-  Dcuts_def_error X → Dcuts_def_finite X.
+Lemma Dcuts_def_corr_finite (X : hsubtypes NonnegativeRationals) :
+  Dcuts_def_corr X → Dcuts_def_finite X.
 Proof.
   intros X Hx.
   specialize (Hx _ ispositive_oneNonnegativeRationals).
@@ -125,7 +125,7 @@ Proof.
   repeat (apply impred_isaprop ; intro).
   now apply pr2.
 Qed.
-Lemma isaprop_Dcuts_def_error (X : hsubtypes NonnegativeRationals) : isaprop (Dcuts_def_error X).
+Lemma isaprop_Dcuts_def_corr (X : hsubtypes NonnegativeRationals) : isaprop (Dcuts_def_corr X).
 Proof.
   intros X.
   repeat (apply impred_isaprop ; intro).
@@ -133,13 +133,13 @@ Proof.
 Qed.
 
 Lemma isaprop_Dcuts_hsubtypes (X : hsubtypes NonnegativeRationals) :
-  isaprop (Dcuts_def_bot X × Dcuts_def_open X × Dcuts_def_error X).
+  isaprop (Dcuts_def_bot X × Dcuts_def_open X × Dcuts_def_corr X).
 Proof.
   intro X.
   apply isofhleveldirprod, isofhleveldirprod.
   - exact (isaprop_Dcuts_def_bot X).
   - exact (isaprop_Dcuts_def_open X).
-  - exact (isaprop_Dcuts_def_error X).
+  - exact (isaprop_Dcuts_def_corr X).
 Qed.
 
 Definition Dcuts_hsubtypes : hsubtypes (hsubtypes NonnegativeRationals) :=
@@ -168,7 +168,7 @@ Proof.
   intros X.
   exact (pr1 (pr2 (pr2 X))).
 Qed.
-Lemma is_Dcuts_error (X : Dcuts_set) : Dcuts_def_error (pr1 X).
+Lemma is_Dcuts_corr (X : Dcuts_set) : Dcuts_def_corr (pr1 X).
 Proof.
   intros X.
   exact (pr2 (pr2 (pr2 X))).
@@ -177,7 +177,7 @@ Qed.
 Definition mk_Dcuts (X : NonnegativeRationals → hProp)
                     (Hbot : Dcuts_def_bot X)
                     (Hopen : Dcuts_def_open X)
-                    (Herror : Dcuts_def_error X) : Dcuts_set.
+                    (Herror : Dcuts_def_corr X) : Dcuts_set.
 Proof.
   intros X Hbot Hopen Herror.
   exists X ; repeat split.
@@ -607,12 +607,12 @@ Section Dcuts_min.
   Context (X_bot : Dcuts_def_bot X).
   Context (X_open : Dcuts_def_open X).
   Context (X_finite : Dcuts_def_finite X).
-  Context (X_error : Dcuts_def_error X).
+  Context (X_corr : Dcuts_def_corr X).
   Context (Y : hsubtypes NonnegativeRationals).
   Context (Y_bot : Dcuts_def_bot Y).
   Context (Y_open : Dcuts_def_open Y).
   Context (Y_finite : Dcuts_def_finite Y).
-  Context (Y_error : Dcuts_def_error Y).
+  Context (Y_corr : Dcuts_def_corr Y).
 
 Definition Dcuts_min_val : hsubtypes NonnegativeRationals :=
   λ r : NonnegativeRationals, X r ∧ Y r.
@@ -639,10 +639,10 @@ Proof.
   exact (Dcuts_def_open_lt q').
 Qed.
 
-Lemma Dcuts_min_error : Dcuts_def_error Dcuts_min_val.
+Lemma Dcuts_min_corr : Dcuts_def_corr Dcuts_min_val.
 Proof.
   intros c Hc0.
-  generalize (X_error _ Hc0) (Y_error _ Hc0) ; apply hinhfun2 ;
+  generalize (X_corr _ Hc0) (Y_corr _ Hc0) ; apply hinhfun2 ;
   apply (sumofmaps (Z := _ → _)) ; [intros nXc | intros q] ; intros Hy.
   - left ; revert nXc.
     apply negf, pr1.
@@ -671,8 +671,8 @@ Definition Dcuts_min (X Y : Dcuts) : Dcuts :=
                           (pr1 Y) (is_Dcuts_bot Y))
            (Dcuts_min_open (pr1 X) (is_Dcuts_bot X) (is_Dcuts_open X)
                            (pr1 Y) (is_Dcuts_bot Y) (is_Dcuts_open Y))
-           (Dcuts_min_error (pr1 X) (is_Dcuts_bot X) (is_Dcuts_error X)
-                            (pr1 Y) (is_Dcuts_bot Y) (is_Dcuts_error Y)).
+           (Dcuts_min_corr (pr1 X) (is_Dcuts_bot X) (is_Dcuts_corr X)
+                            (pr1 Y) (is_Dcuts_bot Y) (is_Dcuts_corr Y)).
 
 (** ** Dcuts_max *)
 
@@ -682,12 +682,12 @@ Section Dcuts_max.
   Context (X_bot : Dcuts_def_bot X).
   Context (X_open : Dcuts_def_open X).
   Context (X_finite : Dcuts_def_finite X).
-  Context (X_error : Dcuts_def_error X).
+  Context (X_corr : Dcuts_def_corr X).
   Context (Y : hsubtypes NonnegativeRationals).
   Context (Y_bot : Dcuts_def_bot Y).
   Context (Y_open : Dcuts_def_open Y).
   Context (Y_finite : Dcuts_def_finite Y).
-  Context (Y_error : Dcuts_def_error Y).
+  Context (Y_corr : Dcuts_def_corr Y).
 
 Definition Dcuts_max_val : hsubtypes NonnegativeRationals :=
   λ r : NonnegativeRationals, X r ∨ Y r.
@@ -717,10 +717,10 @@ Proof.
     exact (Dcuts_def_open_lt q).
 Qed.
 
-Lemma Dcuts_max_error : Dcuts_def_error Dcuts_max_val.
+Lemma Dcuts_max_corr : Dcuts_def_corr Dcuts_max_val.
 Proof.
   intros c Hc.
-  generalize (X_error _ Hc) (Y_error _ Hc) ; apply hinhfun2 ; apply (sumofmaps (Z := _ → _)) ;
+  generalize (X_corr _ Hc) (Y_corr _ Hc) ; apply hinhfun2 ; apply (sumofmaps (Z := _ → _)) ;
   [intros nXc | intros x] ; apply sumofmaps ; [intros nYc | intros y |intros nYc | intros y].
   - left ; unfold neg ; apply (hinhuniv (P := hProppair _ isapropempty)) ; apply sumofmaps ;
     [intros Xc | intros Yc].
@@ -765,8 +765,8 @@ Definition Dcuts_max (X Y : Dcuts) : Dcuts :=
                           (pr1 Y) (is_Dcuts_bot Y))
            (Dcuts_max_open (pr1 X) (is_Dcuts_open X)
                            (pr1 Y) (is_Dcuts_open Y))
-           (Dcuts_max_error (pr1 X) (is_Dcuts_bot X) (is_Dcuts_error X)
-                            (pr1 Y) (is_Dcuts_bot Y) (is_Dcuts_error Y)).
+           (Dcuts_max_corr (pr1 X) (is_Dcuts_bot X) (is_Dcuts_corr X)
+                            (pr1 Y) (is_Dcuts_bot Y) (is_Dcuts_corr Y)).
 
 (** ** Theorems about Dcuts_min and Dcuts_max *)
 
@@ -1101,8 +1101,8 @@ Proof.
   exact (pr2 (pr2 n)).
   exact (pr1 (pr2 n)).
 Qed.
-Lemma NonnegativeRationals_to_Dcuts_error (q : NonnegativeRationals) :
-  Dcuts_def_error (λ r : NonnegativeRationals, (r < q)%NRat).
+Lemma NonnegativeRationals_to_Dcuts_corr (q : NonnegativeRationals) :
+  Dcuts_def_corr (λ r : NonnegativeRationals, (r < q)%NRat).
 Proof.
   intros q.
   intros r Hr0.
@@ -1128,7 +1128,7 @@ Definition NonnegativeRationals_to_Dcuts (q : NonnegativeRationals) : Dcuts :=
   mk_Dcuts (fun r => (r < q)%NRat)
            (NonnegativeRationals_to_Dcuts_bot q)
            (NonnegativeRationals_to_Dcuts_open q)
-           (NonnegativeRationals_to_Dcuts_error q).
+           (NonnegativeRationals_to_Dcuts_corr q).
 
 Lemma isapfun_NonnegativeRationals_to_Dcuts_aux :
   Π q q' : NonnegativeRationals,
@@ -1303,11 +1303,11 @@ Section Dcuts_plus.
   Context (X : hsubtypes NonnegativeRationals).
   Context (X_bot : Dcuts_def_bot X).
   Context (X_open : Dcuts_def_open X).
-  Context (X_error : Dcuts_def_error X).
+  Context (X_corr : Dcuts_def_corr X).
   Context (Y : hsubtypes NonnegativeRationals).
   Context (Y_bot : Dcuts_def_bot Y).
   Context (Y_open : Dcuts_def_open Y).
-  Context (Y_error : Dcuts_def_error Y).
+  Context (Y_corr : Dcuts_def_corr Y).
 
 Lemma Dcuts_plus_bot : Dcuts_def_bot (Dcuts_plus_val X Y).
 Proof.
@@ -1389,11 +1389,11 @@ Proof.
       now apply notlt_geNonnegativeRationals ; apply Hx'.
 Qed.
 
-Lemma Dcuts_plus_error : Dcuts_def_error (Dcuts_plus_val X Y).
+Lemma Dcuts_plus_corr : Dcuts_def_corr (Dcuts_plus_val X Y).
 Proof.
   intros c Hc.
   apply ispositive_NQhalf in Hc.
-  generalize (X_error _ Hc) (Y_error _ Hc).
+  generalize (X_corr _ Hc) (Y_corr _ Hc).
   apply hinhfun2 ; apply (sumofmaps (Z := _ → _)) ; intros Hx ; apply sumofmaps ; intros Hy.
   - left.
     refine (Dcuts_plus_error_aux _ _ _ _ _ _).
@@ -1459,7 +1459,7 @@ Section Dcuts_NQmult.
   Context (Y_bot : Dcuts_def_bot Y).
   Context (Y_open : Dcuts_def_open Y).
   Context (Y_finite : Dcuts_def_finite Y).
-  Context (Y_error : Dcuts_def_error Y).
+  Context (Y_corr : Dcuts_def_corr Y).
 
 Definition Dcuts_NQmult_val : hsubtypes NonnegativeRationals :=
   fun r => ∃ ry : NonnegativeRationals, r = x * ry × Y ry.
@@ -1529,11 +1529,11 @@ Proof.
   exact Hy'.
 Qed.
 
-Lemma Dcuts_NQmult_error : Dcuts_def_error Dcuts_NQmult_val.
+Lemma Dcuts_NQmult_corr : Dcuts_def_corr Dcuts_NQmult_val.
 Proof.
   intros c Hc.
   assert (Hcx : (0 < c / x)%NRat) by (now apply ispositive_divNonnegativeRationals).
-  generalize (Y_error _ Hcx).
+  generalize (Y_corr _ Hcx).
   apply hinhfun ; apply sumofmaps ; intros Hy.
   - left.
     unfold neg ; apply (hinhuniv (P := hProppair _ isapropempty)) ;
@@ -1583,7 +1583,7 @@ Definition Dcuts_NQmult x (Y : Dcuts) Hx : Dcuts :=
   mk_Dcuts (Dcuts_NQmult_val x (pr1 Y))
            (Dcuts_NQmult_bot x (pr1 Y) (is_Dcuts_bot Y))
            (Dcuts_NQmult_open x Hx (pr1 Y) (is_Dcuts_open Y))
-           (Dcuts_NQmult_error x Hx (pr1 Y) (is_Dcuts_bot Y) (is_Dcuts_error Y)).
+           (Dcuts_NQmult_corr x Hx (pr1 Y) (is_Dcuts_bot Y) (is_Dcuts_corr Y)).
 
 Section Dcuts_mult.
 
@@ -1591,12 +1591,12 @@ Section Dcuts_mult.
   Context (X_bot : Dcuts_def_bot X).
   Context (X_open : Dcuts_def_open X).
   Context (X_finite : Dcuts_def_finite X).
-  Context (X_error : Dcuts_def_error X).
+  Context (X_corr : Dcuts_def_corr X).
   Context (Y : hsubtypes NonnegativeRationals).
   Context (Y_bot : Dcuts_def_bot Y).
   Context (Y_open : Dcuts_def_open Y).
   Context (Y_finite : Dcuts_def_finite Y).
-  Context (Y_error : Dcuts_def_error Y).
+  Context (Y_corr : Dcuts_def_corr Y).
 
 Definition Dcuts_mult_val : hsubtypes NonnegativeRationals :=
   fun r => ∃ xy : NonnegativeRationals * NonnegativeRationals,
@@ -1673,11 +1673,11 @@ Qed.
 
 Context (Hx1 : ¬ X 1%NRat).
 
-Lemma Dcuts_mult_error_aux : Dcuts_def_error Dcuts_mult_val.
+Lemma Dcuts_mult_error_aux : Dcuts_def_corr Dcuts_mult_val.
 Proof.
   intros c Hc0.
   apply ispositive_NQhalf in Hc0.
-  generalize (Y_error _ Hc0).
+  generalize (Y_corr _ Hc0).
   apply hinhuniv ; apply sumofmaps ; intros Hy.
   - apply hinhpr ; left.
     unfold neg ; apply (hinhuniv (P := hProppair _ isapropempty)) ;
@@ -1703,7 +1703,7 @@ Proof.
     set (cx := ((c / 2) / (pr1 y + (c / 2)))%NRat).
     assert (Hcx0 : (0 < cx)%NRat)
       by (now apply ispositive_divNonnegativeRationals).
-    generalize (X_error _ Hcx0) ; apply hinhfun ; apply sumofmaps ; intros H.
+    generalize (X_corr _ Hcx0) ; apply hinhfun ; apply sumofmaps ; intros H.
     + left.
       unfold neg ; apply (hinhuniv (P := hProppair _ isapropempty)) ;
       intros xy.
@@ -1766,17 +1766,17 @@ Section Dcuts_mult'.
   Context (X_bot : Dcuts_def_bot X).
   Context (X_open : Dcuts_def_open X).
   Context (X_finite : Dcuts_def_finite X).
-  Context (X_error : Dcuts_def_error X).
+  Context (X_corr : Dcuts_def_corr X).
   Context (Y : hsubtypes NonnegativeRationals).
   Context (Y_bot : Dcuts_def_bot Y).
   Context (Y_open : Dcuts_def_open Y).
   Context (Y_finite : Dcuts_def_finite Y).
-  Context (Y_error : Dcuts_def_error Y).
+  Context (Y_corr : Dcuts_def_corr Y).
 
-Lemma Dcuts_mult_error : Dcuts_def_error (Dcuts_mult_val X Y).
+Lemma Dcuts_mult_corr : Dcuts_def_corr (Dcuts_mult_val X Y).
 Proof.
   intros c Hc.
-  generalize (X_error 1%NRat ispositive_oneNonnegativeRationals).
+  generalize (X_corr 1%NRat ispositive_oneNonnegativeRationals).
   apply hinhuniv ; apply sumofmaps ; [ intros Hx1 | intros x].
   - now apply Dcuts_mult_error_aux.
   - assert (Hx1 : (0 < pr1 x + 1)%NRat).
@@ -1812,18 +1812,18 @@ Proof.
         exact (pr2 (pr2 (pr2 xy))). }
     rewrite Heq.
     revert c Hc.
-    apply Dcuts_NQmult_error.
+    apply Dcuts_NQmult_corr.
     + exact Hx1.
     + apply Dcuts_mult_bot, Y_bot.
       now apply Dcuts_NQmult_bot.
     + apply Dcuts_mult_error_aux.
       now apply Dcuts_NQmult_bot.
-      apply Dcuts_NQmult_error.
+      apply Dcuts_NQmult_corr.
       now apply ispositive_invNonnegativeRationals.
       exact X_bot.
-      exact X_error.
+      exact X_corr.
       exact Y_bot.
-      exact Y_error.
+      exact Y_corr.
       unfold neg ; apply (hinhuniv (P := hProppair _ isapropempty)) ;
       intros rx.
       apply (pr2 (pr2 x)), X_bot with (1 := pr2 (pr2 rx)).
@@ -1846,8 +1846,8 @@ Definition Dcuts_mult (X Y : Dcuts) : Dcuts :=
                            (pr1 Y) (is_Dcuts_bot Y))
            (Dcuts_mult_open (pr1 X) (is_Dcuts_open X)
                             (pr1 Y) (is_Dcuts_open Y))
-           (Dcuts_mult_error (pr1 X) (is_Dcuts_bot X) (is_Dcuts_error X)
-                             (pr1 Y) (is_Dcuts_bot Y) (is_Dcuts_error Y)).
+           (Dcuts_mult_corr (pr1 X) (is_Dcuts_bot X) (is_Dcuts_corr X)
+                             (pr1 Y) (is_Dcuts_bot Y) (is_Dcuts_corr Y)).
 
 (** ** Multiplicative inverse in Dcuts *)
 
@@ -1857,7 +1857,7 @@ Context (X : hsubtypes NonnegativeRationals).
 Context (X_bot : Dcuts_def_bot X).
 Context (X_open : Dcuts_def_open X).
 Context (X_finite : Dcuts_def_finite X).
-Context (X_error : Dcuts_def_error X).
+Context (X_corr : Dcuts_def_corr X).
 Context (X_0 : X 0%NRat).
 
 Definition Dcuts_inv_val : hsubtypes NonnegativeRationals :=
@@ -1982,21 +1982,21 @@ Qed.
 
 Context (X_1 : X 1%NRat).
 
-Lemma Dcuts_inv_error_aux : Dcuts_def_error Dcuts_inv_val.
+Lemma Dcuts_inv_error_aux : Dcuts_def_corr Dcuts_inv_val.
 Proof.
   assert (Π c, (0 < c)%NRat -> hexists (λ q : NonnegativeRationals, X q × ¬ X (q + c))).
   { intros c Hc0.
-    generalize (X_error c Hc0) ; apply hinhuniv ; apply sumofmaps ; [ intros nXc | intros H].
+    generalize (X_corr c Hc0) ; apply hinhuniv ; apply sumofmaps ; [ intros nXc | intros H].
     - apply hinhpr.
       exists 0%NRat ; split.
       + exact X_0.
       + now rewrite islunit_zeroNonnegativeRationals.
     - apply hinhpr ; exact H. }
-  clear X_error ; rename X0 into X_error.
+  clear X_corr ; rename X0 into X_corr.
 
   intros c Hc0.
   apply ispositive_NQhalf in Hc0.
-  specialize (X_error _ Hc0) ; revert X_error.
+  specialize (X_corr _ Hc0) ; revert X_corr.
   apply hinhfun ; intros r.
   right.
   exists (/ (maxNonnegativeRationals 1%NRat (pr1 r) + c))%NRat ; split.
@@ -2049,12 +2049,12 @@ Context (X : hsubtypes NonnegativeRationals).
 Context (X_bot : Dcuts_def_bot X).
 Context (X_open : Dcuts_def_open X).
 Context (X_finite : Dcuts_def_finite X).
-Context (X_error : Dcuts_def_error X).
+Context (X_corr : Dcuts_def_corr X).
 Context (X_0 : X 0%NRat).
 
-Lemma Dcuts_inv_error : Dcuts_def_error (Dcuts_inv_val X).
+Lemma Dcuts_inv_corr : Dcuts_def_corr (Dcuts_inv_val X).
 Proof.
-  generalize (X_open _ X_0) ; apply (hinhuniv (P := hProppair _ (isaprop_Dcuts_def_error _))) ; intros x.
+  generalize (X_open _ X_0) ; apply (hinhuniv (P := hProppair _ (isaprop_Dcuts_def_corr _))) ; intros x.
   set (Y := Dcuts_NQmult_val (/ (pr1 x))%NRat X).
   assert (Y_1 : Y 1%NRat).
   { unfold Y ; apply hinhpr ; exists (pr1 x) ; split.
@@ -2095,17 +2095,17 @@ Proof.
       exact (pr1 (pr2 (pr2 l))).
       exact (pr2 (pr2 (pr2 l))). }
   rewrite Heq.
-  apply Dcuts_NQmult_error.
+  apply Dcuts_NQmult_corr.
   apply ispositive_invNonnegativeRationals.
   exact (pr2 (pr2 x)).
   now apply Dcuts_inv_bot.
   apply Dcuts_inv_error_aux.
   now unfold Y ; apply Dcuts_NQmult_bot.
-  unfold Y ; apply Dcuts_NQmult_error.
+  unfold Y ; apply Dcuts_NQmult_corr.
   apply ispositive_invNonnegativeRationals.
   exact (pr2 (pr2 x)).
   exact X_bot.
-  exact X_error.
+  exact X_corr.
   apply hinhpr ; exists 0%NRat ; split.
   now rewrite israbsorb_zero_multNonnegativeRationals.
   exact X_0.
@@ -2121,11 +2121,11 @@ Proof.
   - now apply Dcuts_inv_bot.
   - apply Dcuts_inv_open.
     now apply is_Dcuts_bot.
-    now apply Dcuts_def_error_finite, is_Dcuts_error.
-  - apply Dcuts_inv_error.
+    now apply Dcuts_def_corr_finite, is_Dcuts_corr.
+  - apply Dcuts_inv_corr.
     now apply is_Dcuts_bot.
     now apply is_Dcuts_open.
-    now apply is_Dcuts_error.
+    now apply is_Dcuts_corr.
     now apply_pr2 Dcuts_apzero_notempty.
 Defined.
 
@@ -2638,7 +2638,7 @@ Proof.
         apply istrans_ltNonnegativeRationals with q.
         exact Hq0.
         exact (pr1 (pr2 t)). }
-      generalize (Dcuts_def_error_not_empty _ Hx0 (is_Dcuts_error x) _ Hc0).
+      generalize (Dcuts_def_corr_not_empty _ Hx0 (is_Dcuts_corr x) _ Hc0).
       apply hinhfun ; intros r'.
       exists ((q * / (maxNonnegativeRationals (pr1 r) (pr1 r')))%NRat,maxNonnegativeRationals (pr1 r) (pr1 r')) ; repeat split.
       * simpl.
@@ -2729,7 +2729,7 @@ Proof.
     generalize (is_Dcuts_open _ _ (Dcuts_lt_in r)) ; apply hinhuniv ; intros r'.
     generalize (Dcuts_def_open_lt r') ; intros Hr.
     apply ispositive_minusNonnegativeRationals in Hr.
-    generalize (is_Dcuts_error x _ Hr).
+    generalize (is_Dcuts_corr x _ Hr).
     apply hinhuniv ; apply sumofmaps ; [intros nXc | ].
     + apply hinhpr.
       exists (pr1 r') ; split.
@@ -3084,11 +3084,11 @@ Section Dcuts_minus.
   Context (X : hsubtypes NonnegativeRationals).
   Context (X_bot : Dcuts_def_bot X).
   Context (X_open : Dcuts_def_open X).
-  Context (X_error : Dcuts_def_error X).
+  Context (X_corr : Dcuts_def_corr X).
   Context (Y : hsubtypes NonnegativeRationals).
   Context (Y_bot : Dcuts_def_bot Y).
   Context (Y_open : Dcuts_def_open Y).
-  Context (Y_error : Dcuts_def_error Y).
+  Context (Y_corr : Dcuts_def_corr Y).
 
 Definition Dcuts_minus_val : hsubtypes NonnegativeRationals :=
   fun r => ∃ x, X x × Π y, (Y y) ⨿ (y = 0%NRat) -> (r + y < x)%NRat.
@@ -3126,11 +3126,11 @@ Proof.
     exact (pr2 (pr2 x')).
 Qed.
 
-Lemma Dcuts_minus_error : Dcuts_def_error Dcuts_minus_val.
+Lemma Dcuts_minus_corr : Dcuts_def_corr Dcuts_minus_val.
 Proof.
-  assert (Y_error' : Dcuts_def_error (λ y, Y y ∨ (y = 0%NRat))).
+  assert (Y_corr' : Dcuts_def_corr (λ y, Y y ∨ (y = 0%NRat))).
   { intros c Hc.
-    generalize (Y_error c Hc) ; apply hinhfun ; apply sumofmaps ; [intros Yc | intros y ].
+    generalize (Y_corr c Hc) ; apply hinhfun ; apply sumofmaps ; [intros Yc | intros y ].
     - left.
       intros H ; apply Yc ; clear Yc ; revert H.
       apply hinhuniv ; apply sumofmaps ; [intros Yc | intros Hc0].
@@ -3149,14 +3149,14 @@ Proof.
           now apply ispositive_plusNonnegativeRationals_r. }
   intros c Hc.
   apply ispositive_NQhalf in Hc.
-  apply (fun X X0 Xerr => Dcuts_def_error_not_empty X X0 Xerr _ Hc) in Y_error'.
-  revert Y_error' ; apply hinhuniv ; intros y.
+  apply (fun X X0 Xerr => Dcuts_def_corr_not_empty X X0 Xerr _ Hc) in Y_corr'.
+  revert Y_corr' ; apply hinhuniv ; intros y.
   generalize (pr1 (pr2 y)) ; apply hinhuniv ; intros Yy.
   assert (¬ Y (pr1 y + c / 2%NRat)).
   { intro ; apply (pr2 (pr2 y)).
     now apply hinhpr ; left. }
   rename X0 into nYy.
-  generalize (X_error _ Hc) ; apply hinhuniv ; apply sumofmaps ; [intros Xc | intros x].
+  generalize (X_corr _ Hc) ; apply hinhuniv ; apply sumofmaps ; [intros Xc | intros x].
 
   - apply hinhpr ; left ; intro H ; apply Xc.
     revert H ; apply hinhuniv ; intros x.
@@ -3226,8 +3226,8 @@ Definition Dcuts_minus (X Y : Dcuts) : Dcuts :=
   mk_Dcuts (Dcuts_minus_val (pr1 X) (pr1 Y))
            (Dcuts_minus_bot (pr1 X) (pr1 Y))
            (Dcuts_minus_open (pr1 X) (is_Dcuts_open X) (pr1 Y))
-           (Dcuts_minus_error (pr1 X) (is_Dcuts_bot X) (is_Dcuts_error X)
-                              (pr1 Y) (is_Dcuts_bot Y) (is_Dcuts_error Y)).
+           (Dcuts_minus_corr (pr1 X) (is_Dcuts_bot X) (is_Dcuts_corr X)
+                              (pr1 Y) (is_Dcuts_bot Y) (is_Dcuts_corr Y)).
 
 
 Lemma Dcuts_minus_le :
@@ -3719,7 +3719,7 @@ Section Dcuts_half.
 Context (X : hsubtypes NonnegativeRationals)
         (X_bot : Dcuts_def_bot X)
         (X_open : Dcuts_def_open X)
-        (X_error : Dcuts_def_error X).
+        (X_corr : Dcuts_def_corr X).
 
 Definition Dcuts_half_val : hsubtypes NonnegativeRationals :=
   λ r, X (r + r).
@@ -3746,12 +3746,12 @@ Proof.
     exact ispositive_twoNonnegativeRationals.
     exact ispositive_twoNonnegativeRationals.
 Qed.
-Lemma Dcuts_half_error : Dcuts_def_error Dcuts_half_val.
+Lemma Dcuts_half_corr : Dcuts_def_corr Dcuts_half_val.
 Proof.
   intros c Hc.
   assert (Hc0 : (0 < c + c)%NRat)
     by (now apply ispositive_plusNonnegativeRationals_l).
-  generalize (X_error _ Hc0) ; apply hinhfun ; apply sumofmaps ; [intros Hx | intros r].
+  generalize (X_corr _ Hc0) ; apply hinhfun ; apply sumofmaps ; [intros Hx | intros r].
   - left ; exact Hx.
   - right.
     exists (pr1 r / 2)%NRat ; split.
@@ -3775,7 +3775,7 @@ Definition Dcuts_half (x : Dcuts) : Dcuts :=
   mk_Dcuts (Dcuts_half_val (pr1 x))
            (Dcuts_half_bot (pr1 x) (is_Dcuts_bot x))
            (Dcuts_half_open (pr1 x) (is_Dcuts_open x))
-           (Dcuts_half_error (pr1 x) (is_Dcuts_bot x) (is_Dcuts_error x)).
+           (Dcuts_half_corr (pr1 x) (is_Dcuts_bot x) (is_Dcuts_corr x)).
 
 Lemma Dcuts_half_le :
   Π x : Dcuts, Dcuts_half x <= x.
@@ -3885,7 +3885,7 @@ Lemma Dcuts_locatedness :
 Proof.
   intros X p q Hlt.
   apply ispositive_minusNonnegativeRationals in Hlt.
-  generalize (is_Dcuts_error X _ Hlt).
+  generalize (is_Dcuts_corr X _ Hlt).
   apply_pr2_in ispositive_minusNonnegativeRationals Hlt.
   apply hinhuniv ; apply sumofmaps ; [ intros Xr | ].
   - apply hinhpr ; right.
@@ -3914,7 +3914,7 @@ Section Dcuts_lim.
 Context (U : nat -> hsubtypes NonnegativeRationals)
         (U_bot : Π n : nat, Dcuts_def_bot (U n))
         (U_open : Π n : nat, Dcuts_def_open (U n))
-        (U_error : Π n : nat, Dcuts_def_error (U n)).
+        (U_corr : Π n : nat, Dcuts_def_corr (U n)).
 
 Context (U_cauchy :
            Π eps : NonnegativeRationals,
@@ -3952,13 +3952,13 @@ Proof.
   - apply plusNonnegativeRationals_lt_r, ispositive_NQhalf.
     exact (pr1 (pr2 c)).
 Qed.
-Lemma Dcuts_lim_cauchy_error : Dcuts_def_error Dcuts_lim_cauchy_val.
+Lemma Dcuts_lim_cauchy_corr : Dcuts_def_corr Dcuts_lim_cauchy_val.
 Proof.
   intros c Hc.
   apply ispositive_NQhalf, ispositive_NQhalf in Hc.
   generalize (U_cauchy _ Hc) ; clear U_cauchy ; apply hinhuniv ; intros N.
   generalize (λ n Hn, pr2 N n (pr1 N) Hn (isreflnatleh _)) ; intro Hu.
-  generalize (U_error (pr1 N) _ Hc).
+  generalize (U_corr (pr1 N) _ Hc).
   apply hinhuniv ; apply sumofmaps ; intros HuN.
   - apply hinhpr ; left.
     intro ; apply HuN ; clear HuN.
@@ -4184,9 +4184,9 @@ Proof.
   - apply Dcuts_lim_cauchy_bot.
     intro ; now apply is_Dcuts_bot.
   - apply Dcuts_lim_cauchy_open.
-  - apply Dcuts_lim_cauchy_error.
+  - apply Dcuts_lim_cauchy_corr.
     + intro ; now apply is_Dcuts_bot.
-    + intro ; now apply is_Dcuts_error.
+    + intro ; now apply is_Dcuts_corr.
     + intros eps Heps.
       assert (He : 0 < NonnegativeRationals_to_Dcuts eps)
         by (now apply_pr2 isapfun_NonnegativeRationals_to_Dcuts_aux).
@@ -4390,7 +4390,7 @@ Section Dcuts_of_Dcuts.
 Context (E : hsubtypes Dcuts).
 Context (E_bot : Π x : Dcuts, E x -> Π y : Dcuts, y <= x -> E y).
 Context (E_open : Π x : Dcuts, E x -> ∃ y : Dcuts, x < y × E y).
-Context (E_error: Π c : Dcuts, 0 < c -> (¬ E c) ∨ (hexists (λ P, E P × ¬ E (Dcuts_plus P c)))).
+Context (E_corr: Π c : Dcuts, 0 < c -> (¬ E c) ∨ (hexists (λ P, E P × ¬ E (Dcuts_plus P c)))).
 
 Definition Dcuts_of_Dcuts_val : NonnegativeRationals → hProp :=
   λ r : NonnegativeRationals, ∃ X : Dcuts, (E X) × (r ∈ X).
@@ -4422,13 +4422,13 @@ Proof.
   exact (Dcuts_def_open_lt n).
 Qed.
 
-Lemma Dcuts_of_Dcuts_error:
-  Dcuts_def_error Dcuts_of_Dcuts_val.
+Lemma Dcuts_of_Dcuts_corr:
+  Dcuts_def_corr Dcuts_of_Dcuts_val.
 Proof.
   intros c Hc.
   apply ispositive_NQhalf in Hc.
   apply (pr2 (isapfun_NonnegativeRationals_to_Dcuts_aux _ _)) in Hc.
-  generalize (E_error _ Hc).
+  generalize (E_corr _ Hc).
   apply isapfun_NonnegativeRationals_to_Dcuts_aux in Hc.
   apply hinhuniv ; apply sumofmaps ; [intros He | ].
   - apply hinhpr ; left.
@@ -4447,7 +4447,7 @@ Proof.
       rewrite (NQhalf_double c).
     apply plusNonnegativeRationals_le_r.
   - apply hinhuniv ; intros X.
-    generalize (is_Dcuts_error (pr1 X) _ Hc).
+    generalize (is_Dcuts_corr (pr1 X) _ Hc).
     apply hinhfun ; apply sumofmaps ; [intros Xc | ].
     + left.
       unfold neg ; apply hinhuniv'.
@@ -4534,15 +4534,15 @@ Qed.
 
 End Dcuts_of_Dcuts.
 
-Definition Dcuts_of_Dcuts (E : hsubtypes Dcuts) E_bot E_error : Dcuts :=
-  mk_Dcuts (Dcuts_of_Dcuts_val E) (Dcuts_of_Dcuts_bot E) (Dcuts_of_Dcuts_open E) (Dcuts_of_Dcuts_error E E_bot E_error).
+Definition Dcuts_of_Dcuts (E : hsubtypes Dcuts) E_bot E_corr : Dcuts :=
+  mk_Dcuts (Dcuts_of_Dcuts_val E) (Dcuts_of_Dcuts_bot E) (Dcuts_of_Dcuts_open E) (Dcuts_of_Dcuts_corr E E_bot E_corr).
 
 Section Dcuts_of_Dcuts'.
 
 Context (E : hsubtypes NonnegativeRationals).
 Context (E_bot : Dcuts_def_bot E).
 Context (E_open : Dcuts_def_open E).
-Context (E_error : Dcuts_def_error E).
+Context (E_corr : Dcuts_def_corr E).
 
 Definition Dcuts_of_Dcuts'_val : hsubtypes Dcuts :=
   λ x : Dcuts, ∃ r : NonnegativeRationals, (¬ (r ∈ x)) × E r.
@@ -4589,7 +4589,7 @@ Proof.
       exact (Dcuts_def_open_lt s).
 Qed.
 
-Lemma Dcuts_of_Dcuts'_error:
+Lemma Dcuts_of_Dcuts'_corr:
   Π c : Dcuts, 0 < c -> (¬ Dcuts_of_Dcuts'_val c) ∨ (hexists (λ P, Dcuts_of_Dcuts'_val P × ¬ Dcuts_of_Dcuts'_val (Dcuts_plus P c))).
 Proof.
   intros C HC.
@@ -4604,7 +4604,7 @@ Proof.
     - eapply istrans_le_lt_ltNonnegativeRationals, (Dcuts_def_open_lt c).
       now apply isnonnegative_NonnegativeRationals. }
   revert X ; apply hinhuniv ; intros c.
-  generalize (E_error _ (pr2 (pr2 c))).
+  generalize (E_corr _ (pr2 (pr2 c))).
   apply hinhfun.
   apply sumofmaps ; [intros Ec | intros q].
   - left.
@@ -4654,7 +4654,7 @@ Qed.
 End Dcuts_of_Dcuts'.
 
 Lemma Dcuts_of_Dcuts_bij :
-  Π x : Dcuts, Dcuts_of_Dcuts (Dcuts_of_Dcuts'_val (pr1 x)) (Dcuts_of_Dcuts'_bot (pr1 x)) (Dcuts_of_Dcuts'_error (pr1 x) (is_Dcuts_bot x) (is_Dcuts_error x)) = x.
+  Π x : Dcuts, Dcuts_of_Dcuts (Dcuts_of_Dcuts'_val (pr1 x)) (Dcuts_of_Dcuts'_bot (pr1 x)) (Dcuts_of_Dcuts'_corr (pr1 x) (is_Dcuts_bot x) (is_Dcuts_corr x)) = x.
 Proof.
   intros x.
   apply Dcuts_eq_is_eq.
@@ -4720,16 +4720,16 @@ Proof.
     apply (Dcuts_lt_in r).
 Qed.
 
-Lemma isub_Dcuts_of_Dcuts (E : hsubtypes Dcuts) E_bot E_error :
-  isUpperBound (X := PreorderedSetEffectiveOrder eo_Dcuts) E (Dcuts_of_Dcuts E E_bot E_error).
+Lemma isub_Dcuts_of_Dcuts (E : hsubtypes Dcuts) E_bot E_corr :
+  isUpperBound (X := PreorderedSetEffectiveOrder eo_Dcuts) E (Dcuts_of_Dcuts E E_bot E_corr).
 Proof.
   intros ;
   intros x Ex r Hr.
   apply hinhpr.
   now exists x.
 Qed.
-Lemma islbub_Dcuts_of_Dcuts (E : hsubtypes Dcuts) E_bot E_error :
-  isSmallerThanUpperBounds (X := PreorderedSetEffectiveOrder eo_Dcuts) E (Dcuts_of_Dcuts E E_bot E_error).
+Lemma islbub_Dcuts_of_Dcuts (E : hsubtypes Dcuts) E_bot E_corr :
+  isSmallerThanUpperBounds (X := PreorderedSetEffectiveOrder eo_Dcuts) E (Dcuts_of_Dcuts E E_bot E_corr).
 Proof.
   intros.
   intros x Hx ; simpl.
@@ -4739,12 +4739,12 @@ Proof.
   intros H ; simple refine (H _ _).
   exact (pr2 (pr2 y)).
 Qed.
-Lemma islub_Dcuts_of_Dcuts (E : hsubtypes eo_Dcuts) E_bot E_error :
-  isLeastUpperBound (X := PreorderedSetEffectiveOrder eo_Dcuts) E (Dcuts_of_Dcuts E E_bot E_error).
+Lemma islub_Dcuts_of_Dcuts (E : hsubtypes eo_Dcuts) E_bot E_corr :
+  isLeastUpperBound (X := PreorderedSetEffectiveOrder eo_Dcuts) E (Dcuts_of_Dcuts E E_bot E_corr).
 Proof.
   split.
-  exact (isub_Dcuts_of_Dcuts E E_bot E_error).
-  exact (islbub_Dcuts_of_Dcuts E E_bot E_error).
+  exact (isub_Dcuts_of_Dcuts E E_bot E_corr).
+  exact (islbub_Dcuts_of_Dcuts E E_bot E_corr).
 Qed.
 
 
@@ -4827,7 +4827,7 @@ Definition hsubtypesNonnegativeRationals_to_NonnegativeReals
   (Xopen : Π x : NonnegativeRationals,
              X x ->
              hexists (fun y : NonnegativeRationals => dirprod (X y) (x < y)%NRat))
-  (Xtop : Dcuts_def_error X) : NonnegativeReals :=
+  (Xtop : Dcuts_def_corr X) : NonnegativeReals :=
   mk_Dcuts X Xbot Xopen Xtop.
 
 Definition minusNonnegativeReals : binop NonnegativeReals := Dcuts_minus.
@@ -5587,7 +5587,7 @@ Proof.
     apply multNonnegativeReals_lecompat_r'.
     apply lt_leNonnegativeReals, (pr2 (pr2 r1)).
   - intros x.
-    generalize (Dcuts_def_error_finite _ (is_Dcuts_error x)).
+    generalize (Dcuts_def_corr_finite _ (is_Dcuts_corr x)).
     apply hinhuniv ; intros r.
     generalize (isarchrig_2 _ H (pr1 r)).
     apply hinhfun.
