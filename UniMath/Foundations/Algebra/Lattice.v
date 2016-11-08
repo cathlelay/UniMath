@@ -630,9 +630,9 @@ Qed.
 
 End truncminus_lt.
 
-(** *** Truncated minus and abgrfrac *)
+(** *** Truncated minus and abgrdiff *)
 
-Section abgrfrac_minus.
+Section abgrdiff_minus.
 
 Context {X : abmonoid}
         {is : islattice X}
@@ -643,7 +643,7 @@ Context {X : abmonoid}
         (is4 : isrdistr (Lmax is) (Lmin is)).
 
 Lemma iscomprel_truncminus :
-    iscomprelfun (eqrelabgrfrac X) (λ x, truncminus ex (pr1 x) (pr2 x)).
+    iscomprelfun (eqrelabgrdiff X) (λ x, truncminus ex (pr1 x) (pr2 x)).
 Proof.
   intros x y.
   simple refine (hinhuniv (P := hProppair _ _) _).
@@ -656,7 +656,7 @@ Proof.
   reflexivity.
 Qed.
 
-Definition abgrfracelt (x : abgrfrac X) : X × X.
+Definition abgrdiffelt (x : abgrdiff X) : X × X.
 Proof.
   split.
   - refine (setquotuniv _ _ _ _ _).
@@ -664,43 +664,43 @@ Proof.
     apply x.
   - refine (setquotuniv _ _ _ _ _).
     apply iscomprel_truncminus.
-    apply (grinv (abgrfrac X) x).
+    apply (grinv (abgrdiff X) x).
 Defined.
 
-Lemma abgrfracelt_simpl (c : X × X) :
-  abgrfracelt (setquotpr _ c) = truncminus ex (pr1 c) (pr2 c) ,, truncminus ex (pr2 c) (pr1 c).
+Lemma abgrdiffelt_simpl (c : X × X) :
+  abgrdiffelt (setquotpr _ c) = truncminus ex (pr1 c) (pr2 c) ,, truncminus ex (pr2 c) (pr1 c).
 Proof.
   intros c.
-  unfold abgrfracelt.
+  unfold abgrdiffelt.
   unfold grinv ; simpl.
-  unfold abgrfracinv ; simpl.
-  rewrite (setquotfuncomm (eqrelabgrfrac X) (eqrelabgrfrac X)).
-  rewrite !(setquotunivcomm (eqrelabgrfrac X)).
+  unfold abgrdiffinv ; simpl.
+  rewrite (setquotfuncomm (eqrelabgrdiff X) (eqrelabgrdiff X)).
+  rewrite !(setquotunivcomm (eqrelabgrdiff X)).
   reflexivity.
 Qed.
 
-Lemma abgrfracelt_correct (x : abgrfrac X) :
-  setquotpr _ (abgrfracelt x) = x.
+Lemma abgrdiffelt_correct (x : abgrdiff X) :
+  setquotpr _ (abgrdiffelt x) = x.
 Proof.
   intros x.
   generalize (pr1 (pr2 x)).
   simple refine (hinhuniv (P := hProppair _ _) _).
-  apply (pr2 (pr1 (pr1 (abgrfrac X)))).
+  apply (pr2 (pr1 (pr1 (abgrdiff X)))).
   intros c ; simpl.
-  rewrite <- (setquotl0 (eqrelabgrfrac X) x c).
-  refine (iscompsetquotpr (eqrelabgrfrac X) _ _ _).
-  rewrite abgrfracelt_simpl.
+  rewrite <- (setquotl0 (eqrelabgrdiff X) x c).
+  refine (iscompsetquotpr (eqrelabgrdiff X) _ _ _).
+  rewrite abgrdiffelt_simpl.
   apply hinhpr.
   exists 0 ; simpl.
   rewrite (commax _ (pr1 (pr1 c))), !(istruncminus_ex ex).
   now rewrite iscomm_Lmax.
 Qed.
 
-Lemma abgrfracelt_correct' (x : abgrfrac X) :
-  abgrfracelt (setquotpr _ (abgrfracelt x)) = abgrfracelt x.
+Lemma abgrdiffelt_correct' (x : abgrdiff X) :
+  abgrdiffelt (setquotpr _ (abgrdiffelt x)) = abgrdiffelt x.
 Proof.
   intros x.
-  now rewrite abgrfracelt_correct.
+  now rewrite abgrdiffelt_correct.
 Qed.
 
-End abgrfrac_minus.
+End abgrdiff_minus.
