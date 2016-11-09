@@ -791,7 +791,7 @@ Proof.
         rewrite commax, !assocax ;
           apply maponpaths.
         exact (commax _ _ _).
-Qed.
+Timeout 10 Qed.
 
 Definition abmonoidfrac_min : binop (abmonoidfrac X Y).
 Proof.
@@ -1019,7 +1019,7 @@ Proof.
       rewrite commax, assocax.
       apply maponpaths.
       apply commax.
-Qed.
+Timeout 20 Qed.
 
 (** ** lattice in abgrdiff *)
 
