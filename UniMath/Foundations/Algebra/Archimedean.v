@@ -12,10 +12,10 @@ Unset Kernel Term Sharing.
 
 (** Imports *)
 
-Require Export UniMath.Foundations.Algebra.Rigs_and_Rings .
-Require Export UniMath.Foundations.Algebra.DivisionRig .
-Require Export UniMath.Foundations.Algebra.Domains_and_Fields .
-Require Export UniMath.Foundations.Algebra.ConstructiveStructures.
+Require Import UniMath.Foundations.Algebra.Rigs_and_Rings .
+Require Import UniMath.Foundations.Algebra.DivisionRig .
+Require Import UniMath.Foundations.Algebra.Domains_and_Fields .
+Require Import UniMath.Foundations.Algebra.ConstructiveStructures.
 
 (** ** The standard function from the natural numbers to a monoid *)
 
@@ -171,6 +171,7 @@ Proof.
   apply (pr2 Hop).
   exact (setquot_aux_pty c2).
 Qed.
+
 Lemma isbinophrel_setquot_aux {X : abmonoid} (R : hrel X) :
   isbinophrel R -> isbinophrel (setquot_aux R).
 Proof.
@@ -499,19 +500,57 @@ Definition isarchrig {X : rig} (R : hrel X) :=
     × (Π x : X, ∥ isarchrig_2_acc R x ∥)
     × (Π x : X, ∥ isarchrig_3_acc R x ∥).
 
-Definition isarchrig_1 {X : rig} (R : hrel X) :
+Definition isarchrig_diff {X : rig} (R : hrel X) :
   isarchrig R ->
   Π y1 y2 : X, R y1 y2 -> ∥ isarchrig_1_acc R y1 y2 ∥ :=
   pr1.
-Definition isarchrig_2 {X : rig} (R : hrel X) :
+Definition isarchrig_gt {X : rig} (R : hrel X) :
   isarchrig R ->
   Π x : X, ∥ isarchrig_2_acc R x ∥ :=
   λ H, (pr1 (pr2 H)).
-Definition isarchrig_3 {X : rig} (R : hrel X) :
+Definition isarchrig_pos {X : rig} (R : hrel X) :
   isarchrig R ->
   Π x : X, ∥ isarchrig_3_acc R x ∥ :=
 
   λ H, (pr2 (pr2 H)).
+
+Lemma isarchrig_setquot_aux {X : rig} (R : hrel X) :
+  isinvbinophrel (X := rigaddabmonoid X) R
+  → isarchrig R
+  → isarchrig (setquot_aux (X := rigaddabmonoid X) R).
+Proof.
+  intros X R Hr H.
+  split ; [ | split].
+  - intros y1 y2.
+    apply hinhuniv.
+    intros Hy.
+    generalize (isarchrig_diff R H y1 y2 (pr2 Hr _ _ _ (pr2 Hy))).
+    apply hinhfun.
+    intros n.
+    exists (pr1 n).
+    apply hinhpr.
+    exists 0%rig.
+    rewrite runax, runax.
+    exact (pr2 n).
+  - intros x.
+    generalize (isarchrig_gt R H x).
+    apply hinhfun.
+    intros n.
+    exists (pr1 n).
+    apply hinhpr.
+    exists 0%rig.
+    rewrite runax, runax.
+    exact (pr2 n).
+  - intros x.
+    generalize (isarchrig_pos R H x).
+    apply hinhfun.
+    intros n.
+    exists (pr1 n).
+    apply hinhpr.
+    exists 0%rig.
+    rewrite runax, runax.
+    exact (pr2 n).
+Qed.
 
 Local Lemma isarchrig_isarchmonoid_1_aux {X : rig} (R : hrel X)
       (Hr1 : R 1%rig 0%rig)
@@ -598,7 +637,7 @@ Lemma isarchrig_isarchmonoid {X : rig} (R : hrel X) :
 Proof.
   intros X R Hr1 Hr Hop1 H x y1 y2 Hy.
   split.
-  - generalize (isarchrig_1 _ H _ _ Hy) (isarchrig_3 _ H x).
+  - generalize (isarchrig_diff _ H _ _ Hy) (isarchrig_pos _ H x).
     apply hinhfun2.
     intros m n.
     simple refine (mk_isarchmonoid_1_acc _ _ _ _ _ _).
@@ -607,9 +646,9 @@ Proof.
     exact Hr1.
     exact Hr.
     exact Hop1.
-    exact (isarchrig_1_pty m).
-    exact (isarchrig_3_pty n).
-  - generalize (isarchrig_1 _ H _ _ Hy) (isarchrig_2 _ H x).
+    exact (pr2 m).
+    exact (pr2 n).
+  - generalize (isarchrig_diff _ H _ _ Hy) (isarchrig_gt _ H x).
     apply hinhfun2.
     intros m n.
     simple refine (mk_isarchmonoid_2_acc _ _ _ _ _ _).
@@ -759,20 +798,14 @@ Proof.
   intros X R Hr H.
   split.
   - intros x Hx.
-    generalize (isarchrig_1 _ H _ _ Hx).
+    generalize (isarchrig_diff _ H _ _ Hx).
     apply hinhfun.
-    intros n.
-    simple refine (mk_isarchrng_1_acc _ _ _ _).
-    exact (isarchrig_1_val n).
-    rewrite <- (rngrunax1 _ 1%rng).
-    generalize (rngmultx0 X (nattorng (isarchrig_1_val (X := rngtorig X) n))).
-    set (_0_ := 0%rng).
-    change ((nattorng (isarchrig_1_val n) * 0)%rng = _0_
-            → R (nattorng (isarchrig_1_val n) * x)%rng (1 + _0_)%rng).
-    intros <-.
-    exact (isarchrig_1_pty n).
-  - intros x.
-    exact (isarchrig_2 (X := rngtorig X) _ H x).
+    intros (n,Hn).
+    exists n.
+    rewrite <- (rngrunax1 _ 1%rng), <- (rngmultx0 _ (nattorng n)).
+    exact Hn.
+  - apply (isarchrig_gt (X := rngtorig X)).
+    exact H.
 Defined.
 
 Lemma isarchrng_isarchgr {X : rng} (R : hrel X) :
@@ -835,7 +868,7 @@ Proof.
     apply hinhuniv ; intros (x,Hx).
     rewrite <- (setquotl0 _ xx (x,,Hx)) in Hx0 |- * ; simpl pr1 in Hx0 |- * ; clear xx Hx.
     eapply hinhfun.
-    2: apply (isarchrig_1 _ Harch (pr1 x) (pr2 x)).
+    2: apply (isarchrig_diff _ Harch (pr1 x) (pr2 x)).
     intros (n,Hn).
     exists n.
     assert ((nattorng (X := rigtorng X) n * setquotpr
@@ -870,7 +903,7 @@ Proof.
     generalize (pr1 (pr2 xx)).
     apply hinhuniv ; intros (x,Hx).
     rewrite <- (setquotl0 _ xx (x,,Hx)) ; simpl pr1 ; clear xx Hx.
-    generalize (isarchrig_2 _ Harch (pr1 x)) (isarchrig_3 _ Harch (pr2 x)).
+    generalize (isarchrig_gt _ Harch (pr1 x)) (isarchrig_pos _ Harch (pr2 x)).
     apply hinhfun2.
     intros (n1,Hn1) (n2,Hn2).
     exists (n1 + n2)%nat.

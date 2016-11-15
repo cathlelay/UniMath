@@ -1754,7 +1754,7 @@ Proof.
       reflexivity. }
   repeat split.
   - intros y1 y2 Hy.
-    generalize (isarchrig_1 _ H (pr1 y1) (pr1 y2) Hy).
+    generalize (isarchrig_diff _ H (pr1 y1) (pr1 y2) Hy).
     apply hinhfun.
     intros n.
     simple refine (mk_isarchrig_1_acc _ _ _ _ _).
@@ -1763,7 +1763,7 @@ Proof.
     rewrite <- !X in Hn.
     exact Hn.
   - intros x.
-    generalize (isarchrig_2 _ H (pr1 x)).
+    generalize (isarchrig_gt _ H (pr1 x)).
     apply hinhfun.
     intros n.
     simple refine (mk_isarchrig_2_acc _ _ _ _).
@@ -1772,7 +1772,7 @@ Proof.
     rewrite <- X in Hn.
     exact Hn.
   - intros x.
-    generalize (isarchrig_3 _ H (pr1 x)).
+    generalize (isarchrig_pos _ H (pr1 x)).
     apply hinhfun.
     intros n.
     simple refine (mk_isarchrig_3_acc _ _ _ _).
