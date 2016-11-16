@@ -723,6 +723,10 @@ Proof.
   reflexivity.
 Qed.
 
+Definition issquarerdistr {X : abmonoid} (Y : @submonoids X) (opp1 opp2 : binop X) :=
+  Π (k : Y) (x y : X),
+  opp2 (opp1 x y) (opp2 (pr1 k) (pr1 k)) = opp1 (opp2 x (opp2 (pr1 k) (pr1 k))) (opp2 y (opp2 (pr1 k) (pr1 k))).
+
 Section abmonoidfrac_lattice.
 
 Context (X : abmonoid)
@@ -734,205 +738,300 @@ Context (X : abmonoid)
         (Hmax_comm : iscomm max)
         (Hmin_max : Π x y : X, min x (max x y) = x)
         (Hmax_min : Π x y : X, max x (min x y) = x)
-        (Hmin : isrdistr min op)
-        (Hmax : isrdistr max op).
+        (Hmin : issquarerdistr Y min op)
+        (Hmax : issquarerdistr Y max op).
 
 
 Local Lemma abmonoidfrac_lattice_def :
   Π (f : X → X → X),
-  isrdistr f op →
+  issquarerdistr Y f op →
   iscomprelrelfun2 (binopeqrelabmonoidfrac X Y) (binopeqrelabmonoidfrac X Y)
                    (λ x y,
-                    f (pr1 x * pr1 (pr2 y))%multmonoid (pr1 y * pr1 (pr2 x))%multmonoid,,
-                      (pr2 x * pr2 y)%multmonoid).
+                    f (pr1 x * pr1 (pr2 x) * pr1 (pr2 y * pr2 y))%multmonoid (pr1 y * pr1 (pr2 y) * pr1 (pr2 x * pr2 x))%multmonoid,,
+                      ((pr2 x * pr2 x) * (pr2 y * pr2 y))%multmonoid).
 Proof.
   intros f Hf.
   intros x y x' y'.
   apply hinhfun2.
   intros c c'.
-  simpl.
+  rewrite !rewrite_pr1_tpair, !rewrite_pr2_tpair.
   mkpair.
-  - apply (@op Y (pr1 c) (pr1 c')).
-  - rewrite !Hf.
-    apply map_on_two_paths ; simpl.
-    + simple refine (pathscomp0 _ _).
-      * exact ((pr1 x + pr1 (pr2 y) + pr1 (pr1 c)) + (pr1 (pr2 x') + pr1 (pr2 y') + pr1 (pr1 c'))).
-      * rewrite !(assocax X) ;
+  - apply (@op Y (@op Y (pr1 c) (pr1 c)) (@op Y (pr1 c') (pr1 c'))).
+  - simpl.
+    unfold pr1carrier.
+    rewrite <- !(assocax X _ (_*_)%multmonoid _).
+    rewrite !Hf.
+    apply map_on_two_paths.
+    + refine (pathscomp0 (b := (pr1 x + pr1 (pr2 y) + pr1 (pr1 c)) + _) _ _).
+      * do 7 rewrite (assocax X (pr1 x)) ;
         apply maponpaths.
-        do 2 (rewrite commax, !assocax ;
-              apply maponpaths).
-        rewrite commax, !assocax.
+        rewrite (commax X _ (pr1 (pr2 y) * pr1 (pr2 y))%multmonoid).
+        do 8 rewrite (assocax X (pr1 (pr2 y))) ;
+        apply maponpaths.
+        rewrite (commax X _ (pr1 (pr1 c) * pr1 (pr1 c))%multmonoid).
+        do 2 rewrite <- (assocax X _ (_*_)%multmonoid _) ;
+          rewrite <- (assocax X (pr1 (pr2 y)) (pr1 (pr1 c))) ;
+        rewrite (commax X _ (pr1 (pr1 c))).
+        do 2 rewrite (assocax X (pr1 (pr1 c))) ;
+        apply maponpaths.
         reflexivity.
       * refine (pathscomp0 _ _).
         refine (maponpaths (λ x, (x * _)%multmonoid) _).
         apply (pr2 c).
-        rewrite !(assocax X) ;
+        do 7 rewrite (assocax X (pr1 y)) ;
           apply maponpaths.
-        (do 3 rewrite commax, !assocax) ;
+        rewrite <- (assocax X _ _ (pr1 (pr1 c') * pr1 (pr1 c'))%multmonoid) ;
+          apply (maponpaths (λ x, (x * _)%multmonoid)).
+        rewrite (commax X _ (pr1 (pr2 x) * pr1 (pr2 x))%multmonoid).
+        do 7 rewrite (assocax X (pr1 (pr2 x))) ;
           apply maponpaths.
-        do 2 (rewrite commax, !assocax ;
-              apply maponpaths).
-        exact (commax _ _ _).
-    + simple refine (pathscomp0 _ _).
-      * exact ((pr1 x' + pr1 (pr2 y') + pr1 (pr1 c')) + (pr1 (pr2 x) + pr1 (pr2 y) + pr1 (pr1 c))).
-      * rewrite !(assocax X) ;
+        rewrite (commax X _ (pr1 (pr1 c) * pr1 (pr1 c))%multmonoid).
+        do 4 rewrite <- (assocax X _ (_*_)%multmonoid _) ;
+        rewrite <- (assocax X (pr1 (pr2 x)) (pr1 (pr1 c))) ;
+        rewrite (commax X (pr1 (pr2 x)) (pr1 (pr1 c))).
+        do 4 rewrite (assocax X (pr1 (pr1 c))) ;
+          apply maponpaths.
+        do 2 rewrite (commax X _ (pr1 (pr1 c))).
+        do 3 rewrite (assocax X (pr1 (pr1 c))) ;
+          apply maponpaths.
+        rewrite (commax X (pr1 (pr2 y))).
+        do 2 rewrite (assocax X (pr1 (pr2 x))) ;
+          apply maponpaths.
+        rewrite (commax X _ (pr1 (pr2 x') * pr1 (pr2 x'))%multmonoid).
+        apply (assocax X (_*_)%multmonoid).
+    + refine (pathscomp0 (b := (pr1 x' + pr1 (pr2 y') + pr1 (pr1 c')) + _) _ _).
+      * do 7 rewrite (assocax X (pr1 x')) ;
         apply maponpaths.
-        (do 2 rewrite commax, !assocax) ;
+        rewrite (commax X _ (pr1 (pr2 y') * pr1 (pr2 y'))%multmonoid).
+        do 6 rewrite (assocax X (pr1 (pr2 y'))) ;
+        apply maponpaths.
+        rewrite (commax X _ (pr1 (pr1 c') * pr1 (pr1 c'))%multmonoid).
+        rewrite <- (assocax X _ (_*_)%multmonoid _) ;
+          rewrite <- (assocax X (pr1 (pr2 y')) (pr1 (pr1 c'))) ;
+          rewrite (commax X (pr1 (pr2 y')) (pr1 (pr1 c'))).
+        do 2 rewrite (assocax X (pr1 (pr1 c'))) ;
           apply maponpaths.
-        rewrite commax, !assocax.
         reflexivity.
       * refine (pathscomp0 _ _).
         refine (maponpaths (λ x, (x * _)%multmonoid) _).
         apply (pr2 c').
-        rewrite !(assocax X) ;
+        do 7 rewrite (assocax X (pr1 y')) ;
           apply maponpaths.
-        do 2 ((do 3 rewrite commax, !assocax) ;
-              apply maponpaths).
-        rewrite commax, !assocax ;
+        rewrite (commax X (_ * _)%multmonoid _).
+        do 6 rewrite (assocax X (pr1 (pr2 y'))) ;
           apply maponpaths.
-        exact (commax _ _ _).
+        rewrite (commax X _ (pr1 (pr1 c') * pr1 (pr1 c'))%multmonoid).
+        do 2 rewrite (assocax X (pr1 (pr1 c'))) ;
+          apply maponpaths.
+        rewrite <- (assocax X _ _ (pr1 (pr1 c'))) ;
+          rewrite (commax X _ (pr1 (pr1 c'))).
+        apply maponpaths.
+        rewrite (commax X _ (pr1 (pr2 y) * pr1 (pr2 y))%multmonoid).
+        do 4 rewrite (assocax X (pr1 (pr2 y) * pr1 (pr2 y))%multmonoid) ;
+          apply maponpaths.
+        rewrite (commax X _ (pr1 (pr2 x) * pr1 (pr2 x))%multmonoid).
+        do 3 rewrite (assocax X (pr1 (pr2 x) * pr1 (pr2 x))%multmonoid) ;
+          apply maponpaths.
+        do 2 rewrite (assocax X (pr1 (pr2 x'))) ;
+          apply maponpaths.
+        apply (commax X).
 Timeout 10 Qed.
 
-Definition abmonoidfrac_min : binop (abmonoidfrac X Y).
+Local Lemma iscomm_abmonoidfrac_def :
+  Π (f : X → X → X) Hf,
+  iscomm f →
+  iscomm (X := abmonoidfrac X Y)
+         (setquotfun2 (binopeqrelabmonoidfrac X Y) (binopeqrelabmonoidfrac X Y) _
+                      (abmonoidfrac_lattice_def f Hf)).
 Proof.
-  simple refine (setquotfun2 _ _ _ _).
-  - intros x y.
-    split.
-    exact (min (pr1 x + pr1 (pr2 y)) (pr1 y + pr1 (pr2 x))).
-    exact (pr2 x + pr2 y).
-  - apply abmonoidfrac_lattice_def.
-    exact Hmin.
-Defined.
-
-Definition abmonoidfrac_max : binop (abmonoidfrac X Y).
-Proof.
-  simple refine (setquotfun2 _ _ _ _).
-  - intros x y.
-    split.
-    exact (max (pr1 x + pr1 (pr2 y)) (pr1 y + pr1 (pr2 x))).
-    exact (pr2 x + pr2 y).
-  - apply abmonoidfrac_lattice_def.
-    exact Hmax.
-Defined.
-
-Lemma iscomm_abmonoidfrac_min :
-  iscomm abmonoidfrac_min.
-Proof.
+  intros f Hf Hcomm.
   intros x y.
   generalize (pr1 (pr2 x)) (pr1 (pr2 y)).
   simple refine (hinhuniv2 (P := _ ,, _) _).
   apply (pr2 (pr1 (pr1 (abmonoidfrac X Y)))).
-  intros x' y' ; simpl.
+  intros x' y'.
   rewrite <- (setquotl0 _ x x'), <- (setquotl0 _ y y').
-  unfold abmonoidfrac_min.
   rewrite !setquotfun2comm.
-  rewrite Hmin_comm, (commax _ (pr2 (pr1 x'))).
+  rewrite Hcomm, (commax _ (pr2 (pr1 x') * pr2 (pr1 x'))%multmonoid).
   reflexivity.
+Qed.
+Local Lemma isassoc_abmonoidfrac_def :
+  Π (f : X → X → X) Hf,
+  isassoc f →
+  isassoc (X := abmonoidfrac X Y)
+         (setquotfun2 (binopeqrelabmonoidfrac X Y) (binopeqrelabmonoidfrac X Y) _
+                      (abmonoidfrac_lattice_def f Hf)).
+Proof.
+  intros f Hf Hassoc.
+  intros x y z.
+  generalize (pr1 (pr2 x)) (pr1 (pr2 y)).
+  simple refine (hinhuniv2 (P := _ ,, _) _).
+  apply (pr2 (pr1 (pr1 (abmonoidfrac X Y)))).
+  intros x' y'.
+  generalize (pr1 (pr2 z)).
+  refine (hinhuniv _).
+  intros z'.
+  rewrite <- (setquotl0 _ x x'), <- (setquotl0 _ y y'), <- (setquotl0 _ z z').
+  rewrite !setquotfun2comm.
+  apply iscompsetquotpr, hinhpr.
+  exists (pr2 (pr1 x')).
+  apply (maponpaths (λ x, (x * _)%multmonoid)).
+  rewrite !rewrite_pr1_tpair, !rewrite_pr2_tpair.
+  simpl ; unfold pr1carrier ; simpl.
+  do 16 rewrite <- (assocax X _ (_*_)%multmonoid _).
+  do 2 apply (maponpaths (λ x, (x * _)%multmonoid)).
+  do 3 rewrite (commax X (f _ _) (pr1 (pr2 (pr1 x')) * pr1 (pr2 (pr1 x')))%multmonoid).
+  do 6 rewrite (assocax X (pr1 (pr2 (pr1 x')) * pr1 (pr2 (pr1 x')))%multmonoid) ;
+    apply maponpaths.
+  do 2 rewrite <- (assocax X (pr1 (pr2 (pr1 x')) * pr1 (pr2 (pr1 x')))%multmonoid) ;
+  rewrite <- (commax X (f _ _) (pr1 (pr2 (pr1 x')) * pr1 (pr2 (pr1 x')))%multmonoid).
+  do 14 rewrite Hf.
+  rewrite Hassoc.
+  apply map_on_two_paths.
+  - do 10 rewrite (assocax X (pr1 (pr1 x') * pr1 (pr2 (pr1 x')))%multmonoid) ;
+    apply maponpaths.
+    do 8 rewrite (assocax X (pr1 (pr2 (pr1 y')) * pr1 (pr2 (pr1 y')))%multmonoid) ;
+      apply maponpaths.
+    rewrite (commax X _ (pr1 (pr2 (pr1 x')) * pr1 (pr2 (pr1 x')))%multmonoid).
+    do 3 rewrite (assocax X (pr1 (pr2 (pr1 x')) * pr1 (pr2 (pr1 x')))%multmonoid) ;
+      apply maponpaths.
+    rewrite (commax X).
+    do 2 rewrite <- (assocax X _ (_*_)%multmonoid _).
+    reflexivity.
+  - apply map_on_two_paths.
+    + do 10 rewrite (assocax X (pr1 (pr1 y') * pr1 (pr2 (pr1 y')))%multmonoid) ;
+      apply maponpaths.
+      rewrite (commax X _ (pr1 (pr2 (pr1 z')) * pr1 (pr2 (pr1 z')))%multmonoid).
+      do 4 rewrite (assocax X (pr1 (pr2 (pr1 z')) * pr1 (pr2 (pr1 z')))%multmonoid) ;
+        apply maponpaths.
+      rewrite (commax X _ (pr1 (pr2 (pr1 y')) * pr1 (pr2 (pr1 y')))%multmonoid).
+      do 3 rewrite (assocax X (pr1 (pr2 (pr1 y')) * pr1 (pr2 (pr1 y')))%multmonoid) ;
+        apply maponpaths.
+      rewrite (commax X _ (pr1 (pr2 (pr1 z')) * pr1 (pr2 (pr1 z')))%multmonoid).
+      do 2 rewrite (assocax X (pr1 (pr2 (pr1 z')) * pr1 (pr2 (pr1 z')))%multmonoid) ;
+        apply maponpaths.
+      do 2 rewrite (assocax X (pr1 (pr2 (pr1 x')) * pr1 (pr2 (pr1 x')))%multmonoid) ;
+        apply maponpaths.
+      apply (commax X).
+    + do 10 rewrite (assocax X (pr1 (pr1 z') * pr1 (pr2 (pr1 z')))%multmonoid) ;
+      apply maponpaths.
+      rewrite (commax X _ (pr1 (pr2 (pr1 y')) * pr1 (pr2 (pr1 y')))%multmonoid).
+      do 5 rewrite (assocax X (pr1 (pr2 (pr1 y')) * pr1 (pr2 (pr1 y')))%multmonoid) ;
+        apply maponpaths.
+      rewrite (commax X _ (pr1 (pr2 (pr1 y')) * pr1 (pr2 (pr1 y')))%multmonoid).
+      do 4 rewrite (assocax X (pr1 (pr2 (pr1 y')) * pr1 (pr2 (pr1 y')))%multmonoid) ;
+        apply maponpaths.
+      rewrite (commax X _ (pr1 (pr2 (pr1 z')) * pr1 (pr2 (pr1 z')))%multmonoid).
+      do 2 rewrite (assocax X (pr1 (pr2 (pr1 z')) * pr1 (pr2 (pr1 z')))%multmonoid).
+      reflexivity.
+Timeout 30 Qed.
+
+Lemma isabsorb_abmonoidfrac_def :
+  Π f g Hf Hg,
+  (Π x y, f x (g x y) = x) →
+  Π x y : abmonoidfrac X Y,
+          setquotfun2 (binopeqrelabmonoidfrac X Y) (binopeqrelabmonoidfrac X Y) _
+                      (abmonoidfrac_lattice_def f Hf) x
+                      (setquotfun2 (binopeqrelabmonoidfrac X Y) (binopeqrelabmonoidfrac X Y) _
+                                   (abmonoidfrac_lattice_def g Hg) x y) = x.
+Proof.
+  intros f g Hf Hg Habsorb.
+  intros x y.
+  generalize (pr1 (pr2 x)) (pr1 (pr2 y)).
+  simple refine (hinhuniv2 (P := _ ,, _) _).
+  apply (pr2 (pr1 (pr1 (abmonoidfrac X Y)))).
+  intros x' y'.
+  rewrite <- (setquotl0 _ x x'), <- (setquotl0 _ y y').
+  rewrite !setquotfun2comm.
+  rewrite !rewrite_pr1_tpair, !rewrite_pr2_tpair.
+  apply iscompsetquotpr, hinhpr.
+  exists (pr2 (pr1 x')).
+  apply (maponpaths (λ x, (x * _)%multmonoid)).
+  rewrite !rewrite_pr1_tpair, !rewrite_pr2_tpair.
+  simpl ; unfold pr1carrier ; simpl.
+  do 8 rewrite <- (assocax X _ (_*_)%multmonoid _).
+  rewrite !Hg.
+  do 6 rewrite (assocax X _ (_*_)%multmonoid _).
+  rewrite (commax X (pr1 (pr2 (pr1 x')) * pr1 (pr2 (pr1 x')))%multmonoid).
+  do 2 rewrite (assocax X _ (_*_)%multmonoid _) ;
+    rewrite Habsorb.
+  do 6 rewrite (assocax X (pr1 (pr1 x'))) ;
+    apply maponpaths.
+  rewrite (commax X (pr1 (pr2 (pr1 x')))).
+  rewrite (commax X _ (pr1 (pr2 (pr1 y')) * pr1 (pr2 (pr1 y')))%multmonoid).
+  do 2 rewrite (assocax X (pr1 (pr2 (pr1 y')) * pr1 (pr2 (pr1 y')))%multmonoid) ;
+    apply maponpaths.
+  do 4 rewrite (assocax X (pr1 (pr2 (pr1 x')) * pr1 (pr2 (pr1 x')))%multmonoid) ;
+    apply maponpaths.
+  rewrite (commax X _ (pr1 (pr2 (pr1 y')) * pr1 (pr2 (pr1 y')))%multmonoid).
+  do 3 rewrite (assocax X (pr1 (pr2 (pr1 y')) * pr1 (pr2 (pr1 y')))%multmonoid) ;
+    apply maponpaths.
+  rewrite (assocax X).
+  reflexivity.
+Timeout 10 Qed.
+
+Definition abmonoidfrac_min : binop (abmonoidfrac X Y) :=
+  setquotfun2 (binopeqrelabmonoidfrac X Y) (binopeqrelabmonoidfrac X Y)
+              (λ x y,
+                       min (pr1 x * pr1 (pr2 x) * pr1 (pr2 y * pr2 y))%multmonoid
+                           (pr1 y * pr1 (pr2 y) * pr1 (pr2 x * pr2 x))%multmonoid,,
+                           (pr2 x * pr2 x * (pr2 y * pr2 y))%multmonoid)
+              (abmonoidfrac_lattice_def min Hmin).
+
+Definition abmonoidfrac_max : binop (abmonoidfrac X Y) :=
+  setquotfun2 (binopeqrelabmonoidfrac X Y) (binopeqrelabmonoidfrac X Y)
+              (λ x y,
+                       max (pr1 x * pr1 (pr2 x) * pr1 (pr2 y * pr2 y))%multmonoid
+                           (pr1 y * pr1 (pr2 y) * pr1 (pr2 x * pr2 x))%multmonoid,,
+                           (pr2 x * pr2 x * (pr2 y * pr2 y))%multmonoid)
+              (abmonoidfrac_lattice_def max Hmax).
+
+Lemma iscomm_abmonoidfrac_min :
+  iscomm abmonoidfrac_min.
+Proof.
+  apply iscomm_abmonoidfrac_def.
+  apply Hmin_comm.
 Qed.
 
 Lemma isassoc_abmonoidfrac_min :
   isassoc abmonoidfrac_min.
 Proof.
-  intros x y z.
-  generalize (pr1 (pr2 x)) (pr1 (pr2 y)).
-  simple refine (hinhuniv2 (P := _ ,, _) _).
-  apply (pr2 (pr1 (pr1 (abmonoidfrac X Y)))).
-  intros x' y'.
-  generalize (pr1 (pr2 z)).
-  simple refine (hinhuniv _).
-  intros z' ; simpl.
-  rewrite <- (setquotl0 _ x x'), <- (setquotl0 _ y y'), <- (setquotl0 _ z z').
-  unfold abmonoidfrac_min.
-  rewrite !setquotfun2comm.
-  rewrite !rewrite_pr1_tpair, !rewrite_pr2_tpair.
-  rewrite !Hmin.
-  rewrite !Hmin_assoc, !(assocax X), !(assocax Y).
-  rewrite (commax _ (pr2 (pr1 x'))), (commax _ (pr1 (pr2 (pr1 x')))).
-  reflexivity.
+  apply isassoc_abmonoidfrac_def.
+  apply Hmin_assoc.
 Qed.
 
 Lemma iscomm_abmonoidfrac_max :
   iscomm abmonoidfrac_max.
 Proof.
-  intros x y.
-  generalize (pr1 (pr2 x)) (pr1 (pr2 y)).
-  simple refine (hinhuniv2 (P := _ ,, _) _).
-  apply (pr2 (pr1 (pr1 (abmonoidfrac X Y)))).
-  intros x' y' ; simpl.
-  rewrite <- (setquotl0 _ x x'), <- (setquotl0 _ y y').
-  unfold abmonoidfrac_max.
-  rewrite !setquotfun2comm.
-  rewrite Hmax_comm, (commax _ (pr2 (pr1 x'))).
-  reflexivity.
+  apply iscomm_abmonoidfrac_def.
+  apply Hmax_comm.
 Qed.
 
 Lemma isassoc_abmonoidfrac_max :
   isassoc abmonoidfrac_max.
 Proof.
-  intros x y z.
-  generalize (pr1 (pr2 x)) (pr1 (pr2 y)).
-  simple refine (hinhuniv2 (P := _ ,, _) _).
-  apply (pr2 (pr1 (pr1 (abmonoidfrac X Y)))).
-  intros x' y'.
-  generalize (pr1 (pr2 z)).
-  simple refine (hinhuniv _).
-  intros z' ; simpl.
-  rewrite <- (setquotl0 _ x x'), <- (setquotl0 _ y y'), <- (setquotl0 _ z z').
-  unfold abmonoidfrac_max.
-  rewrite !setquotfun2comm.
-  rewrite !rewrite_pr1_tpair, !rewrite_pr2_tpair.
-  rewrite !Hmax.
-  rewrite !Hmax_assoc, !(assocax X), !(assocax Y).
-  rewrite (commax _ (pr2 (pr1 x'))), (commax _ (pr1 (pr2 (pr1 x')))).
-  reflexivity.
+  apply isassoc_abmonoidfrac_def.
+  apply Hmax_assoc.
 Qed.
 
 Lemma isabsorb_abmonoidfrac_max_min :
   Π x y : abmonoidfrac X Y, abmonoidfrac_max x (abmonoidfrac_min x y) = x.
 Proof.
-  intros x y.
-  generalize (pr1 (pr2 x)) (pr1 (pr2 y)).
-  simple refine (hinhuniv2 (P := _ ,, _) _).
-  apply (pr2 (pr1 (pr1 (abmonoidfrac X Y)))).
-  intros x' y' ; simpl.
-  rewrite <- (setquotl0 _ x x'), <- (setquotl0 _ y y').
-  unfold abmonoidfrac_max, abmonoidfrac_min.
-  rewrite !setquotfun2comm.
-  rewrite !rewrite_pr1_tpair, !rewrite_pr2_tpair.
-  change (pr1 (pr2 (pr1 x') * pr2 (pr1 y')))%multmonoid with (pr1 (pr2 (pr1 x')) * pr1 (pr2 (pr1 y')))%multmonoid.
-  rewrite (commax X (pr1 (pr2 (pr1 x')))), (commax _ (pr2 (pr1 x'))), <- (assocax X), <- Hmax.
-  rewrite <- (abmonoidfrac_setquotpr_equiv (pr2 (pr1 x'))).
-  rewrite Hmax_min.
-  rewrite <- (abmonoidfrac_setquotpr_equiv (pr2 (pr1 y'))).
-  rewrite <- tppr.
-  reflexivity.
+  apply isabsorb_abmonoidfrac_def.
+  apply Hmax_min.
 Qed.
 
 Lemma isabsorb_abmonoidfrac_min_max :
   Π x y : abmonoidfrac X Y, abmonoidfrac_min x (abmonoidfrac_max x y) = x.
 Proof.
-  intros x y.
-  generalize (pr1 (pr2 x)) (pr1 (pr2 y)).
-  simple refine (hinhuniv2 (P := _ ,, _) _).
-  apply (pr2 (pr1 (pr1 (abmonoidfrac X Y)))).
-  intros x' y' ; simpl.
-  rewrite <- (setquotl0 _ x x'), <- (setquotl0 _ y y').
-  unfold abmonoidfrac_max, abmonoidfrac_min.
-  rewrite !setquotfun2comm.
-  rewrite !rewrite_pr1_tpair, !rewrite_pr2_tpair.
-  change (pr1 (pr2 (pr1 x') * pr2 (pr1 y')))%multmonoid with (pr1 (pr2 (pr1 x')) * pr1 (pr2 (pr1 y')))%multmonoid.
-  rewrite (commax X (pr1 (pr2 (pr1 x')))), (commax _ (pr2 (pr1 x'))), <- (assocax X), <- Hmin.
-  rewrite <- (abmonoidfrac_setquotpr_equiv (pr2 (pr1 x'))).
-  rewrite Hmin_max.
-  rewrite <- (abmonoidfrac_setquotpr_equiv (pr2 (pr1 y'))).
-  rewrite <- tppr.
-  reflexivity.
+  apply isabsorb_abmonoidfrac_def.
+  apply Hmin_max.
 Qed.
 
 End abmonoidfrac_lattice.
 
 Lemma abmonoidfrac_islatticeop (X : abmonoid) (Y : @submonoids X) (is : islattice X) :
-  Π (Hmin : isrdistr (Lmin is) op) (Hmax : isrdistr (Lmax is) op),
+  Π (Hmin : issquarerdistr Y (Lmin is) op) (Hmax : issquarerdistr Y (Lmax is) op),
   islatticeop (abmonoidfrac_min X Y Hmin) (abmonoidfrac_max X Y Hmax).
 Proof.
   intros X Y is Hmin Hmax.
@@ -946,7 +1045,7 @@ Proof.
 Qed.
 
 Definition abmonoidfrac_islattice (X : abmonoid) (Y : @submonoids X) (is : islattice X)
-           (Hmin : isrdistr (Lmin is) op) (Hmax : isrdistr (Lmax is) op) : islattice (abmonoidfrac X Y).
+           (Hmin : issquarerdistr Y (Lmin is) op) (Hmax : issquarerdistr Y (Lmax is) op) : islattice (abmonoidfrac X Y).
 Proof.
   intros X Y is Hmin Hmax.
   mkpair.
@@ -956,8 +1055,8 @@ Proof.
   apply abmonoidfrac_islatticeop.
 Defined.
 
-Lemma ispartbinophrel_Lle (X : abmonoid) (Y : @submonoids X) (is : islattice X)
-      (Hmin : isrdistr (Lmin is) op) (Hmax : isrdistr (Lmax is) op) :
+(* Lemma ispartbinophrel_Lle (X : abmonoid) (Y : @submonoids X) (is : islattice X)
+      (Hmin : issquarerdistr Y (Lmin is) op) (Hmax : issquarerdistr Y (Lmax is) op) :
   ispartbinophrel Y (Lle is).
 Proof.
   intros X Y is Hmin Hmax.
@@ -1019,7 +1118,7 @@ Proof.
       rewrite commax, assocax.
       apply maponpaths.
       apply commax.
-Timeout 20 Qed.
+Qed. *)
 
 (** ** lattice in abgrdiff *)
 

@@ -1161,7 +1161,7 @@ Proof.
       intros c.
       generalize (setquot_aux_pty c) ; intros Hc.
       apply_pr2_in plusNonnegativeReals_ltcompat_l Hc.
-      generalize (isarchrig_1 _ H _ _ Hc).
+      generalize (isarchrig_diff _ H _ _ Hc).
       apply hinhfun.
       intros n.
       simple refine (mk_isarchrig_1_acc _ _ _ _ _).
@@ -1172,7 +1172,7 @@ Proof.
       apply plusNonnegativeReals_ltcompat_l.
       exact (isarchrig_1_pty n).
     - intros x.
-      generalize (isarchrig_2 _ H x).
+      generalize (isarchrig_gt _ H x).
       apply hinhfun.
       intros n.
       simple refine (mk_isarchrig_2_acc _ _ _ _).
@@ -1183,7 +1183,7 @@ Proof.
       apply plusNonnegativeReals_ltcompat_l.
       exact (isarchrig_2_pty n).
     - intros x.
-      generalize (isarchrig_3 _ H x).
+      generalize (isarchrig_pos _ H x).
       apply hinhfun.
       intros n.
       simple refine (mk_isarchrig_3_acc _ _ _ _).
