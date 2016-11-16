@@ -5,8 +5,6 @@ Require Export UniMath.Foundations.Algebra.Monoids_and_Groups.
 
 Unset Automatic Introduction.
 
-Set Default Timeout 5.
-
 (** ** Strong Order *)
 (* todo : move it into UniMath.Foundations.Basics.Sets *)
 
@@ -51,9 +49,9 @@ Definition islatticeop {X : hSet} (min max : binop X) :=
 Definition islattice (X : hSet) := Σ min max : binop X, islatticeop min max.
 Definition lattice := Σ X : setwith2binop, islatticeop (X := X) op1 op2.
 
-Definition pr1lattice : lattice -> setwith2binop := pr1.
+Definition pr1lattice : lattice → setwith2binop := pr1.
 Coercion pr1lattice : lattice >-> setwith2binop.
-Definition mklattice {X : hSet} {min max : binop X} : islatticeop min max -> lattice :=
+Definition mklattice {X : hSet} {min max : binop X} : islatticeop min max → lattice :=
   λ (is : islatticeop min max), (X,, min,, max),, is.
 
 Definition lattice2islattice : Π X : lattice, islattice X :=
@@ -105,8 +103,7 @@ Lemma Lmin_id :
 Proof.
   intros x.
   apply (pathscomp0 (b := Lmin x (Lmax x (Lmin x x)))).
-  - rewrite Lmax_absorb.
-    reflexivity.
+  - apply maponpaths, pathsinv0, Lmax_absorb.
   - apply Lmin_absorb.
 Qed.
 Lemma Lmax_id :
@@ -114,8 +111,7 @@ Lemma Lmax_id :
 Proof.
   intros x.
   apply (pathscomp0 (b := Lmax x (Lmin x (Lmax x x)))).
-  - rewrite Lmin_absorb.
-    reflexivity.
+  - apply maponpaths, pathsinv0, Lmin_absorb.
   - apply Lmax_absorb.
 Qed.
 
@@ -207,13 +203,13 @@ Proof.
 Qed.
 
 Lemma Lmin_eq_l :
-  Π x y : L, Lle x y -> Lmin is x y = x.
+  Π x y : L, Lle x y → Lmin is x y = x.
 Proof.
   intros x y H.
   apply H.
 Qed.
 Lemma Lmin_eq_r :
-  Π x y : L, Lle y x -> Lmin is x y = y.
+  Π x y : L, Lle y x → Lmin is x y = y.
 Proof.
   intros x y H.
   rewrite iscomm_Lmin.
@@ -221,14 +217,14 @@ Proof.
 Qed.
 
 Lemma Lmax_eq_l :
-  Π x y : L, Lle y x -> Lmax is x y = x.
+  Π x y : L, Lle y x → Lmax is x y = x.
 Proof.
   intros x y <-.
   rewrite iscomm_Lmin.
   apply Lmax_absorb.
 Qed.
 Lemma Lmax_eq_r :
-  Π x y : L, Lle x y -> Lmax is x y = y.
+  Π x y : L, Lle x y → Lmax is x y = y.
 Proof.
   intros x y H.
   rewrite iscomm_Lmax.
@@ -237,36 +233,38 @@ Qed.
 
 End lattice_le.
 
-Definition islatticewithltrel {X : hSet} (is : islattice X) (lt : StrongOrder X) :=
-  (Π x y : X, (¬ (lt x y)) <-> Lle is y x)
-    × (Π x y z : X, lt z x -> lt z y -> lt z (Lmin is x y))
-    × (Π x y z : X, lt x z -> lt y z -> lt (Lmax is x y) z).
+(** ** Lattice with a strong order *)
 
-Definition islatticewithlt (X : hSet) :=
-  Σ (is : islattice X) (lt : StrongOrder X), islatticewithltrel is lt.
+Definition islatticewithgtrel {X : hSet} (is : islattice X) (gt : StrongOrder X) :=
+  (Π x y : X, (¬ (gt x y)) <-> Lle is x y)
+    × (Π x y z : X, gt x z → gt y z → gt (Lmin is x y) z)
+    × (Π x y z : X, gt z x → gt z y → gt z (Lmax is x y)).
 
-Definition islattice_islatticewithlt {X : hSet} : islatticewithlt X → islattice X :=
+Definition islatticewithgt (X : hSet) :=
+  Σ (is : islattice X) (gt : StrongOrder X), islatticewithgtrel is gt.
+
+Definition islattice_islatticewithgt {X : hSet} : islatticewithgt X → islattice X :=
   pr1.
-Coercion islattice_islatticewithlt : islatticewithlt >-> islattice.
+Coercion islattice_islatticewithgt : islatticewithgt >-> islattice.
 
-Section latticewithlt.
+Section latticewithgt_def.
 
 Context {X : hSet}
-        (is : islatticewithlt X).
+        (is : islatticewithgt X).
 
-Definition Llt : StrongOrder X :=
+Definition Lgt : StrongOrder X :=
   pr1 (pr2 is).
 
-Lemma notLlt_Lle :
-  Π x y : X, (¬ (Llt x y)) <-> Lle is y x.
+Lemma notLgt_Lle :
+  Π x y : X, (¬ (Lgt x y)) <-> Lle is x y.
 Proof.
   apply (pr1 (pr2 (pr2 is))).
 Qed.
-Lemma Llt_Lle :
-  Π x y : X, Llt x y -> Lle is x y.
+Lemma Lgt_Lle :
+  Π x y : X, Lgt x y → Lle is y x.
 Proof.
   intros x y H.
-  apply notLlt_Lle.
+  apply notLgt_Lle.
   intro H0.
   eapply isirrefl_StrongOrder.
   eapply istrans_StrongOrder.
@@ -274,45 +272,45 @@ Proof.
   exact H0.
 Qed.
 
-Lemma istrans_Llt_Lle :
-  Π x y z : X, Llt x y → Lle is y z → Llt x z.
+Lemma istrans_Lgt_Lle :
+  Π x y z : X, Lgt y x → Lle is y z → Lgt z x.
 Proof.
-  intros x y z Hlt Hle.
-  generalize (iscotrans_StrongOrder _ _ z _ Hlt).
+  intros x y z Hgt Hle.
+  generalize (iscotrans_StrongOrder _ _ z _ Hgt).
   apply hinhuniv.
   apply sumofmaps ; intros H.
-  - exact H.
   - apply fromempty.
-    refine (pr2 (notLlt_Lle _ _) _ _).
+    refine (pr2 (notLgt_Lle _ _) _ _).
     exact Hle.
     exact H.
+  - exact H.
 Qed.
-Lemma istrans_Lle_Llt :
-  Π x y z : X, Lle is x y → Llt y z → Llt x z.
+Lemma istrans_Lle_Lgt :
+  Π x y z : X, Lle is x y → Lgt z y → Lgt z x.
 Proof.
-  intros x y z Hle Hlt.
-  generalize (iscotrans_StrongOrder _ _ x _ Hlt).
+  intros x y z Hle Hgt.
+  generalize (iscotrans_StrongOrder _ _ x _ Hgt).
   apply hinhuniv.
   apply sumofmaps ; intros H.
+  - exact H.
   - apply fromempty.
-    refine (pr2 (notLlt_Lle _ _) _ _).
+    refine (pr2 (notLgt_Lle _ _) _ _).
     exact Hle.
     exact H.
-  - exact H.
 Qed.
 
-Lemma Lmin_Llt :
-  Π x y z : X, Llt z x -> Llt z y -> Llt z (Lmin is x y).
+Lemma Lmin_Lgt :
+  Π x y z : X, Lgt x z → Lgt y z → Lgt (Lmin is x y) z.
 Proof.
   apply (pr1 (pr2 (pr2 (pr2 is)))).
 Qed.
-Lemma Lmax_lt  :
-  Π x y z : X, Llt x z -> Llt y z -> Llt (Lmax is x y) z.
+Lemma Lmax_gt  :
+  Π x y z : X, Lgt z x → Lgt z y → Lgt z (Lmax is x y).
 Proof.
   apply (pr2 (pr2 (pr2 (pr2 is)))).
 Qed.
 
-End latticewithlt.
+End latticewithgt_def.
 
 (** ** Lattice with a total order *)
 
@@ -598,39 +596,39 @@ Proof.
   apply iscomm_Lmax.
 Qed.
 
-Definition extruncminuswithlt {X : abmonoid} (is : islatticewithlt X) :=
-  Σ (ex : extruncminus is), Π x y : X, Llt is 0 (truncminus ex y x) → Llt is x y.
-Definition extruncminuswithlt_extruncminus {X : abmonoid} (is : islatticewithlt X) :
-  extruncminuswithlt is → extruncminus is := pr1.
-Coercion extruncminuswithlt_extruncminus : extruncminuswithlt >-> extruncminus.
+Definition extruncminuswithgt {X : abmonoid} (is : islatticewithgt X) :=
+  Σ (ex : extruncminus is), Π x y : X, Lgt is (truncminus ex x y) 0 → Lgt is x y.
+Definition extruncminuswithgt_extruncminus {X : abmonoid} (is : islatticewithgt X) :
+  extruncminuswithgt is → extruncminus is := pr1.
+Coercion extruncminuswithgt_extruncminus : extruncminuswithgt >-> extruncminus.
 
-Section truncminus_lt.
+Section truncminus_gt.
 
 Context {X : abmonoid}
-        (is : islatticewithlt X)
-        (ex : extruncminuswithlt is)
-        (is0 : Π x y z : X, Llt is y z → Llt is (y + x) (z + x))
-        (is1 : Π x y z : X, Llt is (y + x) (z + x) → Llt is y z).
+        (is : islatticewithgt X)
+        (ex : extruncminuswithgt is)
+        (is0 : Π x y z : X, Lgt is y z → Lgt is (y + x) (z + x))
+        (is1 : Π x y z : X, Lgt is (y + x) (z + x) → Lgt is y z).
 
 Lemma truncminus_pos :
-  Π x y : X, Llt is x y → Llt is 0 (truncminus ex y x).
+  Π x y : X, Lgt is x y → Lgt is (truncminus ex x y) 0.
 Proof.
   intros x y.
   intros H.
-  apply (is1 x).
+  apply (is1 y).
   rewrite lunax, istruncminus_ex.
   rewrite Lmax_eq_l.
   exact H.
-  apply Llt_Lle, H.
+  apply Lgt_Lle, H.
 Qed.
 
 Lemma truncminus_pos' :
-  Π x y : X, Llt is 0 (truncminus ex y x) → Llt is x y.
+  Π x y : X, Lgt is (truncminus ex x y) 0 → Lgt is x y.
 Proof.
   exact (pr2 ex).
 Qed.
 
-End truncminus_lt.
+End truncminus_gt.
 
 (** *** Truncated minus and abgrdiff *)
 
@@ -834,7 +832,7 @@ Proof.
         do 2 rewrite (assocax X (pr1 (pr2 x'))) ;
           apply maponpaths.
         apply (commax X).
-Timeout 10 Qed.
+Qed.
 
 Local Lemma iscomm_abmonoidfrac_def :
   Π (f : X → X → X) Hf,
@@ -923,7 +921,7 @@ Proof.
       rewrite (commax X _ (pr1 (pr2 (pr1 z')) * pr1 (pr2 (pr1 z')))%multmonoid).
       do 2 rewrite (assocax X (pr1 (pr2 (pr1 z')) * pr1 (pr2 (pr1 z')))%multmonoid).
       reflexivity.
-Timeout 30 Qed.
+Qed.
 
 Lemma isabsorb_abmonoidfrac_def :
   Π f g Hf Hg,
@@ -967,7 +965,7 @@ Proof.
     apply maponpaths.
   rewrite (assocax X).
   reflexivity.
-Timeout 10 Qed.
+Qed.
 
 Definition abmonoidfrac_min : binop (abmonoidfrac X Y) :=
   setquotfun2 (binopeqrelabmonoidfrac X Y) (binopeqrelabmonoidfrac X Y)
