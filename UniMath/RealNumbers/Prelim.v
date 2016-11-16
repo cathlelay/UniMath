@@ -534,36 +534,36 @@ Lemma issquarerdistr_hzmax_mult :
   issquarerdistr (intdomnonzerosubmonoid hzintdom) hzmax hzmult.
 Proof.
   intros k x y.
-  apply hzmax_case_strong ; intros H.
-  - apply hzmax_case_strong ; intros H0.
+  refine (hzmax_case_strong _ _ _ _ _) ; intros H.
+  - refine (hzmax_case_strong (λ z, (z * (pr1 k * pr1 k))%hz = (x * (pr1 k * pr1 k))%hz) x y _ _) ; intros H0.
     + reflexivity.
     + apply isantisymmhzleh.
-      exact H0.
+      exact H.
       apply hzlehandmultr.
       induction (hzneqchoice _ _ (pr2 k)) as [H1 | H1].
       * apply hzmultgth0gth0 ; apply H1.
       * apply hzmultlth0lth0 ; apply H1.
-      * exact H.
-  - apply hzmax_case_strong ; intros H0.
+      * exact H0.
+  - refine (hzmax_case_strong (λ z, (z * (pr1 k * pr1 k))%hz = (y * (pr1 k * pr1 k))%hz) x y _ _) ; intros H0.
     + apply isantisymmhzleh.
-      exact H0.
+      exact H.
       apply hzlehandmultr.
       induction (hzneqchoice _ _ (pr2 k)) as [H1 | H1].
       * apply hzmultgth0gth0 ; apply H1.
       * apply hzmultlth0lth0 ; apply H1.
-      * exact H.
+      * exact H0.
     + reflexivity.
 Qed.
 
 (** ** hq is a lattice *)
 
-Lemma islattice_hq : islattice hq.
+(* Lemma islattice_hq : islattice hq.
 Proof.
   simple refine (abmonoidfrac_islattice (rngmultabmonoid hz) _ _ _ _).
   apply islattice_hz.
   apply issquarerdistr_hzmin_mult.
   apply issquarerdistr_hzmax_mult.
-Defined.
+Defined. *)
 
 Definition hqmin : binop hq.
 Proof.
@@ -772,8 +772,8 @@ Proof.
   - exact isabsorb_hqmax_hqmin.
 Qed.
 
-Lemma nothqlth_hqmin :
-  Π x y : hq, ¬ (x < y) <-> hqmin y x = y.
+Lemma nothqgth_hqmin :
+  Π x y : hq, ¬ (x > y) <-> hqmin x y = x.
 Proof.
   intros x y.
   apply hqmin_case_strong ; intros H ; split ; intros H0.
@@ -785,11 +785,11 @@ Proof.
     apply H0.
     exact H1.
   - rewrite H0.
-    apply (isirreflhqgth y).
+    apply (isirreflhqgth x).
 Qed.
 
 Lemma hqmin_gt :
-  Π x y z : hq, z < x → z < y → z < hqmin x y.
+  Π x y z : hq, x > z → y > z → hqmin x y > z.
 Proof.
   intros x y z Hx Hy.
   apply hqmin_case.
@@ -797,7 +797,7 @@ Proof.
   exact Hy.
 Qed.
 Lemma hqmax_lt :
-  Π x y z : hq, x < z → y < z → hqmax x y < z.
+  Π x y z : hq, z > x → z > y → z > hqmax x y.
 Proof.
   intros x y z Hx Hy.
   apply hqmax_case.
@@ -805,19 +805,19 @@ Proof.
   exact Hy.
 Qed.
 
-Definition islattice_hq : islatticewithlt hq.
+Definition islattice_hq : islatticewithgt hq.
 Proof.
   mkpair.
   exact (hqmin ,, hqmax ,, islatticeop_hq).
   mkpair.
   - mkpair.
-    exact hqlth.
+    exact hqgth.
     split ; [ | split].
-    + exact istranshqlth.
-    + exact iscotranshqlth.
-    + exact isirreflhqlth.
+    + exact istranshqgth.
+    + exact iscotranshqgth.
+    + exact isirreflhqgth.
   - split ; [ | split].
-    + exact nothqlth_hqmin.
+    + exact nothqgth_hqmin.
     + exact hqmin_gt.
     + exact hqmax_lt.
 Timeout 10 Defined.
@@ -893,18 +893,18 @@ Proof.
   apply Lle_hqleh.
   exact H.
 Qed.
-Lemma hqmax_lth_l :
-  Π x y : hq, x < y <-> x < hqmax x y.
+Lemma hqmax_gth_l :
+  Π x y : hq, y > x <-> hqmax x y > x.
 Proof.
   intros x y.
   apply hqmax_case_strong.
   - intros H ; split ; intros H0.
     + apply fromempty.
-      refine (hqgehtoneghqlth _ _ _ _).
+      refine (hqlehtoneghqgth _ _ _ _).
       exact H.
       exact H0.
     + apply fromempty.
-      refine (isirreflhqlth _ _).
+      refine (isirreflhqgth _ _).
       exact H0.
   - split ; intros H0 ; exact H0.
 Qed.
@@ -937,25 +937,25 @@ Proof.
 Qed.
 
 Lemma hqtruncminus_pos :
-  Π x y : hq, x < y <-> 0 < hqtruncminus y x.
+  Π x y : hq, x > y <-> hqtruncminus x y > 0.
 Proof.
   unfold hqtruncminus.
   intros x y ; split.
   - intros H.
-    apply hqmax_lth_l.
+    apply hqmax_gth_l.
     unfold hqminus.
-    apply hqlthandplusrinv with x.
+    apply hqgthandplusrinv with y.
     rewrite hqplusassoc, hqlminus, hqplusl0, hqplusr0.
     exact H.
   - intros H.
-    apply_pr2_in hqmax_lth_l H.
-    apply hqlthandplusrinv with (- x).
-    change (x - x < y - x).
+    apply_pr2_in hqmax_gth_l H.
+    apply hqgthandplusrinv with (- y).
+    change (x - y > y - y).
     rewrite hqrminus.
     exact H.
 Qed.
 
-Definition extruncminus_hq : extruncminuswithlt (X := rngaddabgr hq) islattice_hq.
+Definition extruncminus_hq : extruncminuswithgt (X := rngaddabgr hq) islattice_hq.
 Proof.
   mkpair.
   exact (hqtruncminus,, istruncminus_hq).
