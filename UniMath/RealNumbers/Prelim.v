@@ -800,6 +800,7 @@ Proof.
   exact Hx.
   exact Hy.
 Qed.
+
 Definition islattice_hq : islatticewithlt hq.
 Proof.
   mkpair.
@@ -956,113 +957,5 @@ Proof.
   exact (hqtruncminus,, istruncminus_hq).
   exact (λ x y : hq, pr2 (hqtruncminus_pos x y)).
 Defined.
-
-(** ** hq is archimedean *)
-
-Lemma nattorig_nattohz :
-  Π n : nat, nattorig (X := hz) n = nattohz n.
-Proof.
-  induction n as [|n IHn].
-  - unfold nattorig, nattohz ; simpl.
-    reflexivity.
-  - rewrite nattorigS, IHn.
-    apply pathsinv0, nattohzandS.
-Qed.
-
-Lemma nattorig_nat :
-  Π n : nat, nattorig (X := natcommrig) n = n.
-Proof.
-  induction n as [|n IHn].
-  reflexivity.
-  rewrite nattorigS, IHn.
-  reflexivity.
-Qed.
-
-Lemma isarchnat :
-  isarchrig (X := natcommrig) natgth.
-Proof.
-  repeat split.
-  - intros y1 y2 Hy.
-    apply natlthchoice2 in Hy.
-    induction Hy as [Hy | <-].
-    + apply hinhpr.
-      simple refine (mk_isarchrig_1_acc _ _ _ _ _).
-      exact 1%nat.
-      exact Hy.
-    + apply hinhpr.
-      simple refine (mk_isarchrig_1_acc _ _ _ _ _).
-      exact 2%nat.
-      rewrite nattorig_nat, !multsnm ; simpl.
-      rewrite natplusr0.
-      apply natgthandplusl, natgthsnn.
-  - intros n.
-    apply hinhpr.
-    simple refine (mk_isarchrig_2_acc _ _ _ _).
-    exact (S n).
-    rewrite nattorig_nat.
-    now apply natgthsnn.
-  - intros n.
-    apply hinhpr.
-    simple refine (mk_isarchrig_3_acc _ _ _ _).
-    exact 1%nat.
-    reflexivity.
-Defined.
-
-Definition isarchhz : isarchrng (X := hz) hzgth.
-Proof.
-  simple refine (isarchrigtorng _ _ _ _ _ _).
-  - reflexivity.
-  - intros n m k.
-    apply istransnatgth.
-  - generalize isarchnat ; intros H.
-    repeat split.
-    + intros y1 y2 Hy.
-      refine (hinhfun _ _).
-      2: apply ((pr1 H) y1 y2).
-      intros n.
-      simple refine (mk_isarchrig_1_acc _ _ _ _ _).
-      exact (isarchrig_1_val n).
-      apply hinhpr.
-      simple refine (mk_setquot_aux_acc _ _ _ _ _).
-      exact O.
-      rewrite !natplusr0.
-      apply (isarchrig_1_pty n).
-      revert Hy.
-      apply hinhuniv.
-      intros c.
-      generalize (setquot_aux_pty c).
-      apply natgthandplusrinv.
-    + intros x.
-      generalize ((pr1 (pr2 H)) x).
-      apply hinhfun.
-      intros n.
-      simple refine (mk_isarchrig_2_acc _ _ _ _).
-      exact (isarchrig_2_val n).
-      apply hinhpr.
-      simple refine (mk_setquot_aux_acc _ _ _ _ _).
-      exact O.
-      rewrite !natplusr0.
-      exact (isarchrig_2_pty n).
-    + intros x.
-      generalize ((pr2 (pr2 H)) x).
-      apply hinhfun.
-      intros n.
-      simple refine (mk_isarchrig_3_acc _ _ _ _).
-      exact (isarchrig_3_val n).
-      apply hinhpr.
-      simple refine (mk_setquot_aux_acc _ _ _ _ _).
-      exact O.
-      rewrite !natplusr0.
-      exact (isarchrig_3_pty n).
-Qed.
-
-Lemma isarchhq :
-  isarchfld (X := hq) hqgth.
-Proof.
-  simple refine (isarchfldfrac hzintdom _ _ _ _ _ _ _ _).
-  - exact isirreflhzgth.
-  - exact istranshzgth.
-  - apply isarchhz.
-Qed.
 
 Close Scope hq_scope.
