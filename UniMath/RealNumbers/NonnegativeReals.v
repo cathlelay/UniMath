@@ -905,14 +905,14 @@ Lemma Dcuts_min_carac_l :
   Π x y : Dcuts, x <= y -> Dcuts_min x y = x.
 Proof.
   intros x y Hxy.
-  apply (Lmin_eq_l islattice_Dcuts).
+  apply (Lmin_le_eq_l islattice_Dcuts).
   now apply Dcuts_le_lattice_compat.
 Qed.
 Lemma Dcuts_min_carac_r :
   Π x y : Dcuts, y <= x -> Dcuts_min x y = y.
 Proof.
   intros x y Hxy.
-  apply (Lmin_eq_r islattice_Dcuts).
+  apply (Lmin_le_eq_r islattice_Dcuts).
   now apply Dcuts_le_lattice_compat.
 Qed.
 
@@ -935,14 +935,14 @@ Lemma Dcuts_max_carac_l :
   Π x y : Dcuts, y <= x -> Dcuts_max x y = x.
 Proof.
   intros x y Hxy.
-  apply (Lmax_eq_l islattice_Dcuts).
+  apply (Lmax_le_eq_l islattice_Dcuts).
   now apply Dcuts_le_lattice_compat.
 Qed.
 Lemma Dcuts_max_carac_r :
   Π x y : Dcuts, x <= y -> Dcuts_max x y = y.
 Proof.
   intros x y Hxy.
-  apply (Lmax_eq_r islattice_Dcuts).
+  apply (Lmax_le_eq_r islattice_Dcuts).
   now apply Dcuts_le_lattice_compat.
 Qed.
 
@@ -951,7 +951,7 @@ Lemma Dcuts_max_le :
 Proof.
   intros x y z Hx Hy.
   apply_pr2 Dcuts_le_lattice_compat.
-  apply (Lmax_le islattice_Dcuts).
+  apply (Lmax_le_case islattice_Dcuts).
   apply isrdistr_Dcuts_max_min.
   apply Dcuts_le_lattice_compat, Hx.
   apply Dcuts_le_lattice_compat, Hy.

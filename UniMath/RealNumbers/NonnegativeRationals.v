@@ -51,7 +51,7 @@ Proof.
   mkpair.
   apply (hqmin (pr1 x) (pr1 y)).
   abstract (apply_pr2 Lle_hqleh ;
-            apply (Lmin_ge islattice_hq) ;
+            apply (Lmin_ge_case islattice_hq) ;
             apply (pr1 (Lle_hqleh _ _)) ;
             [ exact (pr2 x) | exact (pr2 y) ]).
 Defined.
@@ -322,7 +322,7 @@ Lemma NonnegativeRationals_to_Rationals_correct :
 Proof.
   intros x.
   apply subtypeEquality_prop.
-  apply (Lmax_eq_r islattice_hq).
+  apply (Lmax_le_eq_r islattice_hq).
   apply (pr1 (Lle_hqleh _ _)).
   apply (pr2 x).
 Qed.
@@ -332,7 +332,7 @@ Lemma Rationals_to_NonnegativeRationals_correct :
   NonnegativeRationals_to_Rationals (Rationals_to_NonnegativeRationals x) = x.
 Proof.
   intros x Hx.
-  apply (Lmax_eq_r islattice_hq).
+  apply (Lmax_le_eq_r islattice_hq).
   apply (pr1 (Lle_hqleh _ _)).
   exact Hx.
 Qed.
@@ -423,7 +423,7 @@ Proof.
   apply subtypeEquality_prop.
   change (pr1 x + pr1 y = hqmax 0 (pr1 x + pr1 y))%hq.
   apply pathsinv0.
-  apply (Lmax_eq_r islattice_hq).
+  apply (Lmax_le_eq_r islattice_hq).
   apply (pr1 (Lle_hqleh _ _)).
   apply hq0lehandplus.
   exact (pr2 x).
@@ -444,7 +444,7 @@ Proof.
   apply subtypeEquality_prop.
   change (pr1 x * pr1 y = hqmax 0 (pr1 x * pr1 y))%hq.
   apply pathsinv0.
-  apply (Lmax_eq_r islattice_hq).
+  apply (Lmax_le_eq_r islattice_hq).
   apply (pr1 (Lle_hqleh _ _)).
   apply hq0lehandmult.
   exact (pr2 x).
@@ -460,7 +460,7 @@ Proof.
   induction (hqlehchoice 0%hq (pr1 x) (pr2 x)) as [Hlt | Heq].
   - change ((/ pr1 x)%hq = hqmax 0%hq (/ pr1 x)%hq).
     apply pathsinv0.
-    apply (Lmax_eq_r islattice_hq).
+    apply (Lmax_le_eq_r islattice_hq).
     apply (pr1 (Lle_hqleh _ _)).
     apply hqlthtoleh, hqinv_gt0.
     exact Hlt.
@@ -853,7 +853,7 @@ Proof.
   intros x y Hle.
   apply (plusNonnegativeRationals_eqcompat_r y).
   rewrite minusNonnegativeRationals_plus, islunit_zeroNonnegativeRationals.
-  apply (Lmax_eq_r islattice_hnnq).
+  apply (Lmax_le_eq_r islattice_hnnq).
   apply Lle_hnnq_le.
   exact Hle.
 Qed.
@@ -863,7 +863,7 @@ Lemma minusNonnegativeRationals_plus_r :
 Proof.
   intros r q H.
   rewrite minusNonnegativeRationals_plus.
-  apply (Lmax_eq_l islattice_hnnq).
+  apply (Lmax_le_eq_l islattice_hnnq).
   apply Lle_hnnq_le.
   exact H.
 Qed.
@@ -875,7 +875,7 @@ Proof.
   apply subtypeEquality_prop.
   change (hqmax 0 (pr1 r + pr1 q + - pr1 q) = pr1 r)%hq.
   rewrite hqplusassoc, (hqpluscomm (pr1 q)), (hqlminus (pr1 q)), hqplusr0.
-  apply (Lmax_eq_r islattice_hq).
+  apply (Lmax_le_eq_r islattice_hq).
   apply (pr1 (Lle_hqleh _ _)).
   apply (pr2 r).
 Qed.
@@ -924,7 +924,7 @@ Proof.
   rewrite minusNonnegativeRationals_plus, isassoc_plusNonnegativeRationals.
   rewrite (iscomm_plusNonnegativeRationals z), <- isassoc_plusNonnegativeRationals, minusNonnegativeRationals_plus.
   change (hnnq_max x y + z = hnnq_max (x + z) y).
-  rewrite !(Lmax_eq_l islattice_hnnq).
+  rewrite !(Lmax_le_eq_l islattice_hnnq).
   - reflexivity.
   - apply (pr1 (Lle_hnnq_le _ _)).
     apply istrans_leNonnegativeRationals with x.

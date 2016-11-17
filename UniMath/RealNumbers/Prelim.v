@@ -360,13 +360,13 @@ Proof.
   induction n as [ | n IHn].
   - simpl.
     intros m k.
-    apply pathsinv0, (Lmin_eq_l islattice_nat).
+    apply pathsinv0, (Lmin_le_eq_l islattice_nat).
     apply Llenat_correct.
     apply natlehmplusnm.
   - intros m ; induction m as [ | m _].
     + clear ; intros k.
       change (k = Nat.min (S n + k) k).
-      apply pathsinv0, (Lmin_eq_r islattice_nat).
+      apply pathsinv0, (Lmin_le_eq_r islattice_nat).
       apply Llenat_correct.
       apply natlehmplusnm.
     + simpl ; intros k.
@@ -379,13 +379,13 @@ Proof.
   induction n as [ | n IHn].
   - simpl.
     intros m k.
-    apply pathsinv0, (Lmax_eq_r islattice_nat).
+    apply pathsinv0, (Lmax_le_eq_r islattice_nat).
     apply Llenat_correct.
     apply natlehmplusnm.
   - intros m ; induction m as [ | m _].
     + clear ; intros k.
       change (S n + k = Nat.max (S n + k) k)%nat.
-      apply pathsinv0, (Lmax_eq_l islattice_nat).
+      apply pathsinv0, (Lmax_le_eq_l islattice_nat).
       apply Llenat_correct.
       apply natlehmplusnm.
     + simpl ; intros k.
@@ -460,8 +460,7 @@ Lemma hzmin_case_strong :
   (hzleh x y → P x) → (hzleh y x → P y) → P (hzmin x y).
 Proof.
   intros P x y Hx Hy.
-  apply (Lmin_case_strong islattice_hz).
-  - apply Llehz_dec.
+  apply (Lmin_case_strong (islattice_hz,,Llehz_dec)).
   - intros H.
     apply Hx.
     apply_pr2 Llehz_correct.
@@ -484,8 +483,7 @@ Lemma hzmax_case_strong :
   (hzleh y x → P x) → (hzleh x y → P y) → P (hzmax x y).
 Proof.
   intros P x y Hx Hy.
-  apply (Lmax_case_strong islattice_hz).
-  - apply Llehz_dec.
+  apply (Lmax_case_strong (islattice_hz,,Llehz_dec)).
   - intros H.
     apply Hx.
     apply_pr2 Llehz_correct.
@@ -876,7 +874,7 @@ Lemma hqmax_eq_l :
 Proof.
   intros x y H.
   rewrite <- Lmax_hqmax.
-  apply (Lmax_eq_l islattice_hq).
+  apply (Lmax_le_eq_l islattice_hq).
   apply Lle_hqleh.
   exact H.
 Qed.
@@ -885,7 +883,7 @@ Lemma hqmax_eq_r :
 Proof.
   intros x y H.
   rewrite <- Lmax_hqmax.
-  apply (Lmax_eq_r islattice_hq).
+  apply (Lmax_le_eq_r islattice_hq).
   apply Lle_hqleh.
   exact H.
 Qed.
