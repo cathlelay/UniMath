@@ -36,15 +36,29 @@ Definition isasymm_StrongOrder : isasymm R :=
 
 End so_pty.
 
-Definition isStrongOrder_quotrel {X : UU} {R : eqrel X} {L : hrel X} (is : iscomprelrel R L) :
+Lemma isStrongOrder_setquot {X : UU} {R : eqrel X} {L : hrel X} (is : iscomprelrel R L) :
   isStrongOrder L → isStrongOrder (quotrel is).
 Proof.
   intros X R L is H.
-  repeat split.
+  split ; [ | split].
   - apply istransquotrel, (pr1 H).
   - apply iscotransquotrel, (pr1 (pr2 H)).
   - apply isirreflquotrel, (pr2 (pr2 H)).
-Defined.
+Qed.
+Definition StrongOrder_setquot {X : UU} {R : eqrel X} {L : StrongOrder X} (is : iscomprelrel R L) : StrongOrder (setquot R) :=
+  quotrel is,, isStrongOrder_setquot is (pr2 L).
+
+Lemma isStrongOrder_abgrdiff {X : abmonoid} (gt : hrel X) (Hgt : isbinophrel gt) :
+  isStrongOrder gt → isStrongOrder (abgrdiffrel X Hgt).
+Proof.
+  intros X gt Hgt H.
+  split ; [ | split].
+  - apply istransabgrdiffrel, (pr1 H).
+  - apply iscotransabgrdiffrel, (pr1 (pr2 H)).
+  - apply isirreflabgrdiffrel, (pr2 (pr2 H)).
+Qed.
+Definition StrongOrder_abgrdiff {X : abmonoid} (gt : StrongOrder X) (Hgt : isbinophrel gt) : StrongOrder (abgrdiff X) :=
+  abgrdiffrel X Hgt,, isStrongOrder_abgrdiff gt Hgt (pr2 gt).
 
 (** ** Definition *)
 
@@ -451,6 +465,45 @@ Proof.
 Qed.
 
 End islatticedec_pty.
+
+Section islatticedec_gt.
+
+Context {X : hSet}
+        (is : islatticedec X).
+
+Definition latticedec_gt_rel : hrel X :=
+  λ x y, hneg (Lle is x y).
+
+Lemma latticedec_gt_ge :
+  Π x y : X, latticedec_gt_rel x y → Lge is x y.
+Proof.
+  intros x y Hxy.
+  refine (invmap (weqii1withneg _ _) _).
+  apply Hxy.
+  apply istotaldec_islatticedec.
+Qed.
+
+Definition latticedec_gt : StrongOrder X.
+Proof.
+  mkpair.
+  apply latticedec_gt_rel.
+  split ; [ | split].
+  - intros x y z Hxy Hyz Hxz.
+    apply Hxy.
+    apply istrans_Lle with z.
+    apply Hxz.
+    refine (invmap (weqii1withneg _ _) _).
+    apply Hyz.
+    apply istotaldec_islatticedec.
+  - intros x y z Hxz.
+    generalize (invmap (weqii1withneg _ Hxz) (istotaldec_islatticedec is _ _)) ; intros H.
+    induction (istotaldec_islatticedec is x y) as [Hxy | Hxy].
+    + apply hinhpr, ii1.
+      intros Hyz.
+      apply Hxz.
+Defined.
+
+End islatticedec_gt.
 
 (** *** Lattice in an abmonoid *)
 
@@ -1503,150 +1556,177 @@ Proof.
       apply commax.
 Qed.
 
-Lemma isStrongOrder_abgrdiff {X : abmonoid} (gt : hrel X) Hgt :
-  isStrongOrder gt → isStrongOrder (abgrdiffrel X (L := gt) Hgt).
+Section abgrdiff_islatticewithgt.
+
+Context {X : abmonoid}
+        (is : islattice X)
+        (gt : StrongOrder X)
+        (Hgt : isbinophrel gt)
+        (Hop : Π x y z : X, y + x = z + x → y = z)
+        (Hmin : isrdistr (Lmin is) op)
+        (Hmax : isrdistr (Lmax is) op).
+Context (Hnotgt_le : Π x y : X, (¬ gt x y) → Lle is x y)
+        (Hle_notgt : Π x y : X, Lle is x y → (¬ gt x y))
+        (Hmin_gt : Π x y z : X, gt x z → gt y z → gt (Lmin is x y) z)
+        (Hmax_gt : Π x y z : X, gt z x → gt z y → gt z (Lmax is x y)).
+
+Lemma abgrdiff_notLgt_Lle :
+  Π (x y : abgrdiff X),
+  ¬ abgrdiffrel X Hgt x y
+  → Lle (abgrdiff_islattice X is Hmin Hmax) x y.
 Proof.
-  intros X gt Hgt H.
-  split ; [ | split].
-  - apply istransabgrdiffrel, (pr1 H).
-  - apply iscotransabgrdiffrel, (pr1 (pr2 H)).
-  - apply isirreflabgrdiffrel, (pr2 (pr2 H)).
+  intros x y.
+  intros H0.
+  generalize (pr1 (pr2 x)) (pr1 (pr2 y)).
+  apply hinhuniv2.
+  intros x' y'.
+  apply abgrdiff_Lle.
+  revert H0.
+  rewrite <- (setquotl0 _ x x'), <- (setquotl0 _ y y').
+  unfold abgrdiffrel, quotrel.
+  do 2 rewrite setquotuniv2comm.
+  intros H0.
+  apply hinhpr.
+  exists 0.
+  apply Hnotgt_le.
+  intros H1 ; apply H0.
+  apply hinhpr.
+  exists 0.
+  exact H1.
 Qed.
 
-Lemma abgrdiff_islatticewithgtrel :
-  Π (X : abmonoid) (is : islattice X) (gt : StrongOrder X) (Hgt : isbinophrel gt)
-    (Hop : Π x y z : X, (y * x)%multmonoid = (z * x)%multmonoid → y = z)
-    (Hmin : isrdistr (Lmin is) op) (Hmax : isrdistr (Lmax is) op),
-  islatticewithgtrel is gt →
-  islatticewithgtrel (abgrdiff_islattice X is Hmin Hmax)
-                     (abgrdiffrel X Hgt,, isStrongOrder_abgrdiff (pr1 gt) Hgt (pr2 gt)).
+Lemma abgrdiff_Lle_notLgt :
+  Π (x y : abgrdiff X),
+  Lle (abgrdiff_islattice X is Hmin Hmax) x y
+  → ¬ abgrdiffrel X Hgt x y.
 Proof.
-  intros X is gt Hgt Hop Hmin Hmax H.
-  split ; split.
-  - change (¬ abgrdiffrel X Hgt x y
-            → Lle (abgrdiff_islattice X is Hmin Hmax) x y).
-    intros H0.
-    generalize (pr1 (pr2 x)) (pr1 (pr2 y)).
-    apply hinhuniv2.
-    intros x' y'.
-    apply abgrdiff_Lle.
-    revert H0.
-    rewrite <- (setquotl0 _ x x'), <- (setquotl0 _ y y').
-    unfold abgrdiffrel, quotrel.
-    do 2 rewrite setquotuniv2comm.
-    intros H0.
-    apply hinhpr.
-    exists 0.
-    apply (pr1 (pr1 H _ _)).
-    intros H1 ; apply H0.
-    apply hinhpr.
-    exists 0.
-    exact H1.
-  - change (Lle (abgrdiff_islattice X is Hmin Hmax) x y
-            → ¬ abgrdiffrel X Hgt x y).
-    intros H0 H1.
-    generalize (pr1 (pr2 x)) (pr1 (pr2 y)).
-    apply (hinhuniv2 (P := hProppair _ isapropempty)).
-    intros x' y'.
-    generalize (pr2 (abgrdiff_Lle _ _ _ _ _ _) H0).
-    revert H1 ; clear H0.
-    rewrite <- (setquotl0 _ x x'), <- (setquotl0 _ y y').
-    unfold abgrdiffrel, quotrel.
-    do 2 rewrite setquotuniv2comm.
-    apply hinhuniv2.
-    intros c c'.
-    refine (pr2 (pr1 H _ _) _ (pr2 c)).
-    apply op_le_r.
-    exact Hmin.
-    refine (op_le_r' is _ _ (pr1 c') _ _ _).
-    exact Hop.
-    exact Hmin.
-    exact (pr2 c').
-  - change (Π (x y z : abgrdiff X),
-            abgrdiffrel X Hgt x z
-            → abgrdiffrel X Hgt y z
-            → abgrdiffrel X Hgt
-                          (abgrdiff_min Hmin x y) z).
-    intros x y z Hx Hy.
-    generalize (pr1 (pr2 x)) (pr1 (pr2 y)).
-    apply hinhuniv2.
-    intros x' y'.
-    generalize (pr1 (pr2 z)).
-    apply hinhuniv.
-    intros z'.
-    revert Hx Hy.
-    rewrite <- (setquotl0 _ x x'), <- (setquotl0 _ y y'), <- (setquotl0 _ z z').
-    unfold abgrdiffrel, quotrel, abgrdiff_min.
-    rewrite setquotfun2comm.
-    do 3 rewrite setquotuniv2comm.
-    apply hinhfun2.
-    intros c c'.
-    rewrite rewrite_pr1_tpair, rewrite_pr2_tpair.
-    exists (pr1 c + pr1 c').
-    rewrite !Hmin.
-    apply (pr1 (pr2 H)).
-    + do 2 rewrite <- (assocax X _ _ (pr1 c')) ;
-      apply (pr2 Hgt).
-      do 4 rewrite (assocax X) ;
-        do 2 rewrite (commax X (pr2 (pr1 y'))).
-      do 3 rewrite <- (assocax X _ _ (pr2 (pr1 y'))) ;
-        apply (pr2 Hgt).
-      do 2 rewrite <- (assocax X).
-      exact (pr2 c).
-    + rewrite (commax X (pr1 c)).
-      do 2 rewrite <- (assocax X _ _ (pr1 c)) ;
-      apply (pr2 Hgt).
-      do 4 rewrite (assocax X) ;
-        do 2 rewrite (commax X (pr2 (pr1 x'))).
-      do 2 rewrite <- (assocax X _ _ (pr2 (pr1 x'))) ;
-        apply (pr2 Hgt).
-      do 2 rewrite <- (assocax X).
-      exact (pr2 c').
-  - change (Π (x y z : abgrdiff X),
-            abgrdiffrel X Hgt z x
-            → abgrdiffrel X Hgt z y
-            → abgrdiffrel X Hgt z (abgrdiff_max Hmax x y)).
-    intros x y z Hx Hy.
-    generalize (pr1 (pr2 x)) (pr1 (pr2 y)).
-    apply hinhuniv2.
-    intros x' y'.
-    generalize (pr1 (pr2 z)).
-    apply hinhuniv.
-    intros z'.
-    revert Hx Hy.
-    rewrite <- (setquotl0 _ x x'), <- (setquotl0 _ y y'), <- (setquotl0 _ z z').
-    unfold abgrdiffrel, quotrel, abgrdiff_max.
-    rewrite setquotfun2comm.
-    do 3 rewrite setquotuniv2comm.
-    apply hinhfun2.
-    intros c c'.
-    rewrite rewrite_pr1_tpair, rewrite_pr2_tpair.
-    exists (pr1 c + pr1 c').
-    rewrite !Hmax.
-    apply (pr2 (pr2 H)).
-    + do 2 rewrite <- (assocax X _ _ (pr1 c')) ;
-      apply (pr2 Hgt).
-      do 4 rewrite (assocax X) ;
-        do 2 rewrite (commax X (pr2 (pr1 y'))).
-      do 3 rewrite <- (assocax X _ _ (pr2 (pr1 y'))) ;
-        apply (pr2 Hgt).
-      do 2 rewrite <- (assocax X).
-      exact (pr2 c).
-    + rewrite (commax X (pr1 c)).
-      do 2 rewrite <- (assocax X _ _ (pr1 c)) ;
-      apply (pr2 Hgt).
-      do 4 rewrite (assocax X) ;
-        do 2 rewrite (commax X (pr2 (pr1 x'))).
-      do 2 rewrite <- (assocax X _ _ (pr2 (pr1 x'))) ;
-        apply (pr2 Hgt).
-      do 2 rewrite <- (assocax X).
-      exact (pr2 c').
+  intros x y.
+  intros H0 H1.
+  generalize (pr1 (pr2 x)) (pr1 (pr2 y)).
+  apply (hinhuniv2 (P := hProppair _ isapropempty)).
+  intros x' y'.
+  generalize (pr2 (abgrdiff_Lle _ _ _ _ _ _) H0).
+  revert H1 ; clear H0.
+  rewrite <- (setquotl0 _ x x'), <- (setquotl0 _ y y').
+  unfold abgrdiffrel, quotrel.
+  do 2 rewrite setquotuniv2comm.
+  apply hinhuniv2.
+  intros c c'.
+  refine (Hle_notgt _ _ _ (pr2 c)).
+  apply op_le_r.
+  exact Hmin.
+  refine (op_le_r' is _ _ (pr1 c') _ _ _).
+  exact Hop.
+  exact Hmin.
+  exact (pr2 c').
 Qed.
+
+Lemma abgrdiff_min_gt :
+  Π (x y z : abgrdiff X),
+  abgrdiffrel X Hgt x z
+  → abgrdiffrel X Hgt y z
+  → abgrdiffrel X Hgt (abgrdiff_min Hmin x y) z.
+Proof.
+  intros x y z Hx Hy.
+  generalize (pr1 (pr2 x)) (pr1 (pr2 y)).
+  apply hinhuniv2.
+  intros x' y'.
+  generalize (pr1 (pr2 z)).
+  apply hinhuniv.
+  intros z'.
+  revert Hx Hy.
+  rewrite <- (setquotl0 _ x x'), <- (setquotl0 _ y y'), <- (setquotl0 _ z z').
+  unfold abgrdiffrel, quotrel, abgrdiff_min.
+  rewrite setquotfun2comm.
+  do 3 rewrite setquotuniv2comm.
+  apply hinhfun2.
+  intros c c'.
+  rewrite rewrite_pr1_tpair, rewrite_pr2_tpair.
+  exists (pr1 c + pr1 c').
+  rewrite !Hmin.
+  apply Hmin_gt.
+  + do 2 rewrite <- (assocax X _ _ (pr1 c')) ;
+    apply (pr2 Hgt).
+    do 4 rewrite (assocax X) ;
+      do 2 rewrite (commax X (pr2 (pr1 y'))).
+    do 3 rewrite <- (assocax X _ _ (pr2 (pr1 y'))) ;
+      apply (pr2 Hgt).
+    do 2 rewrite <- (assocax X).
+    exact (pr2 c).
+  + rewrite (commax X (pr1 c)).
+    do 2 rewrite <- (assocax X _ _ (pr1 c)) ;
+      apply (pr2 Hgt).
+    do 4 rewrite (assocax X) ;
+      do 2 rewrite (commax X (pr2 (pr1 x'))).
+    do 2 rewrite <- (assocax X _ _ (pr2 (pr1 x'))) ;
+      apply (pr2 Hgt).
+    do 2 rewrite <- (assocax X).
+    exact (pr2 c').
+Qed.
+
+Lemma abgrdiff_max_gt :
+  Π (x y z : abgrdiff X),
+  abgrdiffrel X Hgt z x
+  → abgrdiffrel X Hgt z y
+  → abgrdiffrel X Hgt z (abgrdiff_max Hmax x y).
+Proof.
+  intros x y z Hx Hy.
+  generalize (pr1 (pr2 x)) (pr1 (pr2 y)).
+  apply hinhuniv2.
+  intros x' y'.
+  generalize (pr1 (pr2 z)).
+  apply hinhuniv.
+  intros z'.
+  revert Hx Hy.
+  rewrite <- (setquotl0 _ x x'), <- (setquotl0 _ y y'), <- (setquotl0 _ z z').
+  unfold abgrdiffrel, quotrel, abgrdiff_max.
+  rewrite setquotfun2comm.
+  do 3 rewrite setquotuniv2comm.
+  apply hinhfun2.
+  intros c c'.
+  rewrite rewrite_pr1_tpair, rewrite_pr2_tpair.
+  exists (pr1 c + pr1 c').
+  rewrite !Hmax.
+  apply Hmax_gt.
+  + do 2 rewrite <- (assocax X _ _ (pr1 c')) ;
+    apply (pr2 Hgt).
+    do 4 rewrite (assocax X) ;
+      do 2 rewrite (commax X (pr2 (pr1 y'))).
+    do 3 rewrite <- (assocax X _ _ (pr2 (pr1 y'))) ;
+      apply (pr2 Hgt).
+    do 2 rewrite <- (assocax X).
+    exact (pr2 c).
+  + rewrite (commax X (pr1 c)).
+    do 2 rewrite <- (assocax X _ _ (pr1 c)) ;
+      apply (pr2 Hgt).
+    do 4 rewrite (assocax X) ;
+      do 2 rewrite (commax X (pr2 (pr1 x'))).
+    do 2 rewrite <- (assocax X _ _ (pr2 (pr1 x'))) ;
+      apply (pr2 Hgt).
+    do 2 rewrite <- (assocax X).
+    exact (pr2 c').
+Qed.
+
+End abgrdiff_islatticewithgt.
 
 Definition abgrdiff_islatticewithgt {X : abmonoid} (is : islatticewithgt X) (Hgt : isbinophrel (Lgt is))
-    (Hop : Π x y z : X, (y * x)%multmonoid = (z * x)%multmonoid → y = z)
-    (Hmin : isrdistr (Lmin is) op) (Hmax : isrdistr (Lmax is) op) :
-  islatticewithgt (abgrdiff X) :=
-  (abgrdiff_islattice X is Hmin Hmax)
-    ,, (abgrdiffrel X Hgt,, isStrongOrder_abgrdiff (pr1 (Lgt is)) Hgt (pr2 (Lgt is)))
-    ,, abgrdiff_islatticewithgtrel X is (Lgt is) Hgt Hop Hmin Hmax (pr2 (pr2 is)).
+           (Hop : Π x y z : X, y + x = z + x → y = z)
+           (Hmin : isrdistr (Lmin is) op) (Hmax : isrdistr (Lmax is) op) :
+  islatticewithgt (abgrdiff X).
+Proof.
+  intros X is Hgt Hop Hmin Hmax.
+  mkpair.
+  apply (abgrdiff_islattice X is Hmin Hmax).
+  mkpair.
+  apply (StrongOrder_abgrdiff (Lgt is) Hgt).
+  split ; split.
+  - apply abgrdiff_notLgt_Lle.
+    apply notLgt_Lle.
+  - apply abgrdiff_Lle_notLgt.
+    apply Hop.
+    apply Lle_notLgt.
+  - apply abgrdiff_min_gt.
+    apply Lmin_Lgt.
+  - apply abgrdiff_max_gt.
+    apply Lmax_Lgt.
+Defined.
