@@ -426,11 +426,11 @@ End latticewithgt_pty.
 (** ** Lattice with a total order *)
 
 Definition islatticedec (X : hSet) :=
-  Σ is : islattice X, istotaldec (Lle is) × (isdecrel (Lle is)).
+  Σ is : islattice X, istotal (Lle is) × (isdecrel (Lle is)).
 Definition islattice_islatticedec {X : hSet} (is : islatticedec X) : islattice X :=
   pr1 is.
 Coercion islattice_islatticedec : islatticedec >-> islattice.
-Definition istotaldec_islatticedec {X : hSet} (is : islatticedec X) : istotaldec (Lle is) :=
+Definition istotal_islatticedec {X : hSet} (is : islatticedec X) : istotal (Lle is) :=
   pr1 (pr2 is).
 Definition isdecrel_islatticedec {X : hSet} (is : islatticedec X) : isdecrel (Lle is) :=
   pr2 (pr2 is).
@@ -441,18 +441,19 @@ Context {X : hSet}
         (is : islatticedec X).
 
 Lemma Lmin_case_strong :
-  Π (P : X → UU) (x y : X),
+  Π (P : X → hProp) (x y : X),
   (Lle is x y → P x) → (Lle is y x → P y) → P (Lmin is x y).
 Proof.
   intros P x y Hx Hy.
-  induction (istotaldec_islatticedec is x y) as [H | H].
+  generalize (istotal_islatticedec is x y).
+  apply hinhuniv, sumofmaps ; intros H.
   - rewrite H.
     apply Hx, H.
   - rewrite iscomm_Lmin, H.
     apply Hy, H.
 Qed.
 Lemma Lmin_case :
-  Π (P : X → UU) (x y : X),
+  Π (P : X → hProp) (x y : X),
   P x → P y → P (Lmin is x y).
 Proof.
   intros P x y Hx Hy.
@@ -462,11 +463,12 @@ Proof.
 Qed.
 
 Lemma Lmax_case_strong :
-  Π (P : X → UU) (x y : X),
+  Π (P : X → hProp) (x y : X),
   (Lle is y x → P x) → (Lle is x y → P y) → P (Lmax is x y).
 Proof.
   intros P x y Hx Hy.
-  induction (istotaldec_islatticedec is x y) as [H | H].
+  generalize (istotal_islatticedec is x y).
+  apply hinhuniv, sumofmaps ; intros H.
   - rewrite Lmax_le_eq_r.
     apply Hy, H.
     exact H.
@@ -475,7 +477,7 @@ Proof.
     exact H.
 Qed.
 Lemma Lmax_case :
-  Π (P : X → UU) (x y : X),
+  Π (P : X → hProp) (x y : X),
   P x → P y → P (Lmax is x y).
 Proof.
   intros P x y Hx Hy.
@@ -498,9 +500,11 @@ Lemma latticedec_gt_ge :
   Π x y : X, latticedec_gt_rel x y → Lge is x y.
 Proof.
   intros x y Hxy.
-  refine (invmap (weqii1withneg _ _) _).
-  apply Hxy.
-  apply istotaldec_islatticedec.
+  generalize (istotal_islatticedec is x y).
+  apply hinhuniv, sumofmaps ; intros H.
+  - apply fromempty, Hxy.
+    exact H.
+  - exact H.
 Qed.
 
 Definition latticedec_gt : StrongOrder X.
@@ -512,9 +516,8 @@ Proof.
     apply Hxy.
     apply istrans_Lle with z.
     apply Hxz.
-    refine (invmap (weqii1withneg _ _) _).
-    apply Hyz.
-    apply istotaldec_islatticedec.
+    apply latticedec_gt_ge.
+    exact Hyz.
   - intros x y z Hxz.
     induction (isdecrel_islatticedec is x y) as [Hxy | Hyx].
     + apply hinhpr, ii2.
@@ -528,6 +531,30 @@ Proof.
   - intros x Hx.
     apply Hx.
     apply isrefl_Lle.
+Defined.
+
+Definition islatticedec_gt : islatticewithgt X.
+Proof.
+  mkpair.
+  apply (pr1 is).
+  mkpair.
+  apply latticedec_gt.
+  split ; split.
+  - intros H.
+    induction (isdecrel_islatticedec is x y) as [H0 | H0].
+    + exact H0.
+    + apply fromempty, H.
+      exact H0.
+  - intros H H0.
+    apply H0, H.
+  - intros x y z Hxz Hyz.
+    apply (Lmin_case is (λ t : X, latticedec_gt t z)).
+    + exact Hxz.
+    + exact Hyz.
+  - intros x y z Hxz Hyz.
+    apply (Lmax_case is (latticedec_gt z)).
+    + exact Hxz.
+    + exact Hyz.
 Defined.
 
 End islatticedec_gt.
@@ -1747,13 +1774,38 @@ Proof.
   mkpair.
   apply (StrongOrder_abgrdiff (Lgt is) Hgt).
   split ; split.
-  - apply abgrdiff_notLgt_Lle.
-    apply notLgt_Lle.
+  - apply abgrdiff_notLgt_Lle, notLgt_Lle.
   - apply abgrdiff_Lle_notLgt.
-    apply Hop.
-    apply Lle_notLgt.
-  - apply abgrdiff_min_gt.
-    apply Lmin_Lgt.
-  - apply abgrdiff_max_gt.
-    apply Lmax_Lgt.
+    + apply Hop.
+    + apply Lle_notLgt.
+  - apply abgrdiff_min_gt, Lmin_Lgt.
+  - apply abgrdiff_max_gt, Lmax_Lgt.
+Defined.
+
+Definition abgrdiff_islatticedec {X : abmonoid} (is : islatticedec X)
+           (Hop : Π x y z : X, y + x = z + x → y = z)
+           (Hmin : isrdistr (Lmin is) op) (Hmax : isrdistr (Lmax is) op) :
+  islatticedec (abgrdiff X).
+Proof.
+  intros X is Hop Hmin Hmax.
+  mkpair.
+  apply (abgrdiff_islattice X is Hmin Hmax).
+  split.
+  - refine (istotallogeqf _ _).
+    + apply abgrdiff_Lle.
+    + apply istotalabgrdiffrel, istotal_islatticedec.
+  - refine (isdecrellogeqf _ _).
+    + apply abgrdiff_Lle.
+    + apply isdecabgrdiffrel.
+      split.
+      * intros x y z.
+        rewrite !(commax X z).
+        apply op_le_r'.
+        exact Hop.
+        exact Hmin.
+      * intros x y z.
+        apply op_le_r'.
+        exact Hop.
+        exact Hmin.
+      * apply isdecrel_islatticedec.
 Defined.
