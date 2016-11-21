@@ -426,12 +426,14 @@ End latticewithgt_pty.
 (** ** Lattice with a total order *)
 
 Definition islatticedec (X : hSet) :=
-  Σ is : islattice X, istotaldec (Lle is).
+  Σ is : islattice X, istotaldec (Lle is) × (isdecrel (Lle is)).
 Definition islattice_islatticedec {X : hSet} (is : islatticedec X) : islattice X :=
   pr1 is.
 Coercion islattice_islatticedec : islatticedec >-> islattice.
 Definition istotaldec_islatticedec {X : hSet} (is : islatticedec X) : istotaldec (Lle is) :=
-  pr2 is.
+  pr1 (pr2 is).
+Definition isdecrel_islatticedec {X : hSet} (is : islatticedec X) : isdecrel (Lle is) :=
+  pr2 (pr2 is).
 
 Section islatticedec_pty.
 
@@ -514,11 +516,18 @@ Proof.
     apply Hyz.
     apply istotaldec_islatticedec.
   - intros x y z Hxz.
-    generalize (invmap (weqii1withneg _ Hxz) (istotaldec_islatticedec is _ _)) ; intros H.
-    induction (istotaldec_islatticedec is x y) as [Hxy | Hxy].
-    + apply hinhpr, ii1.
+    induction (isdecrel_islatticedec is x y) as [Hxy | Hyx].
+    + apply hinhpr, ii2.
       intros Hyz.
       apply Hxz.
+      apply istrans_Lle with y.
+      exact Hxy.
+      exact Hyz.
+    + apply hinhpr, ii1.
+      exact Hyx.
+  - intros x Hx.
+    apply Hx.
+    apply isrefl_Lle.
 Defined.
 
 End islatticedec_gt.
