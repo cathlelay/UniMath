@@ -26,9 +26,6 @@ Unset Automatic Introduction.
 (** ** Strong Order *)
 (* todo : move it into UniMath.Foundations.Basics.Sets *)
 
-Definition istotaldec {X : UU} (R : hrel X) : UU :=
-  Π x y : X, R x y ⨿ R y x.
-
 Definition isStrongOrder {X : UU} (R : hrel X) := istrans R × iscotrans R × isirrefl R.
 Definition StrongOrder (X : UU) := Σ R : hrel X, isStrongOrder R.
 Definition pairStrongOrder {X : UU} (R : hrel X) (is : isStrongOrder R) : StrongOrder X :=
@@ -441,19 +438,26 @@ Context {X : hSet}
         (is : islatticedec X).
 
 Lemma Lmin_case_strong :
-  Π (P : X → hProp) (x y : X),
+  Π (P : X → UU) (x y : X),
   (Lle is x y → P x) → (Lle is y x → P y) → P (Lmin is x y).
 Proof.
   intros P x y Hx Hy.
-  generalize (istotal_islatticedec is x y).
-  apply hinhuniv, sumofmaps ; intros H.
-  - rewrite H.
+  generalize (isdecrel_islatticedec is x y).
+  apply sumofmaps ; intros H.
+  - rewrite Lmin_le_eq_l.
     apply Hx, H.
-  - rewrite iscomm_Lmin, H.
-    apply Hy, H.
+    exact H.
+  - enough (H0 : Lle is y x).
+    + rewrite Lmin_le_eq_r.
+      apply Hy, H0.
+      exact H0.
+    + generalize (istotal_islatticedec is x y).
+      apply hinhuniv, sumofmaps ; intros H0.
+      apply fromempty, H, H0.
+      exact H0.
 Qed.
 Lemma Lmin_case :
-  Π (P : X → hProp) (x y : X),
+  Π (P : X → UU) (x y : X),
   P x → P y → P (Lmin is x y).
 Proof.
   intros P x y Hx Hy.
@@ -463,21 +467,26 @@ Proof.
 Qed.
 
 Lemma Lmax_case_strong :
-  Π (P : X → hProp) (x y : X),
+  Π (P : X → UU) (x y : X),
   (Lle is y x → P x) → (Lle is x y → P y) → P (Lmax is x y).
 Proof.
   intros P x y Hx Hy.
-  generalize (istotal_islatticedec is x y).
-  apply hinhuniv, sumofmaps ; intros H.
+  generalize (isdecrel_islatticedec is x y).
+  apply sumofmaps ; intros H.
   - rewrite Lmax_le_eq_r.
     apply Hy, H.
     exact H.
-  - rewrite Lmax_le_eq_l.
-    apply Hx, H.
-    exact H.
+  - enough (H0 : Lle is y x).
+    + rewrite Lmax_le_eq_l.
+      apply Hx, H0.
+      exact H0.
+    + generalize (istotal_islatticedec is x y).
+      apply hinhuniv, sumofmaps ; intros H0.
+      apply fromempty, H, H0.
+      exact H0.
 Qed.
 Lemma Lmax_case :
-  Π (P : X → hProp) (x y : X),
+  Π (P : X → UU) (x y : X),
   P x → P y → P (Lmax is x y).
 Proof.
   intros P x y Hx Hy.
@@ -1245,69 +1254,10 @@ Proof.
   apply abmonoidfrac_islatticeop.
 Defined.
 
-(* Lemma ispartbinophrel_Lle (X : abmonoid) (Y : @submonoids X) (is : islattice X)
+(* Lemma abmonoidfrac_Lle (X : abmonoid) (Y : @submonoids X) (is : islattice X)
       (Hmin : issquarerdistr Y (Lmin is) op) (Hmax : issquarerdistr Y (Lmax is) op) :
-  ispartbinophrel Y (Lle is).
+  Π x y, abmonoidfracrelint X Y (Lle is) x y <-> Lle (abmonoidfrac_islattice X Y is Hmin Hmax) (setquotpr _ x) (setquotpr _ y).
 Proof.
-  intros X Y is Hmin Hmax.
-  split.
-  - intros a b c Yc.
-    rewrite !(commax _ c).
-    apply op_le_r.
-    exact Hmin.
-  - intros a b c Yc.
-    apply op_le_r.
-    exact Hmin.
-Qed.
-
-Lemma abmonoidfrac_Lle (X : abmonoid) (Y : @submonoids X) (is : islattice X)
-      (Hmin : isrdistr (Lmin is) op) (Hmax : isrdistr (Lmax is) op) :
-  Π x y : abmonoidfrac X Y, abmonoidfracrel X Y (ispartbinophrel_Lle X Y is Hmin Hmax) x y <-> Lle (abmonoidfrac_islattice X Y is Hmin Hmax) x y.
-Proof.
-  intros X Y is Hmin Hmax.
-  intros x y.
-  generalize (pr1 (pr2 x)) (pr1 (pr2 y)).
-  simple refine (hinhuniv2 (P := _ ,, _) _).
-  - apply isapropdirprod ;
-    apply isapropimpl, propproperty.
-  - intros x' y'.
-    change (abmonoidfracrel X Y (ispartbinophrel_Lle X Y is Hmin Hmax) x y <->
-            abmonoidfrac_min X Y Hmin x y = x).
-    rewrite <- (setquotl0 _ x x'), <- (setquotl0 _ y y').
-    unfold abmonoidfracrel, quotrel, abmonoidfrac_min.
-    rewrite setquotuniv2comm, setquotfun2comm.
-    split ; intros H.
-    + apply iscompsetquotpr.
-      revert H.
-      apply hinhfun.
-      intros c.
-      exists (pr1 c).
-      simpl in c |- *.
-      rewrite (assocax X), (commax _ _ (pr1 (pr1 c))), <- (assocax X).
-      rewrite Hmin.
-      refine (pathscomp0 _ _).
-      refine (maponpaths (λ x, x + _) _).
-      apply (pr2 c).
-      rewrite !(assocax X) ;
-        apply maponpaths.
-      do 2 rewrite commax, assocax.
-      reflexivity.
-    + generalize (invmap (weqpathsinsetquot _ _ _) H).
-      apply hinhfun.
-      simpl.
-      intros c.
-      exists (pr2 (pr1 x') + pr1 c).
-      rewrite <- Hmin.
-      change (pr1 (pr2 (pr1 x') * pr1 c))%multmonoid
-      with (pr1 (pr2 (pr1 x')) * pr1 (pr1 c))%multmonoid.
-      rewrite <- assocax.
-      refine (pathscomp0 _ _).
-      apply (pr2 c).
-      rewrite !(assocax X) ;
-        apply maponpaths.
-      rewrite commax, assocax.
-      apply maponpaths.
-      apply commax.
 Qed. *)
 
 (** ** lattice in abgrdiff *)
