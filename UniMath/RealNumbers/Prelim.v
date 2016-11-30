@@ -582,63 +582,74 @@ Proof.
   now apply hzmax_case_strong.
 Qed.
 
-Lemma issquarerdistr_hzmin_mult :
-  issquarerdistr (intdomnonzerosubmonoid hzintdom) hzmin hzmult.
-Proof.
-  intros k x y.
-  apply hzmin_case_strong ; intros H.
-  - apply hzmin_case_strong ; intros H0.
-    + reflexivity.
-    + apply isantisymmhzleh.
-      apply hzlehandmultr.
-      induction (hzneqchoice _ _ (pr2 k)) as [H1 | H1].
-      * apply hzmultgth0gth0 ; apply H1.
-      * apply hzmultlth0lth0 ; apply H1.
-      * exact H.
-      * exact H0.
-  - apply (hzmin_case_strong (λ z, (y * (pr1 k * pr1 k))%hz = z)) ; intros H0.
-    + apply isantisymmhzleh.
-      apply hzlehandmultr.
-      induction (hzneqchoice _ _ (pr2 k)) as [H1 | H1].
-      * apply hzmultgth0gth0 ; apply H1.
-      * apply hzmultlth0lth0 ; apply H1.
-      * exact H.
-      * exact H0.
-    + reflexivity.
-Qed.
-Lemma issquarerdistr_hzmax_mult :
-  issquarerdistr (intdomnonzerosubmonoid hzintdom) hzmax hzmult.
-Proof.
-  intros k x y.
-  refine (hzmax_case_strong _ _ _ _ _) ; intros H.
-  - refine (hzmax_case_strong (λ z, (z * (pr1 k * pr1 k))%hz = (x * (pr1 k * pr1 k))%hz) x y _ _) ; intros H0.
-    + reflexivity.
-    + apply isantisymmhzleh.
-      exact H.
-      apply hzlehandmultr.
-      induction (hzneqchoice _ _ (pr2 k)) as [H1 | H1].
-      * apply hzmultgth0gth0 ; apply H1.
-      * apply hzmultlth0lth0 ; apply H1.
-      * exact H0.
-  - refine (hzmax_case_strong (λ z, (z * (pr1 k * pr1 k))%hz = (y * (pr1 k * pr1 k))%hz) x y _ _) ; intros H0.
-    + apply isantisymmhzleh.
-      exact H.
-      apply hzlehandmultr.
-      induction (hzneqchoice _ _ (pr2 k)) as [H1 | H1].
-      * apply hzmultgth0gth0 ; apply H1.
-      * apply hzmultlth0lth0 ; apply H1.
-      * exact H0.
-    + reflexivity.
-Qed.
-
 (** ** hq is a lattice *)
 
 (* Lemma islattice_hq : islattice hq.
 Proof.
-  simple refine (abmonoidfrac_islattice (rngmultabmonoid hz) _ _ _ _).
-  apply islattice_hz.
-  apply issquarerdistr_hzmin_mult.
-  apply issquarerdistr_hzmax_mult.
+  simple refine (fldfrac_lattice _ _ _ _ _ _ _ _ _ _).
+  - apply hzgth.
+  - apply isplushrelhzgth.
+  - apply isrngmulthzgth.
+  - apply (ct (hzgth, isdecrelhzgth, 1%hz, 0%hz)).
+  - intros n.
+    apply isirreflhzgth.
+  - intros n m.
+    apply hzneqchoice.
+  - apply (pr1 islattice_hz).
+  - intros x y k.
+    change ((Lmin islattice_hz x y * pr1 k)%rng =
+            Lmin islattice_hz (x * pr1 k)%rng (y * pr1 k)%rng).
+    apply Lmin_case_strong ; intros H ;
+    apply Lmin_case_strong ; intros H0.
+    + reflexivity.
+    + apply (isantisymm_Lle islattice_hz).
+      * apply (pr1 (Llehz_correct _ _)).
+        apply hzlehandmultr.
+        clear -k.
+        induction k as [k Hk].
+        simpl in Hk.
+        apply Hk.
+        apply (pr2 (Llehz_correct _ _)).
+        exact H.
+      * exact H0.
+    + apply (isantisymm_Lle islattice_hz).
+      * apply (pr1 (Llehz_correct _ _)).
+        apply hzlehandmultr.
+        clear -k.
+        induction k as [k Hk].
+        simpl in Hk.
+        apply Hk.
+        apply (pr2 (Llehz_correct _ _)).
+        exact H.
+      * exact H0.
+    + reflexivity.
+  - intros x y k.
+    change ((Lmax islattice_hz x y * pr1 k)%rng =
+            Lmax islattice_hz (x * pr1 k)%rng (y * pr1 k)%rng).
+    apply Lmax_case_strong ; intros H ;
+    apply Lmax_case_strong ; intros H0.
+    + reflexivity.
+    + apply (isantisymm_Lle islattice_hz).
+      * exact H0.
+      * apply (pr1 (Llehz_correct _ _)).
+        apply hzlehandmultr.
+        clear -k.
+        induction k as [k Hk].
+        simpl in Hk.
+        apply Hk.
+        apply (pr2 (Llehz_correct _ _)).
+        exact H.
+    + apply (isantisymm_Lle islattice_hz).
+      * exact H0.
+      * apply (pr1 (Llehz_correct _ _)).
+        apply hzlehandmultr.
+        clear -k.
+        induction k as [k Hk].
+        simpl in Hk.
+        apply Hk.
+        apply (pr2 (Llehz_correct _ _)).
+        exact H.
+    + reflexivity.
 Defined. *)
 
 Definition hqmin : binop hq.

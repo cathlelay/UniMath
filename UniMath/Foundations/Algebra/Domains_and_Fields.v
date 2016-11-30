@@ -690,7 +690,7 @@ but not vice versa. *)
 
 (** **** Description of the field of fractions as the ring of fractions with respect to the submonoid of "positive" elements *)
 
-Definition fldfrac' (X : rng) (R : hrel X) (isrngmultgt X R) (is2: R 1 0) : commrng :=
+Definition fldfrac' (X : commrng) (R : hrel X) (is1 : isrngmultgt X R) (is2: R 1 0) : commrng :=
   commrngfrac X (rngpossubmonoid X is1 is2).
 
 Definition weqfldfracgtint_f (X : intdom) {R : hrel X} (is0 : @isbinophrel X R)

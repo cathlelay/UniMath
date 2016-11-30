@@ -1698,3 +1698,132 @@ Proof.
         exact Hmin.
       * apply isdecrel_islatticedec.
 Defined.
+
+(** Lattice in fldfrac' *)
+
+Definition fldfrac'_lattice {X : commrng} R is1 is2 (is : islattice X)
+           (Hmin : @issubrdistr (rngmultabmonoid X) (rngpossubmonoid X is1 is2) (Lmin is) op2)
+           (Hmax : @issubrdistr (rngmultabmonoid X) (rngpossubmonoid X is1 is2) (Lmax is) op2) :
+  islattice (fldfrac' X R is1 is2) :=
+  commrngfrac_islattice X (rngpossubmonoid X is1 is2) is Hmin Hmax.
+
+(** Lattice in fldfrac *)
+
+Definition fldfrac_lattice {X : intdom} (is' : isdeceq X) (R : hrel X) (is0 : isbinophrel (X := rigaddabmonoid X) R)
+           (is1 : isrngmultgt X R) (is2 : R 1%rng 0%rng) (is3 : isirrefl R) (nc : neqchoice R)
+           (is : islattice X)
+           (Hmin : @issubrdistr (rngmultabmonoid X) (rngpossubmonoid X is1 is2) (Lmin is) op2)
+           (Hmax : @issubrdistr (rngmultabmonoid X) (rngpossubmonoid X is1 is2) (Lmax is) op2) :
+  islattice (fldfrac X is').
+Proof.
+  intros.
+  set (H := fldfrac'_lattice R is1 is2 is Hmin Hmax).
+  exists (λ (x y : fldfrac X is'),
+          weqfldfracgt_b X is' is1 is2 is3
+                         (Lmin H
+                               (weqfldfracgt_f X is' is0 is1 is2 nc x)
+                               (weqfldfracgt_f X is' is0 is1 is2 nc y))).
+  exists (λ (x y : fldfrac X is'),
+          weqfldfracgt_b X is' is1 is2 is3
+                         (Lmax H
+                               (weqfldfracgt_f X is' is0 is1 is2 nc x)
+                               (weqfldfracgt_f X is' is0 is1 is2 nc y))).
+
+  assert (H0 : Π t, (weqfldfracgt_f X is' is0 is1 is2 nc
+                               (weqfldfracgt_b X is' is1 is2 is3 t)) = t).
+  { intros t.
+    generalize (pr1 (pr2 t)).
+    simple refine (hinhuniv (P := _,,_) _).
+    apply (pr2 (pr1 (pr1 (commrngfrac X (rngpossubmonoid X is1 is2))))).
+    intros t'.
+    rewrite <- (setquotl0 _ t t').
+    change (weqfldfracgt_f X is' is0 is1 is2 nc
+                           (weqfldfracgt_b X is' is1 is2 is3
+                                           (setquotpr (eqrelcommrngfrac X (rngpossubmonoid X is1 is2)) (pr1 t'))) =
+            setquotpr (eqrelcommrngfrac X (rngpossubmonoid X is1 is2)) (pr1 t')).
+    unfold weqfldfracgt_b.
+    rewrite setquotfuncomm.
+    unfold weqfldfracgt_f.
+    rewrite setquotfuncomm.
+    unfold weqfldfracgtint_b, weqfldfracgtint_f.
+    simpl.
+    set (Hnc := nc (pr1 (pr2 (pr1 t'))) 0%rng (rtoneq is3 (pr2 (pr2 (pr1 t'))))).
+    change (setquotpr (eqrelcommrngfrac X (rngpossubmonoid X is1 is2))
+    match Hnc with
+    | ii1 g => dirprodpair (pr1 (pr1 t')) (pr1 (pr2 (pr1 t')),, g)
+    | ii2 l =>
+        (- pr1 (pr1 t'))%rng,,
+        (- pr1 (pr2 (pr1 t')))%rng,, rngfromlt0 X is0 l
+    end = setquotpr (eqrelcommrngfrac X (rngpossubmonoid X is1 is2)) (pr1 t')).
+    induction Hnc as [Hnc | Hnc].
+    - apply maponpaths, pathsinv0.
+      simpl.
+      apply (pathscomp0 (tppr _)).
+      apply maponpaths.
+      apply subtypeEquality_prop.
+      reflexivity.
+    - apply iscompsetquotpr.
+      apply hinhpr ; simpl.
+      mkpair.
+      mkpair.
+      apply (1%rng : X).
+      apply is2.
+      rewrite (rnglmultminus X), (rngrmultminus X).
+      reflexivity. }
+  assert (H1 : Π x, weqfldfracgt_b X is' is1 is2 is3 (weqfldfracgt_f X is' is0 is1 is2 nc x) =
+                    x).
+  { intros t.
+    generalize (pr1 (pr2 t)).
+    simple refine (hinhuniv (P := _,,_) _).
+    apply (pr2 (pr1 (pr1 (pr1 (fldfrac X is'))))).
+    intros t'.
+    rewrite <- (setquotl0 _ t t').
+    change (weqfldfracgt_b X is' is1 is2 is3
+                           (weqfldfracgt_f X is' is0 is1 is2 nc
+                                           (setquotpr (eqrelcommrngfrac X (intdomnonzerosubmonoid X)) (pr1 t'))) =
+            setquotpr (eqrelcommrngfrac X (intdomnonzerosubmonoid X)) (pr1 t')).
+    unfold weqfldfracgt_f.
+    rewrite setquotfuncomm.
+    unfold weqfldfracgt_b.
+    rewrite setquotfuncomm.
+    unfold weqfldfracgtint_f.
+    set (Hnc := nc (pr1 (pr2 (pr1 t'))) 0%rng (pr2 (pr2 (pr1 t')))).
+    induction Hnc as [Hnc | Hnc].
+    - unfold weqfldfracgtint_b ; simpl.
+      apply maponpaths, pathsinv0.
+      simpl.
+      apply (pathscomp0 (tppr _)).
+      apply maponpaths.
+      apply subtypeEquality_prop.
+      reflexivity.
+    - apply iscompsetquotpr.
+      apply hinhpr ; simpl.
+      mkpair.
+      mkpair.
+      apply (1%rng : X).
+      intros H1.
+      clear -is2 is3 H1.
+      revert is2.
+      rewrite H1.
+      apply is3.
+      simpl.
+      rewrite (rnglmultminus X), (rngrmultminus X).
+      reflexivity. }
+  split ; [ | split] ; split.
+  - intros x y z.
+    rewrite H0, H0.
+    apply maponpaths, isassoc_Lmin.
+  - intros x y.
+    apply maponpaths, iscomm_Lmin.
+  - intros x y z.
+    rewrite H0, H0.
+    apply maponpaths, isassoc_Lmax.
+  - intros x y.
+    apply maponpaths, iscomm_Lmax.
+  - intros x y.
+    rewrite H0, Lmin_absorb.
+    apply H1.
+  - intros x y.
+    rewrite H0, Lmax_absorb.
+    apply H1.
+Defined.
