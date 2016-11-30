@@ -320,8 +320,41 @@ Proof.
   - exact isabsorb_max_min.
 Qed.
 
-Definition islattice_nat : islattice (hSetpair nat isasetnat) :=
-  min ,, max ,, islatticeop_nat.
+Definition islattice_nat : islatticedec (natcommrig).
+Proof.
+  exists (min ,, max ,, islatticeop_nat).
+  split.
+  - intros n.
+    induction n as [ | n IHn].
+    + intros m.
+      apply hinhpr, ii1.
+      reflexivity.
+    + intros m.
+      induction m as [ | m _].
+      * apply hinhpr, ii2.
+        reflexivity.
+      * generalize (IHn m).
+        apply hinhfun, sumofmaps ; intros H.
+        left ; simpl.
+        apply maponpaths, H.
+        right ; simpl.
+        apply maponpaths, H.
+  - intros n.
+    induction n as [ | n IHn].
+    + intros m.
+      apply ii1.
+      reflexivity.
+    + intros m.
+      induction m as [ | m _].
+      * apply ii2.
+        apply negpaths0sx.
+      * generalize (IHn m).
+        apply sumofmaps ; intros H.
+        left ; simpl.
+        apply maponpaths, H.
+        right ; simpl.
+        apply noeqinjS, H.
+Defined.
 
 Lemma Llenat_correct :
   Π n m, n ≤ m <-> Lle islattice_nat n m.
@@ -362,13 +395,13 @@ Proof.
   induction n as [ | n IHn].
   - simpl.
     intros m k.
-    apply pathsinv0, (Lmin_eq_l islattice_nat).
+    apply pathsinv0, (Lmin_le_eq_l islattice_nat).
     apply Llenat_correct.
     apply natlehmplusnm.
   - intros m ; induction m as [ | m _].
     + clear ; intros k.
       change (k = Nat.min (S n + k) k).
-      apply pathsinv0, (Lmin_eq_r islattice_nat).
+      apply pathsinv0, (Lmin_le_eq_r islattice_nat).
       apply Llenat_correct.
       apply natlehmplusnm.
     + simpl ; intros k.
@@ -381,13 +414,13 @@ Proof.
   induction n as [ | n IHn].
   - simpl.
     intros m k.
-    apply pathsinv0, (Lmax_eq_r islattice_nat).
+    apply pathsinv0, (Lmax_le_eq_r islattice_nat).
     apply Llenat_correct.
     apply natlehmplusnm.
   - intros m ; induction m as [ | m _].
     + clear ; intros k.
       change (S n + k = Nat.max (S n + k) k)%nat.
-      apply pathsinv0, (Lmax_eq_l islattice_nat).
+      apply pathsinv0, (Lmax_le_eq_l islattice_nat).
       apply Llenat_correct.
       apply natlehmplusnm.
     + simpl ; intros k.
@@ -396,10 +429,11 @@ Qed.
 
 (** ** hz is a lattice *)
 
-Lemma islattice_hz : islattice hz.
+Lemma islattice_hz : islatticedec hz.
 Proof.
-  simple refine (abgrdiff_islattice _ _ _ _).
+  simple refine (abgrdiff_islatticedec _ _ _ _).
   apply islattice_nat.
+  intros x y z ; apply natplusrcan.
   apply isrdistr_natmin_plus.
   apply isrdistr_natmax_plus.
 Defined.
@@ -462,13 +496,14 @@ Lemma hzmin_case_strong :
   (hzleh x y → P x) → (hzleh y x → P y) → P (hzmin x y).
 Proof.
   intros P x y Hx Hy.
-  apply (Lmin_case_strong islattice_hz).
-  - apply Llehz_dec.
-  - intros H.
+  induction (Llehz_dec x y) as [H | H].
+  - change (P (Lmin islattice_hz x y)).
+    rewrite H.
     apply Hx.
     apply_pr2 Llehz_correct.
     apply H.
-  - intros H.
+  - change (P (Lmin islattice_hz x y)).
+    rewrite iscomm_Lmin, H.
     apply Hy.
     apply_pr2 Llehz_correct.
     apply H.
@@ -481,20 +516,64 @@ Proof.
   now apply hzmin_case_strong.
 Qed.
 
+Lemma hzlehopp :
+  Π x y : hz, hzleh y x → (hzleh (- x) (- y))%hz.
+Proof.
+  intros x y H.
+  apply hzlehandplusrinv with y.
+  rewrite hzlminus, hzpluscomm.
+  apply hzlehandplusrinv with x.
+  rewrite hzplusassoc, hzlminus.
+  rewrite hzplusl0, hzplusr0.
+  exact H.
+Qed.
+
+Lemma hzminopp_opphzmax :
+  Π x y : hz, hzmin (- x)%hz (- y)%hz = (- hzmax x y)%hz.
+Proof.
+  intros x y.
+  change (hProppair (Lmin islattice_hz (- x)%hz (- y)%hz = (- Lmax islattice_hz x y)%hz) (isasethz _ _)).
+  apply (Lmin_case_strong _ (λ z, hProppair (z = _) (isasethz z _))) ; intros Hmin ;
+  apply (Lmax_case_strong _ (λ z, hProppair (_ = - z)%hz (isasethz _ (- z)%hz))) ; intros Hmax.
+  - reflexivity.
+  - apply isantisymmhzleh.
+    + apply_pr2 Llehz_correct.
+      exact Hmin.
+    + apply hzlehopp.
+      apply_pr2 Llehz_correct.
+      exact Hmax.
+  - apply isantisymmhzleh.
+    + apply_pr2 Llehz_correct.
+      exact Hmin.
+    + apply hzlehopp.
+      apply_pr2 Llehz_correct.
+      exact Hmax.
+  - reflexivity.
+Qed.
+
+Lemma hzoppopp :
+  Π x : hz, (- (- x))%hz = x.
+Proof.
+  apply (grinvinv hz).
+Qed.
+
 Lemma hzmax_case_strong :
   Π (P : hz → UU) (x y : hz),
   (hzleh y x → P x) → (hzleh x y → P y) → P (hzmax x y).
 Proof.
   intros P x y Hx Hy.
-  apply (Lmax_case_strong islattice_hz).
-  - apply Llehz_dec.
-  - intros H.
+  rewrite <- (hzoppopp (hzmax x y)).
+  rewrite <- hzminopp_opphzmax.
+  apply hzmin_case_strong ; intros H.
+  - rewrite hzoppopp.
     apply Hx.
-    apply_pr2 Llehz_correct.
+    apply hzlehopp in H.
+    rewrite 2!hzoppopp in H.
     apply H.
-  - intros H.
+  - rewrite hzoppopp.
     apply Hy.
-    apply_pr2 Llehz_correct.
+    apply hzlehopp in H.
+    rewrite 2!hzoppopp in H.
     apply H.
 Qed.
 Lemma hzmax_case :
@@ -504,7 +583,6 @@ Proof.
   intros P x y Hx Hy.
   now apply hzmax_case_strong.
 Qed.
-
 
 Lemma issquarerdistr_hzmin_mult :
   issquarerdistr (intdomnonzerosubmonoid hzintdom) hzmin hzmult.
@@ -520,7 +598,7 @@ Proof.
       * apply hzmultlth0lth0 ; apply H1.
       * exact H.
       * exact H0.
-  - apply hzmin_case_strong ; intros H0.
+  - apply (hzmin_case_strong (λ z, (y * (pr1 k * pr1 k))%hz = z)) ; intros H0.
     + apply isantisymmhzleh.
       apply hzlehandmultr.
       induction (hzneqchoice _ _ (pr2 k)) as [H1 | H1].
@@ -880,7 +958,7 @@ Lemma hqmax_eq_l :
 Proof.
   intros x y H.
   rewrite <- Lmax_hqmax.
-  apply (Lmax_eq_l islattice_hq).
+  apply (Lmax_le_eq_l islattice_hq).
   apply Lle_hqleh.
   exact H.
 Qed.
@@ -889,7 +967,7 @@ Lemma hqmax_eq_r :
 Proof.
   intros x y H.
   rewrite <- Lmax_hqmax.
-  apply (Lmax_eq_r islattice_hq).
+  apply (Lmax_le_eq_r islattice_hq).
   apply Lle_hqleh.
   exact H.
 Qed.
