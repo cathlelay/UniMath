@@ -565,7 +565,7 @@ Proof.
   apply (grinvinv hz).
 Qed.
 
-Lemma issubrdistr_hzmin_hzmult :
+Lemma ispartrdistr_hzmin_hzmult :
   Π (x y k : hz),
   hzgth k 0%hz →
   (hzmin x y * k)%hz =
@@ -587,7 +587,7 @@ Proof.
     * exact H.
   + reflexivity.
 Qed.
-Lemma issubrdistr_hzmax_hzmult :
+Lemma ispartrdistr_hzmax_hzmult :
   Π (x y k : hz),
   hzgth k 0%hz →
   (hzmax x y * k)%hz =
