@@ -271,8 +271,8 @@ Defined.
 
 (** ** hnnq is a lattice *)
 
-Lemma islatticeop_hnnq :
-  islatticeop hnnq_min hnnq_max.
+Lemma latticeop_hnnq :
+  latticeop hnnq_min hnnq_max.
 Proof.
   repeat split ; intro ; intros ; apply subtypeEquality_prop.
   - apply isassoc_hqmin.
@@ -282,11 +282,11 @@ Proof.
   - apply isabsorb_hqmin_hqmax.
   - apply isabsorb_hqmax_hqmin.
 Qed.
-Definition islattice_hnnq : islattice hnnq_set :=
-  hnnq_min ,, hnnq_max ,, islatticeop_hnnq.
+Definition lattice_hnnq : lattice hnnq_set :=
+  hnnq_min ,, hnnq_max ,, latticeop_hnnq.
 
 Lemma Lle_hnnq_le :
-  Π x y : hnnq_set, hnnq_le x y <-> Lle islattice_hnnq x y.
+  Π x y : hnnq_set, hnnq_le x y <-> Lle lattice_hnnq x y.
 Proof.
   intros x y ; split.
   - intros H.
@@ -847,7 +847,7 @@ Proof.
   intros x y Hle.
   apply (plusNonnegativeRationals_eqcompat_r y).
   rewrite minusNonnegativeRationals_plus, islunit_zeroNonnegativeRationals.
-  apply (Lmax_le_eq_r islattice_hnnq).
+  apply (Lmax_le_eq_r lattice_hnnq).
   apply Lle_hnnq_le.
   exact Hle.
 Qed.
@@ -857,7 +857,7 @@ Lemma minusNonnegativeRationals_plus_r :
 Proof.
   intros r q H.
   rewrite minusNonnegativeRationals_plus.
-  apply (Lmax_le_eq_l islattice_hnnq).
+  apply (Lmax_le_eq_l lattice_hnnq).
   apply Lle_hnnq_le.
   exact H.
 Qed.
@@ -917,7 +917,7 @@ Proof.
   rewrite minusNonnegativeRationals_plus, isassoc_plusNonnegativeRationals.
   rewrite (iscomm_plusNonnegativeRationals z), <- isassoc_plusNonnegativeRationals, minusNonnegativeRationals_plus.
   change (hnnq_max x y + z = hnnq_max (x + z) y).
-  rewrite !(Lmax_le_eq_l islattice_hnnq).
+  rewrite !(Lmax_le_eq_l lattice_hnnq).
   - reflexivity.
   - apply (pr1 (Lle_hnnq_le _ _)).
     apply istrans_leNonnegativeRationals with x.

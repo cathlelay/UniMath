@@ -857,8 +857,8 @@ Proof.
     exact (pr2 H).
 Qed.
 
-Lemma islatticeop_Dcuts :
-  islatticeop Dcuts_min Dcuts_max.
+Lemma latticeop_Dcuts :
+  latticeop Dcuts_min Dcuts_max.
 Proof.
   repeat split.
   exact isassoc_Dcuts_min.
@@ -868,11 +868,11 @@ Proof.
   exact Dcuts_min_max.
   exact Dcuts_max_min.
 Qed.
-Definition islattice_Dcuts : islattice Dcuts :=
-  Dcuts_min ,, Dcuts_max ,, islatticeop_Dcuts.
+Definition lattice_Dcuts : lattice Dcuts :=
+  Dcuts_min ,, Dcuts_max ,, latticeop_Dcuts.
 
 Local Lemma Dcuts_le_lattice_compat :
-  Π x y : Dcuts, x <= y <-> Lle islattice_Dcuts x y.
+  Π x y : Dcuts, x <= y <-> Lle lattice_Dcuts x y.
 Proof.
   intros x y ; split.
   - intros H.
@@ -905,14 +905,14 @@ Lemma Dcuts_min_carac_l :
   Π x y : Dcuts, x <= y -> Dcuts_min x y = x.
 Proof.
   intros x y Hxy.
-  apply (Lmin_le_eq_l islattice_Dcuts).
+  apply (Lmin_le_eq_l lattice_Dcuts).
   now apply Dcuts_le_lattice_compat.
 Qed.
 Lemma Dcuts_min_carac_r :
   Π x y : Dcuts, y <= x -> Dcuts_min x y = y.
 Proof.
   intros x y Hxy.
-  apply (Lmin_le_eq_r islattice_Dcuts).
+  apply (Lmin_le_eq_r lattice_Dcuts).
   now apply Dcuts_le_lattice_compat.
 Qed.
 
@@ -935,14 +935,14 @@ Lemma Dcuts_max_carac_l :
   Π x y : Dcuts, y <= x -> Dcuts_max x y = x.
 Proof.
   intros x y Hxy.
-  apply (Lmax_le_eq_l islattice_Dcuts).
+  apply (Lmax_le_eq_l lattice_Dcuts).
   now apply Dcuts_le_lattice_compat.
 Qed.
 Lemma Dcuts_max_carac_r :
   Π x y : Dcuts, x <= y -> Dcuts_max x y = y.
 Proof.
   intros x y Hxy.
-  apply (Lmax_le_eq_r islattice_Dcuts).
+  apply (Lmax_le_eq_r lattice_Dcuts).
   now apply Dcuts_le_lattice_compat.
 Qed.
 
@@ -951,7 +951,7 @@ Lemma Dcuts_max_le :
 Proof.
   intros x y z Hx Hy.
   apply_pr2 Dcuts_le_lattice_compat.
-  apply (Lmax_le_case islattice_Dcuts).
+  apply (Lmax_le_case lattice_Dcuts).
   apply isrdistr_Dcuts_max_min.
   apply Dcuts_le_lattice_compat, Hx.
   apply Dcuts_le_lattice_compat, Hy.
@@ -3345,7 +3345,7 @@ Proof.
     + now apply hinhpr ; left ; right.
 Qed.
 
-Definition extruncminus_Dcuts : extruncminus (X := (_,,_),,isabmonoidop_Dcuts_plus) islattice_Dcuts :=
+Definition extruncminus_Dcuts : extruncminus (X := (_,,_),,isabmonoidop_Dcuts_plus) lattice_Dcuts :=
   Dcuts_minus ,, Dcuts_minus_plus_max.
 
 Lemma Dcuts_minus_eq_zero:

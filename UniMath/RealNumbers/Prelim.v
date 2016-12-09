@@ -307,7 +307,7 @@ Proof.
       apply maponpaths, IHn.
 Qed.
 
-Lemma islatticeop_nat : islatticeop (X := natcommrig) min max.
+Lemma latticeop_nat : latticeop (X := natcommrig) min max.
 Proof.
   repeat split.
   - exact isassoc_min.
@@ -357,16 +357,16 @@ Proof.
       apply noeqinjS, H.
 Qed.
 
-Definition islattice_nat : islatticedec (natcommrig).
+Definition lattice_nat : latticedec (natcommrig).
 Proof.
-  exists (min ,, max ,, islatticeop_nat).
+  exists (min ,, max ,, latticeop_nat).
   split.
   - exact istotal_Llenat.
   - exact isdecrel_Llenat.
 Defined.
 
 Lemma Llenat_correct :
-  Π n m, n ≤ m <-> Lle islattice_nat n m.
+  Π n m, n ≤ m <-> Lle lattice_nat n m.
 Proof.
   intros n m.
   split.
@@ -404,13 +404,13 @@ Proof.
   induction n as [ | n IHn].
   - simpl.
     intros m k.
-    apply pathsinv0, (Lmin_le_eq_l islattice_nat).
+    apply pathsinv0, (Lmin_le_eq_l lattice_nat).
     apply Llenat_correct.
     apply natlehmplusnm.
   - intros m ; induction m as [ | m _].
     + clear ; intros k.
       change (k = Nat.min (S n + k) k).
-      apply pathsinv0, (Lmin_le_eq_r islattice_nat).
+      apply pathsinv0, (Lmin_le_eq_r lattice_nat).
       apply Llenat_correct.
       apply natlehmplusnm.
     + simpl ; intros k.
@@ -423,13 +423,13 @@ Proof.
   induction n as [ | n IHn].
   - simpl.
     intros m k.
-    apply pathsinv0, (Lmax_le_eq_r islattice_nat).
+    apply pathsinv0, (Lmax_le_eq_r lattice_nat).
     apply Llenat_correct.
     apply natlehmplusnm.
   - intros m ; induction m as [ | m _].
     + clear ; intros k.
       change (S n + k = Nat.max (S n + k) k)%nat.
-      apply pathsinv0, (Lmax_le_eq_l islattice_nat).
+      apply pathsinv0, (Lmax_le_eq_l lattice_nat).
       apply Llenat_correct.
       apply natlehmplusnm.
     + simpl ; intros k.
@@ -438,20 +438,20 @@ Qed.
 
 (** ** hz is a lattice *)
 
-Lemma islattice_hz : islatticedec hz.
+Lemma lattice_hz : latticedec hz.
 Proof.
-  simple refine (abgrdiff_islatticedec _ _ _ _).
-  apply islattice_nat.
+  simple refine (abgrdiff_latticedec _ _ _ _).
+  apply lattice_nat.
   intros x y z ; apply natplusrcan.
   apply isrdistr_natmin_plus.
   apply isrdistr_natmax_plus.
 Defined.
 
-Definition hzmin : binop hz := Lmin islattice_hz.
-Definition hzmax : binop hz := Lmax islattice_hz.
+Definition hzmin : binop hz := Lmin lattice_hz.
+Definition hzmax : binop hz := Lmax lattice_hz.
 
 Lemma Llehz_correct :
-  Π n m, hzleh n m <-> Lle islattice_hz n m.
+  Π n m, hzleh n m <-> Lle lattice_hz n m.
 Proof.
   simple refine (setquotuniv2prop _ (λ _ _, hProppair _ _) _).
   - apply isapropdirprod ;
@@ -609,13 +609,13 @@ Proof.
       exact H0.
   + reflexivity.
 Qed.
-Opaque islattice_hz.
+Opaque lattice_hz.
 
 (** ** hq is a lattice *)
 
-Definition islattice_hq : islatticedec hq.
+Definition lattice_hq : latticedec hq.
 Proof.
-  simple refine (fldfrac_islatticedec _ _ _ _ _ _ _ _ _ _ _).
+  simple refine (fldfrac_latticedec _ _ _ _ _ _ _ _ _ _ _).
   - apply hzgth.
   - exact isplushrelhzgth.
   - apply isrngmulthzgth.
@@ -624,7 +624,7 @@ Proof.
     apply isirreflhzgth.
   - intros n m.
     apply hzneqchoice.
-  - apply islattice_hz.
+  - apply lattice_hz.
   - intros k x y.
     apply hzmultrcan.
     apply hzgthtoneq.
@@ -634,34 +634,25 @@ Proof.
   - intros x y k.
     generalize (pr2 k) ; intros Hk.
     simpl in Hk.
-    generalize (issubrdistr_hzmin_hzmult x y (pr1 k) Hk).
+    generalize (ispartrdistr_hzmin_hzmult x y (pr1 k) Hk).
     unfold hzmin.
     intros H ; apply H.
   - intros x y k.
     generalize (pr2 k) ; intros Hk.
     simpl in Hk.
-    generalize (issubrdistr_hzmax_hzmult x y (pr1 k) Hk).
+    generalize (ispartrdistr_hzmax_hzmult x y (pr1 k) Hk).
     unfold hzmax.
     intros H ; apply H.
 Defined.
 
 Definition hqmin : binop hq :=
-  Lmin islattice_hq.
+  Lmin lattice_hq.
 Definition hqmax : binop hq :=
-  Lmax islattice_hq.
+  Lmax lattice_hq.
 
 Lemma Llehq_correct :
-  Π n m : hq, n <= m <-> Lle islattice_hq n m.
+  Π n m : hq, n <= m <-> Lle lattice_hq n m.
 Proof.
-  assert (H : issubrdistr (X := rngmultabmonoid hzintdom)
-                (rngpossubmonoid hzintdom isrngmulthzgth
-                                 (ct (hzgth, isdecrelhzgth, 1%hz, 0%hz))) (Lmax islattice_hz) op).
-  { intros x y k ;
-    induction k as [k Hk] ;
-    simpl in Hk ;
-    generalize (issubrdistr_hzmax_hzmult x y k Hk) ;
-    unfold hzmax ;
-    intros H ; apply H. }
   intros n m ; simpl.
   unfold weq_min, hqgth ; simpl.
   unfold fldfracgt ; simpl.
@@ -695,12 +686,14 @@ Proof.
   clearbody n' m' ; clear n m.
   split ; intros Hle.
   - apply maponpaths.
-    simple refine (pr1 (abmonoidfrac_Lle (rngmultabmonoid hz) _ _ _ H n' m') _).
     revert n' m' Hle.
-    set (H0 := ispartbinophrel_Lle _ _ _ _ _).
     simple refine (setquotuniv2prop _ (λ _ _, hProppair _ _) _).
-    + apply isapropimpl, propproperty.
-    + intros n m Hle ; revert Hle.
+    + apply isapropimpl.
+      apply (pr2 (pr1 (pr1 (commrngfrac hzintdom (rngpossubmonoid hzintdom isrngmulthzgth
+             (ct (hzgth, isdecrelhzgth, 1%hz, 0%hz))))))).
+    + intros n m Hle.
+      simple refine (abmonoidfrac_Lle_1 (rngmultabmonoid hz) _ _ _ n m _).
+      revert Hle.
       unfold commrngfracgt, abmonoidfracrel, quotrel.
       do 2 rewrite setquotuniv2comm.
       intros Hle.
@@ -711,13 +704,11 @@ Proof.
       exact Hgt.
   - apply pathsweq1' in Hle.
     rewrite homotweqinvweq in Hle.
-    generalize (pr2 (abmonoidfrac_Lle (rngmultabmonoid hz) _ _ _ H n' m') Hle) ; clear Hle.
-    set (H0 := ispartbinophrel_Lle _ _ _ _ _).
-    clearbody H0.
-    revert n' m'.
+    revert n' m' Hle.
     simple refine (setquotuniv2prop _ (λ _ _, hProppair _ _) _).
     + apply isapropimpl, isapropimpl, isapropempty.
-    + intros n m Hle ; revert Hle.
+    + intros n m Hle.
+      generalize (abmonoidfrac_Lle_2 (rngmultabmonoid hz) _ _ _ n m Hle) ; clear Hle.
       unfold commrngfracgt, abmonoidfracrel, quotrel.
       do 2 rewrite setquotuniv2comm.
       unfold neg.
@@ -862,57 +853,57 @@ Proof.
       exact H0.
   + reflexivity.
 Qed.
-Opaque islattice_hq.
+Opaque lattice_hq.
 
 Definition isassoc_hqmin :
   isassoc hqmin :=
-  isassoc_Lmin islattice_hq.
+  isassoc_Lmin lattice_hq.
 Definition iscomm_hqmin :
   iscomm hqmin :=
-  iscomm_Lmin islattice_hq.
+  iscomm_Lmin lattice_hq.
 
 Definition isassoc_hqmax :
   isassoc hqmax :=
-  isassoc_Lmax islattice_hq.
+  isassoc_Lmax lattice_hq.
 Definition iscomm_hqmax :
   iscomm hqmax :=
-  iscomm_Lmax islattice_hq.
+  iscomm_Lmax lattice_hq.
 
 Definition isabsorb_hqmin_hqmax :
   Π x y : hq, hqmin x (hqmax x y) = x
  :=
-  Lmin_absorb islattice_hq.
+  Lmin_absorb lattice_hq.
 Definition isabsorb_hqmax_hqmin :
   Π x y : hq, hqmax x (hqmin x y) = x
  :=
-  Lmax_absorb islattice_hq.
+  Lmax_absorb lattice_hq.
 
 Definition hqmin_id :
   Π x : hq, hqmin x x = x :=
-  Lmin_id islattice_hq.
+  Lmin_id lattice_hq.
 Definition hqmax_id :
   Π x : hq, hqmax x x = x :=
-  Lmax_id islattice_hq.
+  Lmax_id lattice_hq.
 
 Lemma hqmax_ge_l :
   Π (x y : hq), x <= hqmax x y.
 Proof.
   intros x y.
   apply_pr2 Llehq_correct.
-  apply (Lmax_ge_l islattice_hq).
+  apply (Lmax_ge_l lattice_hq).
 Qed.
 Lemma hqmax_ge_r :
   Π (x y : hq), y <= hqmax x y.
 Proof.
   intros x y.
   apply_pr2 Llehq_correct.
-  apply (Lmax_ge_r islattice_hq).
+  apply (Lmax_ge_r lattice_hq).
 Qed.
 Lemma hqmax_eq_l :
   Π (x y : hq), y <= x → hqmax x y = x.
 Proof.
   intros x y H.
-  apply (Lmax_le_eq_l islattice_hq).
+  apply (Lmax_le_eq_l lattice_hq).
   apply Llehq_correct.
   exact H.
 Qed.
@@ -920,7 +911,7 @@ Lemma hqmax_eq_r :
   Π (x y : hq), x <= y → hqmax x y = y.
 Proof.
   intros x y H.
-  apply (Lmax_le_eq_r islattice_hq).
+  apply (Lmax_le_eq_r lattice_hq).
   apply Llehq_correct.
   exact H.
 Qed.
@@ -959,10 +950,10 @@ Qed.
 Definition hqtruncminus : binop hq :=
   λ x y : hq, hqmax 0 (x - y).
 Lemma istruncminus_hq :
-  istruncminus (X := rngaddabgr hq) islattice_hq hqtruncminus.
+  istruncminus (X := rngaddabgr hq) lattice_hq hqtruncminus.
 Proof.
   unfold hqtruncminus.
-  apply (abgr_truncminus (X := rngaddabgr hq) islattice_hq).
+  apply (abgr_truncminus (X := rngaddabgr hq) lattice_hq).
   exact isrdistr_hqmax_hqplus.
 Qed.
 
@@ -985,7 +976,7 @@ Proof.
     exact H.
 Qed.
 
-Definition extruncminus_hq : extruncminuswithgt (X := rngaddabgr hq) (islatticedec_gt islattice_hq).
+Definition extruncminus_hq : extruncminuswithgt (X := rngaddabgr hq) (latticedec_gt lattice_hq).
 Proof.
   mkpair.
   exact (hqtruncminus,, istruncminus_hq).
