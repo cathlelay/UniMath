@@ -729,6 +729,22 @@ Proof.
       apply (pr2 Hgt).
 Qed.
 
+Lemma Lgthq_correct :
+  Π n m : hq, n > m <-> Lgt (latticedec_gt lattice_hq) n m.
+Proof.
+  intros n m.
+  split.
+  - intros Hgt Hle.
+    generalize (pr2 (Llehq_correct n m) Hle).
+    apply hqgthtoneghqleh.
+    exact Hgt.
+  - intros Hgt.
+    apply neghqlehtogth ; intros Hle.
+    apply Hgt.
+    apply (pr1 (Llehq_correct n m)).
+    exact Hle.
+Qed.
+
 Lemma hqmin_case_strong :
   Π (P : hq → UU) (x y : hq),
   (hqleh x y → P x) → (hqleh y x → P y) → P (hqmin x y).
@@ -957,37 +973,32 @@ Proof.
   exact isrdistr_hqmax_hqplus.
 Qed.
 
+Definition extruncminus_hq : extruncminus (X := rngaddabgr hq) lattice_hq :=
+  hqtruncminus,, istruncminus_hq.
+
 Lemma hqtruncminus_pos :
   Π x y : hq, x > y <-> hqtruncminus x y > 0.
 Proof.
-  unfold hqtruncminus.
-  intros x y ; split.
-  - intros H.
-    apply hqmax_gth_l.
-    unfold hqminus.
-    apply hqgthandplusrinv with y.
-    rewrite hqplusassoc, hqlminus, hqplusl0, hqplusr0.
+  change hqtruncminus with (truncminus extruncminus_hq).
+  intros x y ; split ; intros Hlt.
+  - apply (pr2 (Lgthq_correct _ _)).
+    apply (truncminus_pos (X := hq) (latticedec_gt lattice_hq) extruncminus_hq).
+    intros n m k H.
+    apply (pr1 (Lgthq_correct _ _)).
+    apply hqgthandplusrinv with n.
+    apply (pr2 (Lgthq_correct _ _)).
     exact H.
-  - intros H.
-    apply_pr2_in hqmax_gth_l H.
-    apply hqgthandplusrinv with (- y).
-    change (x - y > y - y).
-    rewrite hqrminus.
+    apply (pr1 (Lgthq_correct _ _)).
+    exact Hlt.
+  - apply (pr2 (Lgthq_correct _ _)).
+    apply (truncminus_pos' (X := hq) (latticedec_gt lattice_hq) extruncminus_hq).
+    intros n m k H.
+    apply (pr1 (Lgthq_correct _ _)).
+    apply hqgthandplusr.
+    apply (pr2 (Lgthq_correct _ _)).
     exact H.
+    apply (pr1 (Lgthq_correct _ _)).
+    exact Hlt.
 Qed.
-
-Definition extruncminus_hq : extruncminuswithgt (X := rngaddabgr hq) (latticedec_gt lattice_hq).
-Proof.
-  mkpair.
-  exact (hqtruncminus,, istruncminus_hq).
-  intros x y Hgt Hle.
-  apply Hgt.
-  apply Llehq_correct.
-  rewrite truncminus_eq_0.
-  apply isreflhqleh.
-  intros n m k.
-  apply hqplusrcan.
-  apply Hle.
-Defined.
 
 Close Scope hq_scope.
