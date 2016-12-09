@@ -217,7 +217,7 @@ Proof.
 Qed.
 
 Lemma isassoc_min :
-  isassoc (X := hSetpair nat isasetnat) min.
+  isassoc (X := natcommrig) min.
 Proof.
   intros n.
   induction n as [ | n IHn].
@@ -234,7 +234,7 @@ Proof.
         apply maponpaths, IHn.
 Qed.
 Lemma iscomm_min :
-  iscomm (X := hSetpair nat isasetnat) min.
+  iscomm (X := natcommrig) min.
 Proof.
   intros n.
   induction n as [ | n IHn].
@@ -250,7 +250,7 @@ Proof.
 Qed.
 
 Lemma isassoc_max :
-  isassoc (X := hSetpair nat isasetnat) max.
+  isassoc (X := natcommrig) max.
 Proof.
   intros n.
   induction n as [ | n IHn].
@@ -267,7 +267,7 @@ Proof.
         apply maponpaths, IHn.
 Qed.
 Lemma iscomm_max :
-  iscomm (X := hSetpair nat isasetnat) max.
+  iscomm (X := natcommrig) max.
 Proof.
   intros n.
   induction n as [ | n IHn].
@@ -309,7 +309,7 @@ Proof.
       apply maponpaths, IHn.
 Qed.
 
-Lemma islatticeop_nat : islatticeop (X := hSetpair nat isasetnat) min max.
+Lemma islatticeop_nat : islatticeop (X := natcommrig) min max.
 Proof.
   repeat split.
   - exact isassoc_min.
@@ -320,40 +320,51 @@ Proof.
   - exact isabsorb_max_min.
 Qed.
 
+Lemma istotal_Llenat :
+  istotal (λ x y : nat, hProppair (min x y = x) (isasetnat (min x y) x)).
+Proof.
+  intros n.
+  induction n as [ | n IHn].
+  - intros m.
+    apply hinhpr, ii1.
+    reflexivity.
+  - intros m.
+    induction m as [ | m _].
+    + apply hinhpr, ii2.
+      reflexivity.
+    + generalize (IHn m).
+      apply hinhfun, sumofmaps ; intros H.
+      left ; simpl.
+      apply maponpaths, H.
+      right ; simpl.
+      apply maponpaths, H.
+Qed.
+Lemma isdecrel_Llenat :
+  isdecrel (λ x y : nat, hProppair (min x y = x) (isasetnat (min x y) x)).
+Proof.
+  intros n.
+  induction n as [ | n IHn].
+  - intros m.
+    apply ii1.
+    reflexivity.
+  - intros m.
+    induction m as [ | m _].
+    + apply ii2.
+      apply negpaths0sx.
+    + generalize (IHn m).
+      apply sumofmaps ; intros H.
+      left ; simpl.
+      apply maponpaths, H.
+      right ; simpl.
+      apply noeqinjS, H.
+Qed.
+
 Definition islattice_nat : islatticedec (natcommrig).
 Proof.
   exists (min ,, max ,, islatticeop_nat).
   split.
-  - intros n.
-    induction n as [ | n IHn].
-    + intros m.
-      apply hinhpr, ii1.
-      reflexivity.
-    + intros m.
-      induction m as [ | m _].
-      * apply hinhpr, ii2.
-        reflexivity.
-      * generalize (IHn m).
-        apply hinhfun, sumofmaps ; intros H.
-        left ; simpl.
-        apply maponpaths, H.
-        right ; simpl.
-        apply maponpaths, H.
-  - intros n.
-    induction n as [ | n IHn].
-    + intros m.
-      apply ii1.
-      reflexivity.
-    + intros m.
-      induction m as [ | m _].
-      * apply ii2.
-        apply negpaths0sx.
-      * generalize (IHn m).
-        apply sumofmaps ; intros H.
-        left ; simpl.
-        apply maponpaths, H.
-        right ; simpl.
-        apply noeqinjS, H.
+  - exact istotal_Llenat.
+  - exact isdecrel_Llenat.
 Defined.
 
 Lemma Llenat_correct :
@@ -444,13 +455,10 @@ Definition hzmax : binop hz := Lmax islattice_hz.
 Lemma Llehz_correct :
   Π n m, hzleh n m <-> Lle islattice_hz n m.
 Proof.
-  intros n m.
-  generalize (pr1 (pr2 n)) (pr1 (pr2 m)).
-  apply hinhuniv2'.
+  simple refine (setquotuniv2prop _ (λ _ _, hProppair _ _) _).
   - apply isapropdirprod ;
     apply isapropimpl, propproperty.
-  - intros n' m'.
-    rewrite <- (setquotl0 _ n n'), <- (setquotl0 _ m m').
+  - intros n m.
     split ; intros H.
     + apply abgrdiff_Lle.
       unfold abgrdiffrel, quotrel.
@@ -479,32 +487,17 @@ Proof.
       apply (pr2 H).
 Qed.
 
-Lemma Llehz_dec :
-  Π x y : hz, Lle islattice_hz x y ⨿ Lle islattice_hz y x.
-Proof.
-  intros x y.
-  induction (hzgthorleh x y) as [H | H].
-  - apply ii2, Llehz_correct.
-    apply hzlthtoleh.
-    exact H.
-  - apply ii1, Llehz_correct.
-    apply H.
-Qed.
-
 Lemma hzmin_case_strong :
   Π (P : hz → UU) (x y : hz),
   (hzleh x y → P x) → (hzleh y x → P y) → P (hzmin x y).
 Proof.
   intros P x y Hx Hy.
-  induction (Llehz_dec x y) as [H | H].
-  - change (P (Lmin islattice_hz x y)).
-    rewrite H.
-    apply Hx.
+  unfold hzmin.
+  apply Lmin_case_strong ; intros H.
+  - apply Hx.
     apply_pr2 Llehz_correct.
     apply H.
-  - change (P (Lmin islattice_hz x y)).
-    rewrite iscomm_Lmin, H.
-    apply Hy.
+  - apply Hy.
     apply_pr2 Llehz_correct.
     apply H.
 Qed.
@@ -514,6 +507,28 @@ Lemma hzmin_case :
 Proof.
   intros P x y Hx Hy.
   now apply hzmin_case_strong.
+Qed.
+
+Lemma hzmax_case_strong :
+  Π (P : hz → UU) (x y : hz),
+  (hzleh y x → P x) → (hzleh x y → P y) → P (hzmax x y).
+Proof.
+  intros P x y Hx Hy.
+  unfold hzmax.
+  apply Lmax_case_strong ; intros H.
+  - apply Hx.
+    apply_pr2 Llehz_correct.
+    apply H.
+  - apply Hy.
+    apply_pr2 Llehz_correct.
+    apply H.
+Qed.
+Lemma hzmax_case :
+  Π (P : hz → UU) (x y : hz),
+  P x → P y → P (hzmax x y).
+Proof.
+  intros P x y Hx Hy.
+  now apply hzmax_case_strong.
 Qed.
 
 Lemma hzlehopp :
@@ -532,21 +547,16 @@ Lemma hzminopp_opphzmax :
   Π x y : hz, hzmin (- x)%hz (- y)%hz = (- hzmax x y)%hz.
 Proof.
   intros x y.
-  change (hProppair (Lmin islattice_hz (- x)%hz (- y)%hz = (- Lmax islattice_hz x y)%hz) (isasethz _ _)).
-  apply (Lmin_case_strong _ (λ z, hProppair (z = _) (isasethz z _))) ; intros Hmin ;
-  apply (Lmax_case_strong _ (λ z, hProppair (_ = - z)%hz (isasethz _ (- z)%hz))) ; intros Hmax.
+  apply hzmin_case_strong ; intros Hmin ;
+  apply hzmax_case_strong ; intros Hmax.
   - reflexivity.
   - apply isantisymmhzleh.
-    + apply_pr2 Llehz_correct.
-      exact Hmin.
+    + exact Hmin.
     + apply hzlehopp.
-      apply_pr2 Llehz_correct.
       exact Hmax.
   - apply isantisymmhzleh.
-    + apply_pr2 Llehz_correct.
-      exact Hmin.
+    + exact Hmin.
     + apply hzlehopp.
-      apply_pr2 Llehz_correct.
       exact Hmax.
   - reflexivity.
 Qed.
@@ -557,418 +567,363 @@ Proof.
   apply (grinvinv hz).
 Qed.
 
-Lemma hzmax_case_strong :
-  Π (P : hz → UU) (x y : hz),
-  (hzleh y x → P x) → (hzleh x y → P y) → P (hzmax x y).
+Lemma issubrdistr_hzmin_hzmult :
+  Π (x y k : hz),
+  hzgth k 0%hz →
+  (hzmin x y * k)%hz =
+  hzmin (x * k)%hz (y * k)%hz.
 Proof.
-  intros P x y Hx Hy.
-  rewrite <- (hzoppopp (hzmax x y)).
-  rewrite <- hzminopp_opphzmax.
-  apply hzmin_case_strong ; intros H.
-  - rewrite hzoppopp.
-    apply Hx.
-    apply hzlehopp in H.
-    rewrite 2!hzoppopp in H.
-    apply H.
-  - rewrite hzoppopp.
-    apply Hy.
-    apply hzlehopp in H.
-    rewrite 2!hzoppopp in H.
-    apply H.
+  intros x y k Hk.
+  refine (hzmin_case_strong _ _ _ _ _) ; intros H ;
+  refine (hzmin_case_strong (λ z : hz, (z * _)%hz = _) _ _ _ _) ; intros H0.
+  + reflexivity.
+  + apply (isantisymmhzleh).
+    * apply hzlehandmultr.
+      apply Hk.
+      exact H0.
+    * exact H.
+  + apply (isantisymmhzleh).
+    * apply hzlehandmultr.
+      apply Hk.
+      exact H0.
+    * exact H.
+  + reflexivity.
 Qed.
-Lemma hzmax_case :
-  Π (P : hz → UU) (x y : hz),
-  P x → P y → P (hzmax x y).
+Lemma issubrdistr_hzmax_hzmult :
+  Π (x y k : hz),
+  hzgth k 0%hz →
+  (hzmax x y * k)%hz =
+  hzmax (x * k)%hz (y * k)%hz.
 Proof.
-  intros P x y Hx Hy.
-  now apply hzmax_case_strong.
+  intros x y k Hk.
+  refine (hzmax_case_strong _ _ _ _ _) ; intros H ;
+  refine (hzmax_case_strong (λ z : hz, (z * _)%hz = _) _ _ _ _) ; intros H0.
+  + reflexivity.
+  + apply (isantisymmhzleh).
+    * exact H.
+    * apply hzlehandmultr.
+      apply Hk.
+      exact H0.
+  + apply (isantisymmhzleh).
+    * exact H.
+    * apply hzlehandmultr.
+      apply Hk.
+      exact H0.
+  + reflexivity.
 Qed.
-
-Lemma issquarerdistr_hzmin_mult :
-  issquarerdistr (intdomnonzerosubmonoid hzintdom) hzmin hzmult.
-Proof.
-  intros k x y.
-  apply hzmin_case_strong ; intros H.
-  - apply hzmin_case_strong ; intros H0.
-    + reflexivity.
-    + apply isantisymmhzleh.
-      apply hzlehandmultr.
-      induction (hzneqchoice _ _ (pr2 k)) as [H1 | H1].
-      * apply hzmultgth0gth0 ; apply H1.
-      * apply hzmultlth0lth0 ; apply H1.
-      * exact H.
-      * exact H0.
-  - apply (hzmin_case_strong (λ z, (y * (pr1 k * pr1 k))%hz = z)) ; intros H0.
-    + apply isantisymmhzleh.
-      apply hzlehandmultr.
-      induction (hzneqchoice _ _ (pr2 k)) as [H1 | H1].
-      * apply hzmultgth0gth0 ; apply H1.
-      * apply hzmultlth0lth0 ; apply H1.
-      * exact H.
-      * exact H0.
-    + reflexivity.
-Qed.
-Lemma issquarerdistr_hzmax_mult :
-  issquarerdistr (intdomnonzerosubmonoid hzintdom) hzmax hzmult.
-Proof.
-  intros k x y.
-  refine (hzmax_case_strong _ _ _ _ _) ; intros H.
-  - refine (hzmax_case_strong (λ z, (z * (pr1 k * pr1 k))%hz = (x * (pr1 k * pr1 k))%hz) x y _ _) ; intros H0.
-    + reflexivity.
-    + apply isantisymmhzleh.
-      exact H.
-      apply hzlehandmultr.
-      induction (hzneqchoice _ _ (pr2 k)) as [H1 | H1].
-      * apply hzmultgth0gth0 ; apply H1.
-      * apply hzmultlth0lth0 ; apply H1.
-      * exact H0.
-  - refine (hzmax_case_strong (λ z, (z * (pr1 k * pr1 k))%hz = (y * (pr1 k * pr1 k))%hz) x y _ _) ; intros H0.
-    + apply isantisymmhzleh.
-      exact H.
-      apply hzlehandmultr.
-      induction (hzneqchoice _ _ (pr2 k)) as [H1 | H1].
-      * apply hzmultgth0gth0 ; apply H1.
-      * apply hzmultlth0lth0 ; apply H1.
-      * exact H0.
-    + reflexivity.
-Qed.
+Opaque islattice_hz.
 
 (** ** hq is a lattice *)
 
-(* Lemma islattice_hq : islattice hq.
+Definition islattice_hq : islatticedec hq.
 Proof.
-  simple refine (abmonoidfrac_islattice (rngmultabmonoid hz) _ _ _ _).
-  apply islattice_hz.
-  apply issquarerdistr_hzmin_mult.
-  apply issquarerdistr_hzmax_mult.
-Defined. *)
-
-Definition hqmin : binop hq.
-Proof.
-  intros x y.
-  generalize (hqgthorleh x y) ;
-    apply sumofmaps ;
-    intros H.
-  apply y.
-  apply x.
+  simple refine (fldfrac_islatticedec _ _ _ _ _ _ _ _ _ _ _).
+  - apply hzgth.
+  - exact isplushrelhzgth.
+  - apply isrngmulthzgth.
+  - apply (ct (hzgth, isdecrelhzgth, 1%hz, 0%hz)).
+  - intros n.
+    apply isirreflhzgth.
+  - intros n m.
+    apply hzneqchoice.
+  - apply islattice_hz.
+  - intros k x y.
+    apply hzmultrcan.
+    apply hzgthtoneq.
+    generalize (pr2 k).
+    simpl.
+    intros Hk ; exact Hk.
+  - intros x y k.
+    generalize (pr2 k) ; intros Hk.
+    simpl in Hk.
+    generalize (issubrdistr_hzmin_hzmult x y (pr1 k) Hk).
+    unfold hzmin.
+    intros H ; apply H.
+  - intros x y k.
+    generalize (pr2 k) ; intros Hk.
+    simpl in Hk.
+    generalize (issubrdistr_hzmax_hzmult x y (pr1 k) Hk).
+    unfold hzmax.
+    intros H ; apply H.
 Defined.
-Definition hqmax : binop hq.
-Proof.
-  intros x y.
-  generalize (hqgthorleh x y) ;
-    apply sumofmaps ;
-    intros H.
-  apply x.
-  apply y.
-Defined.
 
-Lemma hqmax_case_strong :
-  Π (P : hq → UU) (x y : hq),
-  (y <= x → P x) → (x <= y → P y)
-  → P (hqmax x y).
+Definition hqmin : binop hq :=
+  Lmin islattice_hq.
+Definition hqmax : binop hq :=
+  Lmax islattice_hq.
+
+Lemma Llehq_correct :
+  Π n m : hq, n <= m <-> Lle islattice_hq n m.
 Proof.
-  intros P x y Hx Hy.
-  unfold hqmax.
-  induction (hqgthorleh x y) as [ H | H ].
-  - apply Hx, hqlthtoleh, H.
-  - apply Hy, H.
-Qed.
-Lemma hqmax_case :
-  Π (P : hq → UU) (x y : hq),
-  P x → P y → P (hqmax x y).
-Proof.
-  intros P x y Hx Hy.
-  apply hqmax_case_strong ; intros _.
-  - exact Hx.
-  - exact Hy.
+  assert (H : issubrdistr (X := rngmultabmonoid hzintdom)
+                (rngpossubmonoid hzintdom isrngmulthzgth
+                                 (ct (hzgth, isdecrelhzgth, 1%hz, 0%hz))) (Lmax islattice_hz) op).
+  { intros x y k ;
+    induction k as [k Hk] ;
+    simpl in Hk ;
+    generalize (issubrdistr_hzmax_hzmult x y k Hk) ;
+    unfold hzmax ;
+    intros H ; apply H. }
+  intros n m ; simpl.
+  unfold weq_min, hqgth ; simpl.
+  unfold fldfracgt ; simpl.
+  set (n' := weqfldfracgt_f hzintdom isdeceqhz isplushrelhzgth isrngmulthzgth
+                             (ct (hzgth, isdecrelhzgth, 1%hz, 0%hz)) hzneqchoice n).
+  set (m' := weqfldfracgt_f hzintdom isdeceqhz isplushrelhzgth isrngmulthzgth
+                            (ct (hzgth, isdecrelhzgth, 1%hz, 0%hz)) hzneqchoice m).
+  change (weqfldfracgt_f hzintdom isdeceqhz isplushrelhzgth isrngmulthzgth
+                         (ct (hzgth, isdecrelhzgth, 1%hz, 0%hz))
+                         (λ n0 m0 : pr1 hz, hzneqchoice n0 m0) n)
+  with n'.
+  change (weqfldfracgt_f hzintdom isdeceqhz isplushrelhzgth isrngmulthzgth
+                         (ct (hzgth, isdecrelhzgth, 1%hz, 0%hz))
+                         (λ n0 m0 : pr1 hz, hzneqchoice n0 m0) m)
+  with m'.
+  change (weqfldfracgt_f hzintdom isdeceqhz isplushrelhzgth isrngmulthzgth
+                         (ct (hzgth, isdecrelhzgth, 1%hz, 0%hz)) hzneqchoice n)
+  with n'.
+  change (weqfldfracgt_f hzintdom isdeceqhz isplushrelhzgth isrngmulthzgth
+                         (ct (hzgth, isdecrelhzgth, 1%hz, 0%hz)) hzneqchoice m)
+  with m'.
+  rewrite <- (homotinvweqweq (weqfldfracgt hzintdom isdeceqhz isplushrelhzgth isrngmulthzgth
+       (ct (hzgth, isdecrelhzgth, 1%hz, 0%hz))
+       (λ n0 m0 : pr1 hz, hzneqchoice n0 m0)
+       (λ n0 : pr1 hz, isirreflhzgth n0)) n).
+  change ((weqfldfracgt hzintdom isdeceqhz isplushrelhzgth isrngmulthzgth
+        (ct (hzgth, isdecrelhzgth, 1%hz, 0%hz))
+        (λ n0 m0 : pr1 hz, hzneqchoice n0 m0)
+        (λ n0 : pr1 hz, isirreflhzgth n0)) n)
+  with n'.
+  clearbody n' m' ; clear n m.
+  split ; intros Hle.
+  - apply maponpaths.
+    simple refine (pr1 (abmonoidfrac_Lle (rngmultabmonoid hz) _ _ _ H n' m') _).
+    revert n' m' Hle.
+    set (H0 := ispartbinophrel_Lle _ _ _ _ _).
+    simple refine (setquotuniv2prop _ (λ _ _, hProppair _ _) _).
+    + apply isapropimpl, propproperty.
+    + intros n m Hle ; revert Hle.
+      unfold commrngfracgt, abmonoidfracrel, quotrel.
+      do 2 rewrite setquotuniv2comm.
+      intros Hle.
+      apply hinhpr ; exists (1%hz ,, (ct (hzgth, isdecrelhzgth, 1%hz, 0%hz))).
+      apply Llehz_correct.
+      intros Hgt ; apply Hle.
+      apply hinhpr ; exists (1%hz ,, (ct (hzgth, isdecrelhzgth, 1%hz, 0%hz))).
+      exact Hgt.
+  - apply pathsweq1' in Hle.
+    rewrite homotweqinvweq in Hle.
+    generalize (pr2 (abmonoidfrac_Lle (rngmultabmonoid hz) _ _ _ H n' m') Hle) ; clear Hle.
+    set (H0 := ispartbinophrel_Lle _ _ _ _ _).
+    clearbody H0.
+    revert n' m'.
+    simple refine (setquotuniv2prop _ (λ _ _, hProppair _ _) _).
+    + apply isapropimpl, isapropimpl, isapropempty.
+    + intros n m Hle ; revert Hle.
+      unfold commrngfracgt, abmonoidfracrel, quotrel.
+      do 2 rewrite setquotuniv2comm.
+      unfold neg.
+      apply hinhuniv2'.
+      apply isapropempty.
+      intros Hle Hgt.
+      refine (hzlehtoneghzgth _ _ _ _).
+      apply_pr2 Llehz_correct.
+      apply (pr2 Hle).
+      apply hzgthandmultr.
+      generalize (pr1 Hle) ; intros c.
+      generalize (pr2 c) ; simpl.
+      intros Hc ; apply Hc.
+      apply (hzgthandmultrinv _ _ (pr1 (pr1 Hgt))).
+      generalize (pr1 Hgt) ; intros c.
+      generalize (pr2 c) ; simpl.
+      intros Hc ; apply Hc.
+      apply (pr2 Hgt).
 Qed.
 
 Lemma hqmin_case_strong :
   Π (P : hq → UU) (x y : hq),
-  (x <= y → P x) → (y <= x → P y)
-  → P (hqmin x y).
+  (hqleh x y → P x) → (hqleh y x → P y) → P (hqmin x y).
 Proof.
   intros P x y Hx Hy.
   unfold hqmin.
-  induction (hqgthorleh x y) as [ H | H ].
-  - apply Hy, hqlthtoleh, H.
-  - apply Hx, H.
+  apply Lmin_case_strong ; intros H.
+  - apply Hx.
+    apply_pr2 Llehq_correct.
+    apply H.
+  - apply Hy.
+    apply_pr2 Llehq_correct.
+    apply H.
 Qed.
 Lemma hqmin_case :
   Π (P : hq → UU) (x y : hq),
   P x → P y → P (hqmin x y).
 Proof.
   intros P x y Hx Hy.
-  apply hqmin_case_strong ; intros _.
-  - exact Hx.
-  - exact Hy.
+  now apply hqmin_case_strong.
 Qed.
 
-Lemma hqmaxopp_opphqmin :
-  Π x y : hq, hqmax (- x) (- y) = - hqmin x y.
+Lemma hqmax_case_strong :
+  Π (P : hq → UU) (x y : hq),
+  (hqleh y x → P x) → (hqleh x y → P y) → P (hqmax x y).
+Proof.
+  intros P x y Hx Hy.
+  unfold hqmax.
+  apply Lmax_case_strong ; intros H.
+  - apply Hx.
+    apply_pr2 Llehq_correct.
+    apply H.
+  - apply Hy.
+    apply_pr2 Llehq_correct.
+    apply H.
+Qed.
+Lemma hqmax_case :
+  Π (P : hq → UU) (x y : hq),
+  P x → P y → P (hqmax x y).
+Proof.
+  intros P x y Hx Hy.
+  now apply hqmax_case_strong.
+Qed.
+
+Lemma hqlehopp :
+  Π x y : hq, hqleh y x → (hqleh (- x) (- y))%hq.
+Proof.
+  intros x y H.
+  apply hqlehandplusrinv with y.
+  rewrite hqlminus, hqpluscomm.
+  apply hqlehandplusrinv with x.
+  rewrite hqplusassoc, hqlminus.
+  rewrite hqplusl0, hqplusr0.
+  exact H.
+Qed.
+
+Lemma hqminopp_opphqmax :
+  Π x y : hq, hqmin (- x)%hq (- y)%hq = (- hqmax x y)%hq.
 Proof.
   intros x y.
-  apply hqmax_case_strong ; intros Hxy ;
-  apply hqmin_case_strong ; intros Hxy'.
+  apply hqmin_case_strong ; intros Hmin ;
+  apply hqmax_case_strong ; intros Hmax.
   - reflexivity.
   - apply isantisymmhqleh.
-    + apply neghqgthtoleh.
-      intros H.
-      apply Hxy', hqgth_opp'.
-      exact H.
-    + exact Hxy.
+    + exact Hmin.
+    + apply hqlehopp.
+      exact Hmax.
   - apply isantisymmhqleh.
-    + apply neghqgthtoleh.
-      intros H.
-      apply Hxy', hqgth_opp'.
-      exact H.
-    + exact Hxy.
+    + exact Hmin.
+    + apply hqlehopp.
+      exact Hmax.
   - reflexivity.
 Qed.
 
-Lemma isassoc_hqmin : isassoc hqmin.
+Lemma hqoppopp :
+  Π x : hq, (- (- x))%hq = x.
 Proof.
-  intros x y z.
-  unfold hqmin.
-  induction (hqgthorleh x y) as [Hxy | Hxy].
-  - change (sumofmaps (λ _ : x > y, y) (λ _ : x <= y, x) (ii1 Hxy)) with y.
-    induction (hqgthorleh y z) as [Hyz | Hyz].
-    + change (sumofmaps (λ _ : y > z, z) (λ _ : y <= z, y) (ii1 Hyz)) with z.
-      induction (hqgthorleh x z) as [Hxz | Hxz].
-      * reflexivity.
-      * apply fromempty.
-        revert Hxz.
-        apply hqgthtoneghqleh.
-        apply istranshqgth with y.
-        exact Hxy.
-        exact Hyz.
-    + change (sumofmaps (λ _ : y > z, z) (λ _ : y <= z, y) (ii2 Hyz)) with y.
-      induction (hqgthorleh x y) as [Hxy' | Hxy'].
-      reflexivity.
-      apply fromempty.
-      revert Hxy'.
-      apply hqgthtoneghqleh.
-      exact Hxy.
-  - change (sumofmaps (λ _ : x > y, y) (λ _ : x <= y, x) (ii2 Hxy)) with x.
-    induction (hqgthorleh y z) as [Hyz | Hyz].
-    + change (sumofmaps (λ _ : y > z, z) (λ _ : y <= z, y) (ii1 Hyz)) with z.
-      reflexivity.
-    + change (sumofmaps (λ _ : y > z, z) (λ _ : y <= z, y) (ii2 Hyz)) with y.
-      induction (hqgthorleh x z) as [Hxz | Hxz].
-      * apply fromempty.
-        revert Hxz.
-        apply (hqlehtoneghqgth x z).
-        apply istranshqleh with y.
-        exact Hxy.
-        exact Hyz.
-      * induction (hqgthorleh x y) as [Hxy' | Hxy'].
-        apply fromempty.
-        revert Hxy'.
-        apply (hqlehtoneghqgth x y).
-        exact Hxy.
-        reflexivity.
-Qed.
-Lemma iscomm_hqmin : iscomm hqmin.
-Proof.
-  intros x y.
-  unfold hqmin.
-  induction (hqgthorleh x y) as [Hxy | Hxy] ;
-    induction (hqgthorleh y x) as [Hxy' | Hxy'].
-  - apply fromempty.
-    revert Hxy'.
-    apply (hqlehtoneghqgth y x).
-    apply hqlthtoleh.
-    exact Hxy.
-  - reflexivity.
-  - reflexivity.
-  - change (x = y).
-    apply isantisymmhqleh.
-    + exact Hxy.
-    + exact Hxy'.
-Qed.
-Lemma isassoc_hqmax : isassoc hqmax.
-Proof.
-  intros x y z.
-  rewrite <- (grinvinv hq x), <- (grinvinv hq y), <- (grinvinv hq z).
-  change (hqmax (hqmax (- - x) (- - y)) (- - z) =
-          hqmax (- - x) (hqmax (- - y) (- - z))).
-  rewrite !hqmaxopp_opphqmin.
-  apply maponpaths, isassoc_hqmin.
-Qed.
-Lemma iscomm_hqmax : iscomm hqmax.
-Proof.
-  intros x y.
-  rewrite <- (grinvinv hq x), <- (grinvinv hq y).
-  change (hqmax (- - x) (- - y) = hqmax (- - y) (- - x)).
-  rewrite !hqmaxopp_opphqmin.
-  apply maponpaths, iscomm_hqmin.
-Qed.
-Lemma isabsorb_hqmin_hqmax :
-  Π x y : hq, hqmin x (hqmax x y) = x.
-Proof.
-  intros x y.
-  unfold hqmin, hqmax.
-  induction (hqgthorleh x y) as [Hxy | Hxy].
-  - change (sumofmaps (λ _ : x > y, x) (λ _ : x <= y, y) (ii1 Hxy)) with x.
-    induction (hqgthorleh x x) as [Hxx | Hxx].
-    reflexivity.
-    reflexivity.
-  - change (sumofmaps (λ _ : x > y, x) (λ _ : x <= y, y) (ii2 Hxy)) with y.
-    induction (hqgthorleh x y) as [Hxy' | Hxy'].
-    apply fromempty.
-    revert Hxy'.
-    apply Hxy.
-    reflexivity.
-Qed.
-Lemma isabsorb_hqmax_hqmin :
-  Π x y : hq, hqmax x (hqmin x y) = x.
-Proof.
-  intros x y.
-  unfold hqmin, hqmax.
-  induction (hqgthorleh x y) as [Hxy | Hxy].
-  - change (sumofmaps (λ _ : x > y, y) (λ _ : x <= y, x) (ii1 Hxy)) with y.
-    induction (hqgthorleh x y) as [Hxy' | Hxy'].
-    reflexivity.
-    apply fromempty.
-    revert Hxy.
-    apply Hxy'.
-  - change (sumofmaps (λ _ : x > y, y) (λ _ : x <= y, x) (ii2 Hxy)) with x.
-    induction (hqgthorleh x x) as [Hxx | Hxx].
-    reflexivity.
-    reflexivity.
+  apply (grinvinv hq).
 Qed.
 
-Lemma islatticeop_hq :
-  islatticeop hqmin hqmax.
+Lemma issubrdistr_hqmin_hqmult :
+  Π (x y k : hq),
+  hqgth k 0%hq →
+  (hqmin x y * k)%hq =
+  hqmin (x * k)%hq (y * k)%hq.
 Proof.
-  repeat split.
-  - exact isassoc_hqmin.
-  - exact iscomm_hqmin.
-  - exact isassoc_hqmax.
-  - exact iscomm_hqmax.
-  - exact isabsorb_hqmin_hqmax.
-  - exact isabsorb_hqmax_hqmin.
+  intros x y k Hk.
+  refine (hqmin_case_strong _ _ _ _ _) ; intros H ;
+  refine (hqmin_case_strong (λ z : hq, (z * _)%hq = _) _ _ _ _) ; intros H0.
+  + reflexivity.
+  + apply (isantisymmhqleh).
+    * apply hqlehandmultr.
+      apply Hk.
+      exact H0.
+    * exact H.
+  + apply (isantisymmhqleh).
+    * apply hqlehandmultr.
+      apply Hk.
+      exact H0.
+    * exact H.
+  + reflexivity.
 Qed.
-
-Lemma nothqgth_hqmin :
-  Π x y : hq, ¬ (x > y) <-> hqmin x y = x.
+Lemma issubrdistr_hqmax_hqmult :
+  Π (x y k : hq),
+  hqgth k 0%hq →
+  (hqmax x y * k)%hq =
+  hqmax (x * k)%hq (y * k)%hq.
 Proof.
-  intros x y.
-  apply hqmin_case_strong ; intros H ; split ; intros H0.
-  - reflexivity.
-  - exact H.
-  - apply isantisymmhqleh.
-    exact H.
-    intros H1.
-    apply H0.
-    exact H1.
-  - rewrite H0.
-    apply (isirreflhqgth x).
+  intros x y k Hk.
+  refine (hqmax_case_strong _ _ _ _ _) ; intros H ;
+  refine (hqmax_case_strong (λ z : hq, (z * _)%hq = _) _ _ _ _) ; intros H0.
+  + reflexivity.
+  + apply (isantisymmhqleh).
+    * exact H.
+    * apply hqlehandmultr.
+      apply Hk.
+      exact H0.
+  + apply (isantisymmhqleh).
+    * exact H.
+    * apply hqlehandmultr.
+      apply Hk.
+      exact H0.
+  + reflexivity.
 Qed.
+Opaque islattice_hq.
 
-Lemma hqmin_gt :
-  Π x y z : hq, x > z → y > z → hqmin x y > z.
-Proof.
-  intros x y z Hx Hy.
-  apply hqmin_case.
-  exact Hx.
-  exact Hy.
-Qed.
-Lemma hqmax_lt :
-  Π x y z : hq, z > x → z > y → z > hqmax x y.
-Proof.
-  intros x y z Hx Hy.
-  apply hqmax_case.
-  exact Hx.
-  exact Hy.
-Qed.
+Definition isassoc_hqmin :
+  isassoc hqmin :=
+  isassoc_Lmin islattice_hq.
+Definition iscomm_hqmin :
+  iscomm hqmin :=
+  iscomm_Lmin islattice_hq.
 
-Definition islattice_hq : islatticewithgt hq.
-Proof.
-  mkpair.
-  exact (hqmin ,, hqmax ,, islatticeop_hq).
-  mkpair.
-  - mkpair.
-    exact hqgth.
-    split ; [ | split].
-    + exact istranshqgth.
-    + exact iscotranshqgth.
-    + exact isirreflhqgth.
-  - split ; [ | split].
-    + exact nothqgth_hqmin.
-    + exact hqmin_gt.
-    + exact hqmax_lt.
-Timeout 10 Defined.
+Definition isassoc_hqmax :
+  isassoc hqmax :=
+  isassoc_Lmax islattice_hq.
+Definition iscomm_hqmax :
+  iscomm hqmax :=
+  iscomm_Lmax islattice_hq.
 
-Lemma Lmin_hqmin :
-  Lmin islattice_hq = hqmin.
-Proof.
-  unfold Lmin, islattice_hq.
-  simpl.
-  reflexivity.
-Timeout 10 Qed.
-Lemma Lmax_hqmax :
-  Lmax islattice_hq = hqmax.
-Proof.
-  unfold Lmax, islattice_hq.
-  simpl.
-  reflexivity.
-Timeout 20 Qed.
+Definition isabsorb_hqmin_hqmax :
+  Π x y : hq, hqmin x (hqmax x y) = x
+ :=
+  Lmin_absorb islattice_hq.
+Definition isabsorb_hqmax_hqmin :
+  Π x y : hq, hqmax x (hqmin x y) = x
+ :=
+  Lmax_absorb islattice_hq.
 
-Lemma Lle_hqleh :
-  Π x y : hq, x <= y <-> Lle islattice_hq x y.
-Proof.
-  intros x y.
-  split.
-  - intros H.
-    change (hqmin x y = x).
-    unfold hqmin.
-    induction (hqgthorleh x y) as [ Hxy | Hxy ].
-    + apply fromempty.
-      revert Hxy.
-      exact H.
-    + reflexivity.
-  - intros H.
-    rewrite <- H.
-    change (hqmin x y <= y).
-    unfold hqmin.
-    induction (hqgthorleh x y) as [Hxy | Hxy].
-    + exact (isreflhqleh _).
-    + exact Hxy.
-Qed.
+Definition hqmin_id :
+  Π x : hq, hqmin x x = x :=
+  Lmin_id islattice_hq.
+Definition hqmax_id :
+  Π x : hq, hqmax x x = x :=
+  Lmax_id islattice_hq.
 
 Lemma hqmax_ge_l :
   Π (x y : hq), x <= hqmax x y.
 Proof.
   intros x y.
-  apply_pr2 Lle_hqleh.
-  rewrite <- Lmax_hqmax.
+  apply_pr2 Llehq_correct.
   apply (Lmax_ge_l islattice_hq).
 Qed.
 Lemma hqmax_ge_r :
   Π (x y : hq), y <= hqmax x y.
 Proof.
   intros x y.
-  apply_pr2 Lle_hqleh.
-  rewrite <- Lmax_hqmax.
+  apply_pr2 Llehq_correct.
   apply (Lmax_ge_r islattice_hq).
 Qed.
 Lemma hqmax_eq_l :
   Π (x y : hq), y <= x → hqmax x y = x.
 Proof.
   intros x y H.
-  rewrite <- Lmax_hqmax.
   apply (Lmax_le_eq_l islattice_hq).
-  apply Lle_hqleh.
+  apply Llehq_correct.
   exact H.
 Qed.
 Lemma hqmax_eq_r :
   Π (x y : hq), x <= y → hqmax x y = y.
 Proof.
   intros x y H.
-  rewrite <- Lmax_hqmax.
   apply (Lmax_le_eq_r islattice_hq).
-  apply Lle_hqleh.
+  apply Llehq_correct.
   exact H.
 Qed.
 Lemma hqmax_gth_l :
@@ -1009,7 +964,6 @@ Lemma istruncminus_hq :
   istruncminus (X := rngaddabgr hq) islattice_hq hqtruncminus.
 Proof.
   unfold hqtruncminus.
-  rewrite <- Lmax_hqmax.
   apply (abgr_truncminus (X := rngaddabgr hq) islattice_hq).
   exact isrdistr_hqmax_hqplus.
 Qed.
@@ -1033,11 +987,18 @@ Proof.
     exact H.
 Qed.
 
-Definition extruncminus_hq : extruncminuswithgt (X := rngaddabgr hq) islattice_hq.
+Definition extruncminus_hq : extruncminuswithgt (X := rngaddabgr hq) (islatticedec_gt islattice_hq).
 Proof.
   mkpair.
   exact (hqtruncminus,, istruncminus_hq).
-  exact (λ x y : hq, pr2 (hqtruncminus_pos x y)).
+  intros x y Hgt Hle.
+  apply Hgt.
+  apply Llehq_correct.
+  rewrite truncminus_eq_0.
+  apply isreflhqleh.
+  intros n m k.
+  apply hqplusrcan.
+  apply Hle.
 Defined.
 
 Close Scope hq_scope.
