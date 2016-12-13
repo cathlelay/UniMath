@@ -545,34 +545,32 @@ Proof.
     generalize (Hcut (pr1 e) (pr1 (pr2 e))).
     apply hinhfun.
     intros e'.
-    mkpair.
-    intros x.
-    apply (ball (pr1 x) (NnMmin (pr1 e') (pr1 (pr2 e'))) (pr2 x)).
+    exists (λ x, ball (pr1 x) (NnMmin (pr1 e') (pr1 (pr2 e'))) (pr2 x)).
     split.
-    apply hinhpr.
-    exists (NnMmin (pr1 e') (pr1 (pr2 e'))).
-    split.
-    apply NnMmin_gt.
-    apply (pr1 (pr2 (pr2 (pr2 e')))).
-    apply (pr2 (pr2 (pr2 (pr2 e')))).
-    easy.
-    intros xy.
-    apply hinhuniv.
-    intros z.
-    rewrite (tppr xy) ; apply (pr2 (pr2 e)).
-    eapply istrans_NnMge_gt, istrans_NnMgt_ge.
-    3: eapply istriangle_dist.
-    2: eapply istrans_NnMgt.
-    3: apply NnMplus_gt_l.
-    3: eapply istrans_NnMge_gt.
-    4: apply (pr2 (pr2 z)).
-    3: apply NnMmin_le_r.
-    2: apply NnMplus_gt_r.
-    2: eapply istrans_NnMge_gt.
-    3: apply (pr1 (pr2 z)).
-    2: apply NnMmin_le_l.
-    rewrite <- (pr1 (pr2 (pr2 e'))).
-    apply isrefl_NnMle.
+    + apply hinhpr.
+      exists (NnMmin (pr1 e') (pr1 (pr2 e'))).
+      split.
+      * apply NnMmin_gt.
+        apply (pr1 (pr2 (pr2 (pr2 e')))).
+        apply (pr2 (pr2 (pr2 (pr2 e')))).
+      * intros x y H ; apply H.
+    + intros xy.
+      apply hinhuniv.
+      intros z.
+      rewrite (tppr xy) ; apply (pr2 (pr2 e)).
+      rewrite (pr1 (pr2 (pr2 e'))).
+      eapply istrans_NnMgt_ge.
+      2: eapply istriangle_dist.
+      eapply istrans_NnMge_gt.
+      2: apply NnMplus_gt_l.
+      2: eapply istrans_NnMge_gt.
+      3: apply (pr2 (pr2 z)).
+      2: apply NnMmin_le_r.
+      apply NnMgt_ge.
+      apply NnMplus_gt_r.
+      eapply istrans_NnMge_gt.
+      2: apply (pr1 (pr2 z)).
+      apply NnMmin_le_l.
 Defined.
 
 End Balls.
