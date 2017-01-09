@@ -92,11 +92,20 @@ Definition isPullback_Pullback {a b c : C} {f : b --> a}{g : c --> a}
   isPullback f g (PullbackPr1 P) (PullbackPr2 P) (PullbackSqrCommutes P).
 Proof.
   exact (pr2 (pr2 P)).
-Qed.
+Defined.
 
 Definition PullbackArrow {a b c : C} {f : b --> a} {g : c --> a}
    (Pb : Pullback f g) e (h : e --> b) (k : e --> c)(H : h ;; f = k ;; g) : e --> Pb :=
    pr1 (pr1 (isPullback_Pullback Pb e h k H)).
+
+Lemma PullbackArrowUnique' {a b c : C} (f : C⟦b,a⟧) (g : C⟦c,a⟧)
+      (P : Pullback f g) e (h : C⟦e,b⟧) (k : C⟦e,c⟧)
+      (Hcomm : h ;; f = k ;; g) (w : C⟦e,P⟧) (H1 : w ;; PullbackPr1 P = h) (H2 : w ;; PullbackPr2 P = k) :
+  w = PullbackArrow P e h k Hcomm.
+Proof.
+now apply PullbackArrowUnique.
+Qed.
+
 
 Lemma PullbackArrow_PullbackPr1 {a b c : C} {f : b --> a} {g : c --> a}
    (Pb : Pullback f g) e (h : e --> b) (k : e --> c)(H : h ;; f = k ;; g) :
@@ -137,6 +146,26 @@ Proof.
   intros H' x cx k sqr.
   apply H'. assumption.
 Defined.
+
+Local Lemma postCompWithPullbackArrow_subproof
+ {c d a b x : C} (k0 : C⟦c,d⟧) {f : C⟦a,x⟧} {g : C⟦b,x⟧}
+ {h : C ⟦ d, a ⟧} {k : C ⟦ d, b ⟧} (H : h ;; f = k ;; g)  :
+  k0 ;; h ;; f = k0 ;; k ;; g.
+Proof.
+now rewrite <- assoc, H, assoc.
+Qed.
+
+Lemma postCompWithPullbackArrow
+ (c d : C) (k0 : C⟦c,d⟧) {a b x : C} {f : C⟦a,x⟧} {g : C⟦b,x⟧}
+ (Pb : Pullback f g)
+ (h : C ⟦ d, a ⟧) (k : C ⟦ d, b ⟧) (H : h ;; f = k ;; g) :
+   k0 ;; PullbackArrow Pb d h k H =
+   PullbackArrow Pb _ (k0 ;; h) (k0 ;; k) (postCompWithPullbackArrow_subproof k0 H).
+Proof.
+apply PullbackArrowUnique.
+- now rewrite <- assoc, PullbackArrow_PullbackPr1.
+- now rewrite <- assoc, PullbackArrow_PullbackPr2.
+Qed.
 
 Lemma MorphismsIntoPullbackEqual {a b c d : C} {f : b --> a} {g : c --> a}
         {p1 : d --> b} {p2 : d --> c} {H : p1 ;; f = p2;; g}
@@ -1155,3 +1184,61 @@ Section pullbacks_functor_category.
   Defined.
 
 End pullbacks_functor_category.
+
+
+Section pullback_up_to_iso.
+
+  Context {C : precategory}.
+  Context {hs : has_homsets C}.
+
+  Local Lemma isPullback_up_to_iso_eq {a' a b c d : C} (f : b --> a) (g : c --> a)
+        (p1 : d --> b) (p2 : d --> c) (H : p1 ;; f = p2 ;; g) (i : iso a a') :
+    p1 ;; (f ;; i) = p2 ;; (g ;; i).
+  Proof.
+    rewrite assoc. rewrite assoc. rewrite H. apply idpath.
+  Qed.
+
+  Lemma isPullback_up_to_iso {a' a b c d : C} (f : b --> a) (g : c --> a)
+        (p1 : d --> b) (p2 : d --> c) (H : p1 ;; f = p2 ;; g) (i : iso a a')
+        (iPb : isPullback (f ;; i) (g ;; i) p1 p2 (isPullback_up_to_iso_eq f g p1 p2 H i)) :
+    isPullback f g p1 p2 H.
+  Proof.
+    set (Pb := mk_Pullback _ _ _ _ _ _ iPb).
+    use mk_isPullback.
+    intros e h k Hk.
+    use unique_exists.
+    - use (PullbackArrow Pb).
+      + exact h.
+      + exact k.
+      + use isPullback_up_to_iso_eq. exact Hk.
+    - cbn. split.
+      + exact (PullbackArrow_PullbackPr1 Pb e h k (isPullback_up_to_iso_eq f g h k Hk i)).
+      + exact (PullbackArrow_PullbackPr2 Pb e h k (isPullback_up_to_iso_eq f g h k Hk i)).
+    - intros y. apply isapropdirprod.
+      + apply hs.
+      + apply hs.
+    - intros y X. cbn in X.
+      use PullbackArrowUnique.
+      + exact (dirprod_pr1 X).
+      + exact (dirprod_pr2 X).
+  Qed.
+
+End pullback_up_to_iso.
+
+Section pullback_paths.
+
+  Context {C : precategory}.
+  Context {hs : has_homsets C}.
+
+  Lemma isPullback_mor_paths {a b c d : C} {f1 f2 : b --> a} {g1 g2 : c --> a} {p11 p21 : d --> b}
+        {p12 p22 : d --> c} (e1 : f1 = f2) (e2 : g1 = g2) (e3 : p11 = p21) (e4 : p12 = p22)
+        (H1 : p11 ;; f1 = p12 ;; g1) (H2 : p21 ;; f2 = p22 ;; g2)
+        (iPb : isPullback f1 g1 p11 p12 H1) : isPullback f2 g2 p21 p22 H2.
+  Proof.
+    induction e1, e2, e3, e4.
+    assert (e5 : H1 = H2) by apply hs.
+    induction e5.
+    exact iPb.
+  Qed.
+
+End pullback_paths.
