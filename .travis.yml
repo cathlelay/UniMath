@@ -9,8 +9,9 @@ git:
 before_install:
   - sudo apt-get update -qq
 install:
-  - sudo apt-get install -y ocaml ocaml-nox ocaml-native-compilers
+  - sudo apt-get install -y ocaml ocaml-nox ocaml-native-compilers ocaml-findlib
   - sudo apt-get install -y camlp5 camlp4-extra time libgtk2.0 libgtksourceview2.0
+  - sudo apt-get install -y liblablgtk-extras-ocaml-dev
   # get etags from emacs:
   - sudo apt-get install -y emacs
 # build coqide along with the Tactics package, just because it's a short package
@@ -23,6 +24,7 @@ env:
   - PACKAGE=SubstitutionSystems
   - PACKAGE=Tactics BUILD_COQIDE=yes BUILD_ALSO=TAGS
   - PACKAGE=Folds
+  - PACKAGE=HomologicalAlgebra
 # building Coq in a separate stage folds up the output in the log:
 before_script:
   - time make build-coq

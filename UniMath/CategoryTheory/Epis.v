@@ -3,6 +3,7 @@
 - Definition of Epis
 - Construction of the subcategory of Epis
 - Construction of Epis in functor categories
+- Definition of effective epi
 *)
 
 Require Import UniMath.Foundations.Basics.PartD.
@@ -13,6 +14,7 @@ Require Import UniMath.CategoryTheory.precategories.
 Require Import UniMath.CategoryTheory.UnicodeNotations.
 Require Import UniMath.CategoryTheory.sub_precategories.
 Require Import UniMath.CategoryTheory.functor_categories.
+
 
 
 (** * Definition of Epis *)
@@ -49,23 +51,23 @@ Section def_epi.
   Definition EpiisEpi {x y : C} (E : Epi x y) : isEpi E := pr2 E.
 
   (** Isomorphism to isEpi and Epi. *)
-  Lemma iso_isEpi {x y : C} (f : x --> y) (H : is_iso f) : isEpi f.
+  Lemma is_iso_isEpi {x y : C} (f : x --> y) (H : is_iso f) : isEpi f.
   Proof.
     apply mk_isEpi.
     intros z g h X.
     apply (pre_comp_with_iso_is_inj _ x _ _ f H).
     exact X.
-  Defined.
+  Qed.
 
-  Lemma iso_Epi {x y : C} (f : x --> y) (H : is_iso f) : Epi x y.
+  Lemma is_iso_Epi {x y : C} (f : x --> y) (H : is_iso f) : Epi x y.
   Proof.
-    apply (mk_Epi f (iso_isEpi f H)).
+    apply (mk_Epi f (is_iso_isEpi f H)).
   Defined.
 
   (** Identity to isEpi and Epi. *)
   Lemma identity_isEpi {x : C} : isEpi (identity x).
   Proof.
-    apply (iso_isEpi (identity x) (identity_is_iso _ x)).
+    apply (is_iso_isEpi (identity x) (identity_is_iso _ x)).
   Defined.
 
   Lemma identity_Epi {x : C} : Epi x x.
@@ -79,7 +81,7 @@ Section def_epi.
   Proof.
     intros X X0. unfold isEpi. intros z0 g0 h X1.
     repeat rewrite <- assoc in X1. apply X in X1. apply X0 in X1. apply X1.
-  Defined.
+  Qed.
 
   Definition Epi_comp {x y z : C} (E1 : Epi x y) (E2 : Epi y z) :
     Epi x z := tpair _ (E1 ;; E2) (isEpi_comp E1 E2 (pr2 E1) (pr2 E2)).
@@ -93,15 +95,20 @@ Section def_epi.
     apply (X w _ _ H).
   Defined.
 
+  Lemma isEpi_path {x y : C} (f1 f2 : x --> y) (e : f1 = f2) (isE : isEpi f1) : isEpi f2.
+  Proof.
+    induction e. exact isE.
+  Qed.
+
   (** Transport of isEpi *)
-  Lemma transportf_isEpi {x y z : C} (f : x --> y) (E : isEpi f) (e : y = z) :
+  Lemma transport_target_isEpi {x y z : C} (f : x --> y) (E : isEpi f) (e : y = z) :
     isEpi (transportf (precategory_morphisms x) e f).
   Proof.
     induction e. apply E.
   Qed.
 
-  Lemma transportb_isEpi {x y z : C} (f : y --> z) (E : isEpi f) (e : x = y) :
-    isEpi (transportb (fun x' : ob C => precategory_morphisms x' z) e f).
+  Lemma transport_source_isEpi {x y z : C} (f : y --> z) (E : isEpi f) (e : y = x) :
+    isEpi (transportf (fun x' : ob C => precategory_morphisms x' z) e f).
   Proof.
     induction e. apply E.
   Qed.
@@ -161,3 +168,7 @@ Section epis_functorcategories.
   Qed.
 
 End epis_functorcategories.
+
+
+
+

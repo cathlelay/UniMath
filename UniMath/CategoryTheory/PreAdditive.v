@@ -17,8 +17,10 @@ Require Import UniMath.Foundations.Algebra.Monoids_and_Groups.
 Require Import UniMath.CategoryTheory.total2_paths.
 Require Import UniMath.CategoryTheory.precategories.
 Require Import UniMath.CategoryTheory.UnicodeNotations.
+Require Import UniMath.CategoryTheory.Monics.
+Require Import UniMath.CategoryTheory.Epis.
 Require Import UniMath.CategoryTheory.PrecategoryBinProduct.
-Require Import UniMath.CategoryTheory.PrecategoriesWithBinOps.
+Require Import UniMath.CategoryTheory.precategoriesWithBinOps.
 Require Import UniMath.CategoryTheory.PrecategoriesWithAbgrops.
 
 Require Import UniMath.CategoryTheory.limits.zero.
@@ -138,6 +140,34 @@ Section preadditive_with_zero.
     apply idpath.
   Qed.
 
+  Lemma to_lunax'' {Z : Zero A} (x y : A) (f : x --> y) : to_binop x y (ZeroArrow Z x y) f = f.
+  Proof.
+    rewrite <- to_lunax'. use to_lrw. apply pathsinv0. apply PreAdditive_unel_zero.
+  Qed.
+
+  Lemma to_runax'' {Z : Zero A} (x y : A) (f : x --> y) : to_binop x y f (ZeroArrow Z x y) = f.
+  Proof.
+    rewrite <- to_runax'. use to_rrw. apply pathsinv0. apply PreAdditive_unel_zero.
+  Qed.
+
+  Lemma to_linvax' {Z : Zero A} {x y : A} (f : A⟦x, y⟧) :
+    to_binop x y (to_inv f) f = ZeroArrow Z x y.
+  Proof.
+    rewrite linvax. apply PreAdditive_unel_zero.
+  Qed.
+
+  Lemma to_rinvax' {Z : Zero A} {x y : A} (f : A⟦x, y⟧) :
+    to_binop x y f (to_inv f) = ZeroArrow Z x y.
+  Proof.
+    rewrite rinvax. apply PreAdditive_unel_zero.
+  Qed.
+
+  Lemma to_inv_zero {Z : Zero A} {x y : A} : to_inv (ZeroArrow Z x y) = ZeroArrow Z x y.
+  Proof.
+    rewrite <- PreAdditive_unel_zero.
+    apply to_inv_unel.
+  Qed.
+
 End preadditive_with_zero.
 
 
@@ -148,29 +178,28 @@ Section preadditive_inv_comp.
   Variable A : PreAdditive.
 
   Lemma PreAdditive_invlcomp {x y z : A} (f : A⟦x, y⟧) (g : A⟦y, z⟧) :
-    (to_inv x z (f ;; g)) = (to_inv x y f) ;; g.
+    (to_inv (f ;; g)) = (to_inv f) ;; g.
   Proof.
     use (grrcan (to_abgrop x z) (f ;; g)).
     unfold to_inv at 1. rewrite grlinvax.
-    use (pathscomp0 _ (to_postmor_linear' (to_inv x y f) f g)).
+    use (pathscomp0 _ (to_postmor_linear' (to_inv f) f g)).
     rewrite linvax. rewrite to_postmor_unel'.
     unfold to_unel.
     apply idpath.
   Qed.
 
   Lemma PreAdditive_invrcomp {x y z : A} (f : A⟦x, y⟧) (g : A⟦y, z⟧) :
-    (to_inv _ _ (f ;; g)) = f ;; (to_inv _ _ g).
+    (to_inv (f ;; g)) = f ;; (to_inv g).
   Proof.
     use (grrcan (to_abgrop x z) (f ;; g)).
     unfold to_inv at 1. rewrite grlinvax.
-    use (pathscomp0 _ (to_premor_linear' f (to_inv y z g) g)).
+    use (pathscomp0 _ (to_premor_linear' f (to_inv g) g)).
     rewrite linvax. rewrite to_premor_unel'.
     unfold to_unel.
     apply idpath.
   Qed.
 
-  Lemma PreAdditive_cancel_inv {x y : A} (f g : A⟦x, y⟧) (H : (to_inv _ _ f)  = (to_inv _ _ g)) :
-    f = g.
+  Lemma PreAdditive_cancel_inv {x y : A} (f g : A⟦x, y⟧) (H : (to_inv f)  = (to_inv g)) : f = g.
   Proof.
     apply (grinvmaponpathsinv (to_abgrop x y) H).
   Qed.
@@ -234,6 +263,29 @@ Section def_additive_kernel_cokernel.
   Qed.
 
 End def_additive_kernel_cokernel.
+
+
+Section monics_and_epis_in_preadditive.
+
+  Variable PA : PreAdditive.
+
+  Lemma to_inv_isMonic {x y : PA} (f : x --> y) (isM : isMonic f) : isMonic (to_inv f).
+  Proof.
+    use mk_isMonic.
+    intros x0 g h X.
+    rewrite <- PreAdditive_invrcomp in X. rewrite <- PreAdditive_invrcomp in X.
+    apply cancel_inv in X. use isM. exact X.
+  Qed.
+
+  Lemma to_inv_isEpi {x y : PA} (f : x --> y) (isE : isEpi f) : isEpi (to_inv f).
+  Proof.
+    use mk_isEpi.
+    intros x0 g h X.
+    rewrite <- PreAdditive_invlcomp in X. rewrite <- PreAdditive_invlcomp in X.
+    apply cancel_inv in X. use isE. exact X.
+  Qed.
+
+End monics_and_epis_in_preadditive.
 
 
 (** * Quotient of homsets
@@ -410,6 +462,13 @@ Section preadditive_quotient.
         (e : setquotpr H f = setquotpr H g) : H f g.
   Proof.
     exact (abgrquotpr_rel_to_refl (! (funeqpaths (base_paths _ _ e)) g)).
+  Qed.
+
+  Lemma abgrquotpr_rel_image {A : abgr} {H : @binopeqrel A} {f g : A}
+        (e : H f g) : setquotpr H f = setquotpr H g.
+  Proof.
+    apply iscompsetquotpr.
+    exact e.
   Qed.
 
   (** *** Morphisms to elements of groups *)
@@ -722,9 +781,9 @@ Section preadditive_quotient.
   (** ** Quotient precategory of PreAdditive is PreAdditive *)
 
   Opaque isbinopeqrel_subgr_eqrel isabgrquot.
-  Definition QuotPrecategory_binops : PrecategoryWithBinOps.
+  Definition QuotPrecategory_binops : precategoryWithBinOps.
   Proof.
-    use mk_PrecategoryWithBinOps.
+    use mk_precategoryWithBinOps.
     - exact QuotPrecategory.
     - intros x y. exact (@op (subabgr_quot (PAS x y))).
   Defined.
