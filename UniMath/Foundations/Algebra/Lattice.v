@@ -29,7 +29,12 @@ Lattice in an abelian monoid:
 Truncated minus is a lattice:
 - a function minus such that: Π (x y : X), (minus x y) + y = max x y *)
 
-Require Export UniMath.Foundations.Algebra.Monoids_and_Groups.
+(**
+Define new lattices using:
+- weq
+- abmonoidfrac
+*)
+
 Require Export UniMath.Foundations.Algebra.Domains_and_Fields.
 
 Unset Automatic Introduction.
@@ -1026,6 +1031,8 @@ Qed.
 
 End abgrdiff_minus.
 
+Close Scope addmonoid.
+
 (** ** lattice and [weq] *)
 
 (** *** Definition *)
@@ -1219,9 +1226,11 @@ Defined.
 
 (** ** lattice in [abmonoid] *)
 
+Open Scope multmonoid.
+
 Lemma abmonoidfrac_setquotpr_equiv {X : abmonoid} {Y : @submonoids X} :
   Π (k : Y) (x : X) (y : Y),
-  setquotpr (binopeqrelabmonoidfrac X Y) (x,,y) = setquotpr (binopeqrelabmonoidfrac X Y) (x + pr1 k,, @op Y y k).
+  setquotpr (binopeqrelabmonoidfrac X Y) (x,,y) = setquotpr (binopeqrelabmonoidfrac X Y) (x * pr1 k,, @op Y y k).
 Proof.
   intros X Y k x y.
   apply iscompsetquotpr, hinhpr.
@@ -1489,7 +1498,7 @@ Proof.
   rewrite (assocax X), (commax _ _ (pr1 (pr1 c))), <- (assocax X).
   rewrite Hmin.
   refine (pathscomp0 _ _).
-  refine (maponpaths (λ x, x + _) _).
+  refine (maponpaths (λ x, x * _) _).
   apply (pr2 c).
   do 3 rewrite (assocax X) ;
     apply maponpaths.
@@ -1515,7 +1524,7 @@ Proof.
   apply hinhfun.
   simpl.
   intros c.
-  exists (pr2 x + pr1 c).
+  exists (pr2 x * pr1 c).
   rewrite <- Hmin.
   change (pr1 (pr2 x * pr1 c))%multmonoid
   with (pr1 (pr2 x) * pr1 (pr1 c))%multmonoid.
@@ -1557,7 +1566,7 @@ Context (X : abmonoid)
         (Hgtmax : Π x y z : X, gt z x → gt z y → gt z (Lmax is x y))
 
         (Hgt : ispartbinophrel Y gt)
-        (Hop : Π (x : Y) (y z : X), y + pr1 x = z + pr1 x → y = z)
+        (Hop : Π (x : Y) (y z : X), y * pr1 x = z * pr1 x → y = z)
         (Hmin : ispartrdistr Y (Lmin is) op)
         (Hmax : ispartrdistr Y (Lmax is) op).
 
@@ -1661,14 +1670,14 @@ Proof.
       apply (pr2 Hgt).
       apply (pr2 (pr1 cx)).
       apply (pr2 cy).
-Timeout 10 Qed.
+Qed.
 
 Lemma abmonoidfrac_gtmax :
   Π (x y z : abmonoidfrac X Y),
   (StrongOrder_abmonoidfrac Y gt Hgt) z x
   → (StrongOrder_abmonoidfrac Y gt Hgt) z y
     → (StrongOrder_abmonoidfrac Y gt Hgt) z
-                                                (Lmax (abmonoidfrac_lattice X Y is Hmin Hmax) x y).
+         (Lmax (abmonoidfrac_lattice X Y is Hmin Hmax) x y).
 Proof.
   simple refine (setquotuniv3prop (eqrelabmonoidfrac X Y) (λ _ _ _, _ ,, _) _).
   - apply isapropimpl, isapropimpl, propproperty.
@@ -1711,13 +1720,13 @@ Proof.
       apply (pr2 Hgt).
       apply (pr2 (pr1 cx)).
       apply (pr2 cy).
-Timeout 10 Qed.
+Qed.
 
 End abmonoidfrac_latticewithgt.
 
 Definition abmonoidfrac_latticewithgt (X : abmonoid) (Y : @submonoids X) (is : latticewithgt X)
            (Hgt : ispartbinophrel Y (Lgt is))
-           (Hop : Π (x : Y) (y z : X), y + pr1 x = z + pr1 x → y = z)
+           (Hop : Π (x : Y) (y z : X), y * pr1 x = z * pr1 x → y = z)
            (Hmin : ispartrdistr Y (Lmin is) op) (Hmax : ispartrdistr Y (Lmax is) op) : latticewithgt (abmonoidfrac X Y).
 Proof.
   intros X Y is Hgt Hop Hmin Hmax.
@@ -1753,7 +1762,7 @@ Proof.
   - apply istotalabmonoidfracrel, is'.
 Qed.
 Lemma isdecrel_Lle_abmonoidfrac {X : abmonoid} (Y : @submonoids X) (is : lattice X) (is' : isdecrel (Lle is))
-           (Hop : Π (x : Y) (y z : X), y + pr1 x = z + pr1 x → y = z)
+           (Hop : Π (x : Y) (y z : X), y * pr1 x = z * pr1 x → y = z)
            (Hmin : ispartrdistr Y (Lmin is) op) (Hmax : ispartrdistr Y (Lmax is) op) :
   isdecrel (Lle (abmonoidfrac_lattice X Y is Hmin Hmax)).
 Proof.
@@ -1777,7 +1786,7 @@ Proof.
 Qed.
 
 Definition abmonoidfrac_latticedec {X : abmonoid} (Y : @submonoids X) (is : latticedec X)
-           (Hop : Π (x : Y) (y z : X), y + pr1 x = z + pr1 x → y = z)
+           (Hop : Π (x : Y) (y z : X), y * pr1 x = z * pr1 x → y = z)
            (Hmin : ispartrdistr Y (Lmin is) op) (Hmax : ispartrdistr Y (Lmax is) op) :
   latticedec (abmonoidfrac X Y).
 Proof.
@@ -1792,7 +1801,11 @@ Proof.
     + apply Hop.
 Defined.
 
+Close Scope multmonoid.
+
 (** ** lattice in [abgrdiff] *)
+
+Open Scope addmonoid.
 
 Lemma abgrdiff_setquotpr_equiv {X : abmonoid} :
   Π k x y : X,
@@ -1929,7 +1942,11 @@ Proof.
     apply Hmax.
 Defined.
 
+Close Scope addmonoid.
+
 (** ** lattice in [commrngfrac] *)
+
+Open Scope rng.
 
 Definition commrngfrac_lattice (X : commrng) (Y : @subabmonoids (rngmultabmonoid X))
            (is : lattice X)
@@ -2055,3 +2072,5 @@ Proof.
   - apply Hmin.
   - apply Hmax.
 Defined.
+
+Close Scope rng.
