@@ -1,12 +1,12 @@
 (** * Results about Metric Spaces *)
 (** Author: Catherine LELAY. Jan 2016 - *)
 
-Require Export UniMath.Foundations.Algebra.Lattice.
+Require Export UniMath.Algebra.Lattice.
 Require Import UniMath.Topology.Prelim.
 Require Export UniMath.Topology.Filters.
 Require Import UniMath.Topology.Topology.
 Require Import UniMath.Topology.UniformSpace.
-Require Import UniMath.Foundations.Algebra.Apartness.
+Require Import UniMath.Algebra.Apartness.
 
 Set Default Timeout 10.
 

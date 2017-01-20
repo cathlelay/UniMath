@@ -2,6 +2,7 @@
 (** Author: Catherine LELAY. Jan 2016 - *)
 (** Based on Bourbaky *)
 
+Require Import UniMath.Algebra.BinaryOperations.
 Require Export UniMath.Topology.Prelim.
 Require Export UniMath.Topology.Filters.
 
