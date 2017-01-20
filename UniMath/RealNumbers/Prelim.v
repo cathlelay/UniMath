@@ -6,9 +6,9 @@ Unset Automatic Introduction. (* This line has to be removed for the file to com
 
 (** ** for RationalNumbers.v *)
 
-Require Export UniMath.Foundations.NumberSystems.RationalNumbers.
-Require Export UniMath.Foundations.Algebra.Archimedean.
-Require Export UniMath.Foundations.Algebra.Lattice.
+Require Export UniMath.NumberSystems.RationalNumbers.
+Require Export UniMath.Algebra.Archimedean.
+Require Export UniMath.Algebra.Lattice.
 
 Open Scope hq_scope.
 
@@ -307,7 +307,7 @@ Proof.
       apply maponpaths, IHn.
 Qed.
 
-Lemma latticeop_nat : latticeop (X := natcommrig) min max.
+Lemma islatticeop_nat : islatticeop (X := natcommrig) min max.
 Proof.
   repeat split.
   - exact isassoc_min.
@@ -359,7 +359,7 @@ Qed.
 
 Definition lattice_nat : latticedec (natcommrig).
 Proof.
-  exists (min ,, max ,, latticeop_nat).
+  exists (min ,, max ,, islatticeop_nat).
   split.
   - exact istotal_Llenat.
   - exact isdecrel_Llenat.

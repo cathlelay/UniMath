@@ -1,9 +1,9 @@
 (** * Definition of Dedekind cuts for non-negative real numbers *)
 (** Catherine Lelay. Sep. 2015 *)
 
-Require Export UniMath.Foundations.Algebra.Lattice.
 Require Import UniMath.RealNumbers.Sets.
-Require Export UniMath.Foundations.Algebra.ConstructiveStructures.
+Require Export UniMath.Algebra.ConstructiveStructures.
+Require Import UniMath.Algebra.Lattice.
 Require Import UniMath.RealNumbers.Prelim.
 Require Import UniMath.RealNumbers.NonnegativeRationals.
 
@@ -857,8 +857,8 @@ Proof.
     exact (pr2 H).
 Qed.
 
-Lemma latticeop_Dcuts :
-  latticeop Dcuts_min Dcuts_max.
+Lemma islatticeop_Dcuts :
+  islatticeop Dcuts_min Dcuts_max.
 Proof.
   repeat split.
   exact isassoc_Dcuts_min.
@@ -869,7 +869,7 @@ Proof.
   exact Dcuts_max_min.
 Qed.
 Definition lattice_Dcuts : lattice Dcuts :=
-  Dcuts_min ,, Dcuts_max ,, latticeop_Dcuts.
+  Dcuts_min ,, Dcuts_max ,, islatticeop_Dcuts.
 
 Local Lemma Dcuts_le_lattice_compat :
   Π x y : Dcuts, x <= y <-> Lle lattice_Dcuts x y.

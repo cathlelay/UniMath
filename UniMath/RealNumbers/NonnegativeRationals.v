@@ -6,7 +6,8 @@ Unset Kernel Term Sharing.
 
 Require Import UniMath.RealNumbers.Sets.
 Require Import UniMath.RealNumbers.Fields.
-Require Export UniMath.Foundations.Algebra.DivisionRig.
+Require Export UniMath.Algebra.DivisionRig.
+Require Import UniMath.Algebra.Lattice.
 Require Import UniMath.RealNumbers.Prelim.
 
 Opaque hq.
@@ -271,8 +272,8 @@ Defined.
 
 (** ** hnnq is a lattice *)
 
-Lemma latticeop_hnnq :
-  latticeop hnnq_min hnnq_max.
+Lemma islatticeop_hnnq :
+  islatticeop hnnq_min hnnq_max.
 Proof.
   repeat split ; intro ; intros ; apply subtypeEquality_prop.
   - apply isassoc_hqmin.
@@ -283,7 +284,7 @@ Proof.
   - apply isabsorb_hqmax_hqmin.
 Qed.
 Definition lattice_hnnq : lattice hnnq_set :=
-  hnnq_min ,, hnnq_max ,, latticeop_hnnq.
+  hnnq_min ,, hnnq_max ,, islatticeop_hnnq.
 
 Lemma Lle_hnnq_le :
   Π x y : hnnq_set, hnnq_le x y <-> Lle lattice_hnnq x y.
