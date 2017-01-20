@@ -14,6 +14,7 @@ Set Default Timeout 10.
 
 Definition apfromgt {X : hSet} (gt : StrongOrder X) : aprel X.
 Proof.
+  intros X gt.
   mkpair.
   - intros x y.
     simple refine (hProppair _ _).
@@ -43,6 +44,7 @@ Defined.
 Definition tightapfromgt {X : hSet} (gt : StrongOrder X) (le : hrel X)
            (Hngtle : Π x y, (¬ gt x y) <-> le x y) (Hle : isantisymm le) : tightap X.
 Proof.
+  intros.
   refine (tpair _ _ _).
   split.
   apply (pr2 (apfromgt gt)).
@@ -492,9 +494,10 @@ Qed.
 Definition metricUniformStructure (Hcut : Π x : NR, x > 0 → ∃ y z : NR, x = y + z × y > 0 × z > 0) :
   UniformStructure M.
 Proof.
+  intros.
   simple refine (mkUniformStructure _ _ _ _ _ _ _).
   - intros A.
-    apply (∃ e : NR, e > 0 × Π x y : M, ball x e y -> A (x,,y)).
+    apply (∃ e : NR, e > 0 × Π x y : M, ball x e y -> A x y).
   - intros A B H.
     apply hinhfun.
     intros e.
@@ -545,7 +548,7 @@ Proof.
     generalize (Hcut (pr1 e) (pr1 (pr2 e))).
     apply hinhfun.
     intros e'.
-    exists (λ x, ball (pr1 x) (NnMmin (pr1 e') (pr1 (pr2 e'))) (pr2 x)).
+    exists (λ x, ball x (NnMmin (pr1 e') (pr1 (pr2 e')))).
     split.
     + apply hinhpr.
       exists (NnMmin (pr1 e') (pr1 (pr2 e'))).
@@ -554,10 +557,10 @@ Proof.
         apply (pr1 (pr2 (pr2 (pr2 e')))).
         apply (pr2 (pr2 (pr2 (pr2 e')))).
       * intros x y H ; apply H.
-    + intros xy.
+    + intros x y.
       apply hinhuniv.
       intros z.
-      rewrite (tppr xy) ; apply (pr2 (pr2 e)).
+      apply (pr2 (pr2 e)).
       rewrite (pr1 (pr2 (pr2 e'))).
       eapply istrans_NnMgt_ge.
       2: eapply istriangle_dist.
@@ -601,7 +604,7 @@ Proof.
     apply (pr2 (pr2 U)), (pr2 (pr2 e)), Hy.
   - apply hinhfun.
     intros e.
-    exists (λ z, ball is (pr1 z) (pr1 e) (pr2 z)).
+    exists (λ z, ball is z (pr1 e)).
     split.
     apply hinhpr.
     now exists (pr1 e), (pr1 (pr2 e)).
@@ -713,6 +716,7 @@ End MSlocally.
 
 Definition MSlocally {NR : NonnegativeMonoid} {M} (is : MetricSet NR M) (x : M) : Filter M.
 Proof.
+  intros.
   exists (MSneighborhood is x).
   revert x.
   apply isNeighborhood_isFilter.
@@ -722,6 +726,7 @@ Defined.
 Lemma MSlocally_ball {NR : NonnegativeMonoid} {M} (is : MetricSet NR M) (x : M) :
   Π e : NR, e > 0 -> MSlocally is x (ball is x e).
 Proof.
+  intros NR M is x.
   intros e He.
   apply hinhpr.
   now exists e.
@@ -766,7 +771,7 @@ Proof.
   - intros H P.
     apply hinhuniv.
     intros e.
-    eapply (Filter_imply F).
+    eapply (filter_imply F).
     intros y Hy.
     apply (pr2 (pr2 e)).
     apply Hy.
