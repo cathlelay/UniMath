@@ -8,7 +8,7 @@ Require Import UniMath.Topology.Topology.
 Require Import UniMath.Topology.UniformSpace.
 Require Import UniMath.Algebra.Apartness.
 
-Set Default Timeout 10.
+Set Default Timeout 5.
 
 (** ** Lattice *)
 
@@ -42,14 +42,14 @@ Proof.
 Defined.
 
 Definition tightapfromgt {X : hSet} (gt : StrongOrder X) (le : hrel X)
-           (Hngtle : Π x y, (¬ gt x y) <-> le x y) (Hle : isantisymm le) : tightap X.
+           (Hngtle : Π x y, (¬ gt x y) → le x y) (Hle : isantisymm le) : tightap X.
 Proof.
   intros.
   refine (tpair _ _ _).
   split.
   apply (pr2 (apfromgt gt)).
   intros x y Hgt.
-  apply Hle ; apply (pr1 (Hngtle _ _)) ; intro H ; apply Hgt.
+  apply Hle ; apply Hngtle ; intro H ; apply Hgt.
   now left.
   now right.
 Defined.
@@ -70,7 +70,6 @@ Definition NonnegativeMonoid :=
 
 Definition pr1NonnegativeMonoid : NonnegativeMonoid -> abmonoid := pr1.
 Coercion pr1NonnegativeMonoid : NonnegativeMonoid >-> abmonoid.
-
 
 Section NnM_pr.
 
@@ -103,9 +102,7 @@ Proof.
   simple refine (tightapfromgt _ _ _ _).
   - apply NnMgt.
   - apply (pr1 NnMle).
-  - split.
-    apply notLgt_Lle.
-    apply Lle_notLgt.
+  - apply notLgt_Lle.
   - apply isantisymm_Lle.
 Defined.
 
@@ -128,19 +125,13 @@ Definition NnMminus : binop X := (pr1 (pr1 (pr2 (pr2 X)))).
 
 Local Notation "x - y" := (NnMminus x y).
 
-Lemma istight_NnMap : istight (NnMap X).
-Proof.
-  exact (pr2 (pr2 (NnMap X))).
-Qed.
-Lemma isirrefl_NnMap : isirrefl (NnMap X).
-Proof.
-  exact (pr1 (pr1 (pr2 (NnMap X)))).
-Qed.
-Lemma istotal_NnMgt :
-  Π x y : X, x ≠ y <-> (x > y) ⨿ (y > x).
-Proof.
-  easy.
-Qed.
+Definition istight_NnMap : istight (NnMap X) :=
+  (pr2 (pr2 (NnMap X))).
+Definition isirrefl_NnMap : isirrefl (NnMap X) :=
+  (pr1 (pr1 (pr2 (NnMap X)))).
+Definition istotal_NnMgt :
+  Π x y : X, x ≠ y <-> (x > y) ⨿ (y > x) :=
+  λ x y : X, (λ H : x ≠ y, H),, (λ H : (x > y) ⨿ (y > x), H).
 
 Lemma notNnMgt_le :
   Π x y : X, (¬ (x > y)) <-> (x <= y).
@@ -732,7 +723,7 @@ Proof.
   now exists e.
 Qed.
 
-Definition MSlocally2d {NR : NonnegativeMonoid} {X Y} (isX : MetricSet NR X) (isY : MetricSet NR Y) (x : X) (y : Y) :=
+Definition MSlocally2d {NR : NonnegativeMonoid} {X Y} (isX : MetricSet NR X) (isY : MetricSet NR Y) (x : X) (y : Y) : Filter (X × Y) :=
   FilterDirprod (MSlocally isX x) (MSlocally isY y).
 
 (** *** Limit of a filter *)
