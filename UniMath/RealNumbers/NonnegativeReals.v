@@ -80,9 +80,9 @@ Proof.
   - exact (isaprop_Dcuts_def_corr X).
 Qed.
 
-Definition Dcuts_hsubtypes : hsubtypes (hsubtypes NonnegativeRationals) :=
-  λ X : hsubtypes NonnegativeRationals, hProppair _ (isaprop_Dcuts_hsubtypes X).
-Lemma isaset_Dcuts : isaset (carrier Dcuts_hsubtypes).
+Definition Dcuts_hsubtype : hsubtype (hsubtype NonnegativeRationals) :=
+  λ X : hsubtype NonnegativeRationals, hProppair _ (isaprop_Dcuts_hsubtype X).
+Lemma isaset_Dcuts : isaset (carrier Dcuts_hsubtype).
 Proof.
   apply isasetsubset with pr1.
   apply isasethsubtype.
@@ -142,10 +142,10 @@ Qed.
 (** Partial order on [Dcuts] *)
 
 Definition Dcuts_le_val :=
-  λ X Y : hsubtypes NonnegativeRationals,
+  λ X Y : hsubtype NonnegativeRationals,
           Π x : NonnegativeRationals, X x -> Y x.
 Lemma isaprop_Dcuts_le_val :
-  Π X Y : hsubtypes NonnegativeRationals, isaprop (Dcuts_le_val X Y).
+  Π X Y : hsubtype NonnegativeRationals, isaprop (Dcuts_le_val X Y).
 Proof.
   intros X Y.
   apply impred_isaprop ; intros x.
@@ -565,18 +565,18 @@ Qed.
 
 Section Dcuts_min.
 
-  Context (X : hsubtypes NonnegativeRationals).
+  Context (X : hsubtype NonnegativeRationals).
   Context (X_bot : Dcuts_def_bot X).
   Context (X_open : Dcuts_def_open X).
   Context (X_finite : Dcuts_def_finite X).
   Context (X_corr : Dcuts_def_corr X).
-  Context (Y : hsubtypes NonnegativeRationals).
+  Context (Y : hsubtype NonnegativeRationals).
   Context (Y_bot : Dcuts_def_bot Y).
   Context (Y_open : Dcuts_def_open Y).
   Context (Y_finite : Dcuts_def_finite Y).
   Context (Y_corr : Dcuts_def_corr Y).
 
-Definition Dcuts_min_val : hsubtypes NonnegativeRationals :=
+Definition Dcuts_min_val : hsubtype NonnegativeRationals :=
   λ r : NonnegativeRationals, X r ∧ Y r.
 
 Lemma Dcuts_min_bot : Dcuts_def_bot Dcuts_min_val.
@@ -651,7 +651,7 @@ Section Dcuts_max.
   Context (Y_finite : Dcuts_def_finite Y).
   Context (Y_corr : Dcuts_def_corr Y).
 
-Definition Dcuts_max_val : hsubtypes NonnegativeRationals :=
+Definition Dcuts_max_val : hsubtype NonnegativeRationals :=
   λ r : NonnegativeRationals, X r ∨ Y r.
 
 Lemma Dcuts_max_bot : Dcuts_def_bot Dcuts_max_val.
@@ -1201,49 +1201,49 @@ Qed.
 
 (** ** Addition in Dcuts *)
 
-Definition Dcuts_plus_acc (X Y : hsubtypes NonnegativeRationals) (r : NonnegativeRationals) :=
+Definition Dcuts_plus_acc (X Y : hsubtype NonnegativeRationals) (r : NonnegativeRationals) :=
   Σ xy : NonnegativeRationals × NonnegativeRationals, (r = (pr1 xy + pr2 xy)%NRat) × ((X (pr1 xy)) × (Y (pr2 xy))).
-Definition mkDcuts_plus_acc (X Y : hsubtypes NonnegativeRationals) (r : NonnegativeRationals)
+Definition mkDcuts_plus_acc (X Y : hsubtype NonnegativeRationals) (r : NonnegativeRationals)
                             (x y : NonnegativeRationals) (Hrw : r = x + y) (Hx : X x) (Hy : Y y)
                             : Dcuts_plus_acc X Y r :=
   (x,, y),, Hrw,, Hx,, Hy.
-Lemma Dcuts_plus_x {X Y : hsubtypes NonnegativeRationals} {r : NonnegativeRationals}
+Lemma Dcuts_plus_x {X Y : hsubtype NonnegativeRationals} {r : NonnegativeRationals}
                     (xy : Dcuts_plus_acc X Y r) : NonnegativeRationals.
 Proof.
   intros X Y r xy.
   apply (pr1 (pr1 xy)).
 Defined.
-Lemma Dcuts_plus_y {X Y : hsubtypes NonnegativeRationals} {r : NonnegativeRationals}
+Lemma Dcuts_plus_y {X Y : hsubtype NonnegativeRationals} {r : NonnegativeRationals}
                     (xy : Dcuts_plus_acc X Y r) : NonnegativeRationals.
 Proof.
   intros X Y r xy.
   apply (pr2 (pr1 xy)).
 Defined.
-Lemma Dcuts_plus_rw {X Y : hsubtypes NonnegativeRationals} {r : NonnegativeRationals}
+Lemma Dcuts_plus_rw {X Y : hsubtype NonnegativeRationals} {r : NonnegativeRationals}
                     (xy : Dcuts_plus_acc X Y r) : (r = Dcuts_plus_x xy + Dcuts_plus_y xy)%NRat.
 Proof.
   intros X Y r xy.
   apply (pr1 (pr2 xy)).
 Qed.
-Lemma Dcuts_plus_x_in {X Y : hsubtypes NonnegativeRationals} {r : NonnegativeRationals}
+Lemma Dcuts_plus_x_in {X Y : hsubtype NonnegativeRationals} {r : NonnegativeRationals}
                       (xy : Dcuts_plus_acc X Y r) : X (Dcuts_plus_x xy).
 Proof.
   intros X Y r xy.
   apply (pr1 (pr2 (pr2 xy))).
 Qed.
-Lemma Dcuts_plus_y_in {X Y : hsubtypes NonnegativeRationals} {r : NonnegativeRationals}
+Lemma Dcuts_plus_y_in {X Y : hsubtype NonnegativeRationals} {r : NonnegativeRationals}
                       (xy : Dcuts_plus_acc X Y r) : Y (Dcuts_plus_y xy).
 Proof.
   intros X Y r xy.
   apply (pr2 (pr2 (pr2 xy))).
 Qed.
-Definition Dcuts_plus_val (X Y : hsubtypes NonnegativeRationals) : hsubtypes NonnegativeRationals :=
+Definition Dcuts_plus_val (X Y : hsubtype NonnegativeRationals) : hsubtype NonnegativeRationals :=
   λ r : NonnegativeRationals,
         ((X r) ⨿ (Y r)) ∨ (Dcuts_plus_acc X Y r).
 Opaque Dcuts_plus_acc.
 
 Lemma Dcuts_plus_max_val :
-  Π (X Y : hsubtypes NonnegativeRationals),
+  Π (X Y : hsubtype NonnegativeRationals),
   Dcuts_plus_val X Y
   = Dcuts_max_val (Dcuts_max_val X Y) (λ r, ∥Dcuts_plus_acc X Y r∥).
 Proof.
@@ -1262,11 +1262,11 @@ Qed.
 
 Section Dcuts_plus.
 
-  Context (X : hsubtypes NonnegativeRationals).
+  Context (X : hsubtype NonnegativeRationals).
   Context (X_bot : Dcuts_def_bot X).
   Context (X_open : Dcuts_def_open X).
   Context (X_corr : Dcuts_def_corr X).
-  Context (Y : hsubtypes NonnegativeRationals).
+  Context (Y : hsubtype NonnegativeRationals).
   Context (Y_bot : Dcuts_def_bot Y).
   Context (Y_open : Dcuts_def_open Y).
   Context (Y_corr : Dcuts_def_corr Y).
@@ -1446,13 +1446,13 @@ Section Dcuts_NQmult.
 
   Context (x : NonnegativeRationals).
   Context (Hx : (0 < x)%NRat).
-  Context (Y : hsubtypes NonnegativeRationals).
+  Context (Y : hsubtype NonnegativeRationals).
   Context (Y_bot : Dcuts_def_bot Y).
   Context (Y_open : Dcuts_def_open Y).
   Context (Y_finite : Dcuts_def_finite Y).
   Context (Y_corr : Dcuts_def_corr Y).
 
-Definition Dcuts_NQmult_val : hsubtypes NonnegativeRationals :=
+Definition Dcuts_NQmult_val : hsubtype NonnegativeRationals :=
   fun r => ∃ ry : NonnegativeRationals, r = x * ry × Y ry.
 
 Lemma Dcuts_NQmult_bot : Dcuts_def_bot Dcuts_NQmult_val.
@@ -1578,18 +1578,18 @@ Definition Dcuts_NQmult x (Y : Dcuts) Hx : Dcuts :=
 
 Section Dcuts_mult.
 
-  Context (X : hsubtypes NonnegativeRationals).
+  Context (X : hsubtype NonnegativeRationals).
   Context (X_bot : Dcuts_def_bot X).
   Context (X_open : Dcuts_def_open X).
   Context (X_finite : Dcuts_def_finite X).
   Context (X_corr : Dcuts_def_corr X).
-  Context (Y : hsubtypes NonnegativeRationals).
+  Context (Y : hsubtype NonnegativeRationals).
   Context (Y_bot : Dcuts_def_bot Y).
   Context (Y_open : Dcuts_def_open Y).
   Context (Y_finite : Dcuts_def_finite Y).
   Context (Y_corr : Dcuts_def_corr Y).
 
-Definition Dcuts_mult_val : hsubtypes NonnegativeRationals :=
+Definition Dcuts_mult_val : hsubtype NonnegativeRationals :=
   fun r => ∃ xy : NonnegativeRationals * NonnegativeRationals,
                            r = (fst xy * snd xy)%NRat × X (fst xy) × Y (snd xy).
 
@@ -1753,12 +1753,12 @@ End Dcuts_mult.
 
 Section Dcuts_mult'.
 
-  Context (X : hsubtypes NonnegativeRationals).
+  Context (X : hsubtype NonnegativeRationals).
   Context (X_bot : Dcuts_def_bot X).
   Context (X_open : Dcuts_def_open X).
   Context (X_finite : Dcuts_def_finite X).
   Context (X_corr : Dcuts_def_corr X).
-  Context (Y : hsubtypes NonnegativeRationals).
+  Context (Y : hsubtype NonnegativeRationals).
   Context (Y_bot : Dcuts_def_bot Y).
   Context (Y_open : Dcuts_def_open Y).
   Context (Y_finite : Dcuts_def_finite Y).
@@ -1844,14 +1844,14 @@ Definition Dcuts_mult (X Y : Dcuts) : Dcuts :=
 
 Section Dcuts_inv.
 
-Context (X : hsubtypes NonnegativeRationals).
+Context (X : hsubtype NonnegativeRationals).
 Context (X_bot : Dcuts_def_bot X).
 Context (X_open : Dcuts_def_open X).
 Context (X_finite : Dcuts_def_finite X).
 Context (X_corr : Dcuts_def_corr X).
 Context (X_0 : X 0%NRat).
 
-Definition Dcuts_inv_val : hsubtypes NonnegativeRationals :=
+Definition Dcuts_inv_val : hsubtype NonnegativeRationals :=
   λ r : NonnegativeRationals,
         hexists (λ l : NonnegativeRationals, (Π rx : NonnegativeRationals, X rx -> (r * rx <= l)%NRat)
                                                × (0 < l)%NRat × (l < 1)%NRat).
@@ -2036,7 +2036,7 @@ End Dcuts_inv.
 
 Section Dcuts_inv'.
 
-Context (X : hsubtypes NonnegativeRationals).
+Context (X : hsubtype NonnegativeRationals).
 Context (X_bot : Dcuts_def_bot X).
 Context (X_open : Dcuts_def_open X).
 Context (X_finite : Dcuts_def_finite X).
@@ -3075,7 +3075,7 @@ Section Dcuts_minus.
   Context (Y_open : Dcuts_def_open Y).
   Context (Y_corr : Dcuts_def_corr Y).
 
-Definition Dcuts_minus_val : hsubtypes NonnegativeRationals :=
+Definition Dcuts_minus_val : hsubtype NonnegativeRationals :=
   fun r => ∃ x, X x × Π y, (Y y) ⨿ (y = 0%NRat) -> (r + y < x)%NRat.
 
 Lemma Dcuts_minus_bot : Dcuts_def_bot Dcuts_minus_val.

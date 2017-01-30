@@ -1511,7 +1511,7 @@ Proof.
   do 2 rewrite commax, assocax.
   apply pathsinv0, assocax.
 Timeout 10 Qed.
-Lemma abmonoidfrac_Lle_2 (X : abmonoid) (Y : @submonoids X) (is : lattice X)
+Lemma abmonoidfrac_Lle_2 (X : abmonoid) (Y : @submonoid X) (is : lattice X)
       (Hmin : ispartrdistr _ (Lmin is) op) :
   Π (x y : abmonoiddirprod X _),
   abmonoidfrac_min X Y Hmin (setquotpr (binopeqrelabmonoidfrac X Y) x)
@@ -1954,13 +1954,13 @@ Close Scope addmonoid.
 
 Open Scope rng.
 
-Definition commrngfrac_lattice (X : commrng) (Y : @subabmonoids (rngmultabmonoid X))
+Definition commrngfrac_lattice (X : commrng) (Y : @subabmonoid (rngmultabmonoid X))
            (is : lattice X)
            (Hmin : ispartrdistr Y (Lmin is) op2) (Hmax : ispartrdistr Y (Lmax is) op2) :
   lattice (commrngfrac X Y) :=
   abmonoidfrac_lattice (rngmultabmonoid X) Y is Hmin Hmax.
 
-Definition commrngfrac_latticewithgt (X : commrng) (Y : @subabmonoids (rngmultabmonoid X))
+Definition commrngfrac_latticewithgt (X : commrng) (Y : @subabmonoid (rngmultabmonoid X))
            (is : latticewithgt X)
            (Hgt : ispartbinophrel Y (Lgt is))
            (Hop : Π (x : Y) (y z : rngmultabmonoid X),
@@ -1977,7 +1977,7 @@ Proof.
   - apply Hmax.
 Defined.
 
-Definition commrngfrac_latticedec (X : commrng) (Y : @subabmonoids (rngmultabmonoid X))
+Definition commrngfrac_latticedec (X : commrng) (Y : @subabmonoid (rngmultabmonoid X))
            (is : latticedec X)
            (Hop : Π (x : Y) (y z : rngmultabmonoid X),
   (y * pr1 x = z * pr1 x)%rng → y = z)
