@@ -81,7 +81,7 @@ Proof.
   induction n as [|n IHn] ; intros m x.
   - reflexivity.
   - simpl (_ * _)%nat.
-    assert (S n = (n + 1)%nat).
+    assert (H : S n = (n + 1)%nat).
     { rewrite <- plus_n_Sm, <- plus_n_O.
       reflexivity. }
     rewrite H ; clear H.
@@ -108,7 +108,7 @@ Proof.
   - rewrite lunax.
     reflexivity.
   - rewrite natmultS, assocax, IHn, <- (assocax _ y).
-    assert (y + natmult n x = natmult n x + y)%addmonoid.
+    assert (X1 : (y + natmult n x = natmult n x + y)%addmonoid).
     { clear IHn.
       induction n as [|n IHn].
       - rewrite lunax, runax.
@@ -762,7 +762,7 @@ Proof.
   intros X R Hop1 H.
   repeat split.
   - intros y1 y2 Hy.
-    assert (R (y1 - y2)%rng 0%rng).
+    assert (X0 : R (y1 - y2)%rng 0%rng).
     abstract (apply (pr2 (isinvbinophrelgr X Hop1)) with y2 ;
                change BinaryOperations.op with (@BinaryOperations.op1 X) ;
                rewrite rngassoc1, rnglinvax1, rnglunax1, rngrunax1 ;
@@ -943,7 +943,7 @@ Proof.
     exact Hc2.*)
 Defined.
 
-Lemma natmult_commrngfrac {X : commrng} {S : subabmonoids} :
+Lemma natmult_commrngfrac {X : commrng} {S : subabmonoid} :
   Π n (x : X × S), natmult (X := commrngfrac X S) n (setquotpr (eqrelcommrngfrac X S) x) = setquotpr (eqrelcommrngfrac X S) (natmult (X := X) n (pr1 x) ,, (pr2 x)).
 Proof.
   simpl ; intros X S n x.
@@ -968,7 +968,7 @@ Proof.
     reflexivity.
 Qed.
 
-Lemma isarchcommrngfrac {X : commrng} {S : subabmonoids} (R : hrel X) Hop1 Hop2 Hs:
+Lemma isarchcommrngfrac {X : commrng} {S : subabmonoid} (R : hrel X) Hop1 Hop2 Hs:
   R 1%rng 0%rng ->
   istrans R ->
   isarchrng R -> isarchrng (X := commrngfrac X S) (commrngfracgt X S (R := R) Hop1 Hop2 Hs).
