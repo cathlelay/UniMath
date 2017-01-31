@@ -6,17 +6,17 @@ A Course in Universal Algebra-With 36 Illustrations. Chapter I)
 A lattice is a set with two binary operators min and max such that:
 - min and max are associative
 - min and max are commutative
-- Π x y : X, min x (max x y) = x
-- Π x y : X, max x (min x y) = x
+- ∏ x y : X, min x (max x y) = x
+- ∏ x y : X, max x (min x y) = x
 
 In a lattice, we can define a partial order:
 - le := λ (x y : X), min is x y = x
 
 Lattice with a strict order:
 A lattice with a strict order gt is lattice such that:
-- Π (x y : X), (¬ gt x y) <-> le x y
-- Π x y z : X, gt x z → gt y z → gt (min x y) z
-- Π x y z : X, gt z x → gt z y → gt z (max is x y)
+- ∏ (x y : X), (¬ gt x y) <-> le x y
+- ∏ x y z : X, gt x z → gt y z → gt (min x y) z
+- ∏ x y z : X, gt z x → gt z y → gt z (max is x y)
 
 Lattice with a total and decidable order:
 - le is total and decidable
@@ -27,7 +27,7 @@ Lattice in an abelian monoid:
 - compatibility and cancelation of addition for le
 
 Truncated minus is a lattice:
-- a function minus such that: Π (x y : X), (minus x y) + y = max x y *)
+- a function minus such that: ∏ (x y : X), (minus x y) + y = max x y *)
 
 (**
 Define new lattices using:
@@ -45,7 +45,7 @@ Set Default Timeout 5.
 (* todo : move it into UniMath.Foundations.Sets *)
 
 Definition isStrongOrder {X : UU} (R : hrel X) := istrans R × iscotrans R × isirrefl R.
-Definition StrongOrder (X : UU) := Σ R : hrel X, isStrongOrder R.
+Definition StrongOrder (X : UU) := ∑ R : hrel X, isStrongOrder R.
 Definition pairStrongOrder {X : UU} (R : hrel X) (is : isStrongOrder R) : StrongOrder X :=
   tpair (fun R : hrel X => isStrongOrder R ) R is.
 Definition pr1StrongOrder {X : UU} : StrongOrder X → hrel X := pr1.
@@ -149,7 +149,8 @@ Definition islatticeop {X : hSet} (min max : binop X) :=
     × ((isassoc max) × (iscomm max))
     × (isabsorb min max)
     × (isabsorb max min).
-Definition lattice (X : hSet) := Σ min max : binop X, islatticeop min max.
+Definition lattice (X : hSet) :=
+  ∑ min max : binop X, islatticeop min max.
 
 Definition mklattice {X : hSet} {min max : binop X} : islatticeop min max → lattice X :=
   λ (is : islatticeop min max), min,, max ,, is.
@@ -176,7 +177,7 @@ Definition Lmax_absorb : isabsorb (Lmax is) (Lmin is) :=
   pr2 (pr2 (pr2 (pr2 (pr2 is)))).
 
 Lemma Lmin_id :
-  Π x : X, Lmin is x x = x.
+  ∏ x : X, Lmin is x x = x.
 Proof.
   intros x.
   apply (pathscomp0 (b := Lmin is x (Lmax is x (Lmin is x x)))).
@@ -184,7 +185,7 @@ Proof.
   - apply Lmin_absorb.
 Qed.
 Lemma Lmax_id :
-  Π x : X, Lmax is x x = x.
+  ∏ x : X, Lmax is x x = x.
 Proof.
   intros x.
   apply (pathscomp0 (b := Lmax is x (Lmin is x (Lmax is x x)))).
@@ -234,7 +235,7 @@ Proof.
 Qed.
 
 Lemma Lmin_le_l :
-  Π x y : X, Lle is (Lmin is x y) x.
+  ∏ x y : X, Lle is (Lmin is x y) x.
 Proof.
   intros x y.
   simpl.
@@ -242,14 +243,14 @@ Proof.
   reflexivity.
 Qed.
 Lemma Lmin_le_r :
-  Π x y : X, Lle is (Lmin is x y) y.
+  ∏ x y : X, Lle is (Lmin is x y) y.
 Proof.
   intros x y.
   rewrite iscomm_Lmin.
   apply Lmin_le_l.
 Qed.
 Lemma Lmin_le_case :
-  Π x y z : X, Lle is z x → Lle is z y → Lle is z (Lmin is x y).
+  ∏ x y z : X, Lle is z x → Lle is z y → Lle is z (Lmin is x y).
 Proof.
   intros x y z <- <-.
   simpl.
@@ -261,14 +262,14 @@ Proof.
 Qed.
 
 Lemma Lmax_le_l :
-  Π x y : X, Lle is x (Lmax is x y).
+  ∏ x y : X, Lle is x (Lmax is x y).
 Proof.
   intros x y.
   simpl.
   apply Lmin_absorb.
 Qed.
 Lemma Lmax_le_r :
-  Π x y : X, Lle is y (Lmax is x y).
+  ∏ x y : X, Lle is y (Lmax is x y).
 Proof.
   intros x y.
   rewrite iscomm_Lmax.
@@ -276,7 +277,7 @@ Proof.
 Qed.
 Lemma Lmax_le_case :
   isrdistr (Lmax is) (Lmin is)
-  → Π x y z : X, Lle is x z → Lle is y z → Lle is (Lmax is x y) z.
+  → ∏ x y z : X, Lle is x z → Lle is y z → Lle is (Lmax is x y) z.
 Proof.
   intros H x y z <- <-.
   rewrite <- H.
@@ -284,13 +285,13 @@ Proof.
 Qed.
 
 Lemma Lmin_le_eq_l :
-  Π x y : X, Lle is x y → Lmin is x y = x.
+  ∏ x y : X, Lle is x y → Lmin is x y = x.
 Proof.
   intros x y H.
   apply H.
 Qed.
 Lemma Lmin_le_eq_r :
-  Π x y : X, Lle is y x → Lmin is x y = y.
+  ∏ x y : X, Lle is y x → Lmin is x y = y.
 Proof.
   intros x y H.
   rewrite iscomm_Lmin.
@@ -298,14 +299,14 @@ Proof.
 Qed.
 
 Lemma Lmax_le_eq_l :
-  Π x y : X, Lle is y x → Lmax is x y = x.
+  ∏ x y : X, Lle is y x → Lmax is x y = x.
 Proof.
   intros x y <-.
   rewrite iscomm_Lmin.
   apply Lmax_absorb.
 Qed.
 Lemma Lmax_le_eq_r :
-  Π x y : X, Lle is x y → Lmax is x y = y.
+  ∏ x y : X, Lle is x y → Lmax is x y = y.
 Proof.
   intros x y H.
   rewrite iscomm_Lmax.
@@ -352,39 +353,39 @@ Proof.
 Qed.
 
 Definition Lmin_ge_l :
-  Π (x y : X), Lge is x (Lmin is x y) :=
+  ∏ (x y : X), Lge is x (Lmin is x y) :=
   Lmin_le_l is.
 Definition Lmin_ge_r :
-  Π (x y : X), Lge is y (Lmin is x y) :=
+  ∏ (x y : X), Lge is y (Lmin is x y) :=
   Lmin_le_r is.
 Definition Lmin_ge_case :
-  Π (x y z : X),
+  ∏ (x y z : X),
   Lge is x z → Lge is y z → Lge is (Lmin is x y) z :=
   Lmin_le_case is.
 
 Definition Lmax_ge_l :
-  Π (x y : X), Lge is (Lmax is x y) x :=
+  ∏ (x y : X), Lge is (Lmax is x y) x :=
   Lmax_le_l is.
 Definition Lmax_ge_r :
-  Π (x y : X), Lge is (Lmax is x y) y :=
+  ∏ (x y : X), Lge is (Lmax is x y) y :=
   Lmax_le_r is.
 Definition Lmax_ge_case :
   isrdistr (Lmax is) (Lmin is)
-  → Π x y z : X, Lge is z x → Lge is z y → Lge is z (Lmax is x y) :=
+  → ∏ x y z : X, Lge is z x → Lge is z y → Lge is z (Lmax is x y) :=
   Lmax_le_case is.
 
 Definition Lmin_ge_eq_l :
-  Π (x y : X), Lge is y x → Lmin is x y = x :=
+  ∏ (x y : X), Lge is y x → Lmin is x y = x :=
   Lmin_le_eq_l is.
 Definition Lmin_ge_eq_r :
-  Π (x y : X), Lge is x y → Lmin is x y = y :=
+  ∏ (x y : X), Lge is x y → Lmin is x y = y :=
   Lmin_le_eq_r is.
 
 Definition Lmax_ge_eq_l :
-  Π (x y : X), Lge is x y → Lmax is x y = x :=
+  ∏ (x y : X), Lge is x y → Lmax is x y = x :=
   Lmax_le_eq_l is.
 Definition Lmax_ge_eq_r :
-  Π (x y : X), Lge is y x → Lmax is x y = y :=
+  ∏ (x y : X), Lge is y x → Lmax is x y = y :=
   Lmax_le_eq_r is.
 
 End Lge_pty.
@@ -392,12 +393,12 @@ End Lge_pty.
 (** ** Lattice with a strong order *)
 
 Definition islatticewithgtrel {X : hSet} (is : lattice X) (gt : StrongOrder X) :=
-  (Π x y : X, (¬ (gt x y)) <-> Lle is x y)
-    × (Π x y z : X, gt x z → gt y z → gt (Lmin is x y) z)
-    × (Π x y z : X, gt z x → gt z y → gt z (Lmax is x y)).
+  (∏ x y : X, (¬ (gt x y)) <-> Lle is x y)
+    × (∏ x y z : X, gt x z → gt y z → gt (Lmin is x y) z)
+    × (∏ x y z : X, gt z x → gt z y → gt z (Lmax is x y)).
 
 Definition latticewithgt (X : hSet) :=
-  Σ (is : lattice X) (gt : StrongOrder X), islatticewithgtrel is gt.
+  ∑ (is : lattice X) (gt : StrongOrder X), islatticewithgtrel is gt.
 
 Definition lattice_latticewithgt {X : hSet} : latticewithgt X → lattice X :=
   pr1.
@@ -414,10 +415,10 @@ Context {X : hSet}
         (is : latticewithgt X).
 
 Definition notLgt_Lle :
-  Π x y : X, (¬ Lgt is x y) → Lle is x y :=
+  ∏ x y : X, (¬ Lgt is x y) → Lle is x y :=
   λ x y : X, pr1 (pr1 (pr2 (pr2 is)) x y).
 Definition Lle_notLgt :
-  Π x y : X, Lle is x y → ¬ Lgt is x y :=
+  ∏ x y : X, Lle is x y → ¬ Lgt is x y :=
   λ x y : X, pr2 (pr1 (pr2 (pr2 is)) x y).
 
 Definition isirrefl_Lgt : isirrefl (Lgt is) :=
@@ -430,7 +431,7 @@ Definition isasymm_Lgt : isasymm (Lgt is) :=
   isasymm_StrongOrder (Lgt is).
 
 Lemma Lgt_Lge :
-  Π x y : X, Lgt is x y → Lge is x y.
+  ∏ x y : X, Lgt is x y → Lge is x y.
 Proof.
   intros x y H.
   apply notLgt_Lle.
@@ -441,7 +442,7 @@ Proof.
 Qed.
 
 Lemma istrans_Lgt_Lge :
-  Π x y z : X, Lgt is x y → Lge is y z → Lgt is x z.
+  ∏ x y z : X, Lgt is x y → Lge is y z → Lgt is x z.
 Proof.
   intros x y z Hgt Hge.
   generalize (iscotrans_Lgt _ z _ Hgt).
@@ -454,7 +455,7 @@ Proof.
     exact H.
 Qed.
 Lemma istrans_Lge_Lgt :
-  Π x y z : X, Lge is x y → Lgt is y z → Lgt is x z.
+  ∏ x y z : X, Lge is x y → Lgt is y z → Lgt is x z.
 Proof.
   intros x y z Hge Hgt.
   generalize (iscotrans_Lgt _ x _ Hgt).
@@ -468,11 +469,11 @@ Proof.
 Qed.
 
 Definition Lmin_Lgt :
-  Π x y z : X, Lgt is x z → Lgt is y z → Lgt is (Lmin is x y) z :=
+  ∏ x y z : X, Lgt is x z → Lgt is y z → Lgt is (Lmin is x y) z :=
   pr1 (pr2 (pr2 (pr2 is))).
 
 Definition Lmax_Lgt :
-  Π x y z : X, Lgt is z x → Lgt is z y → Lgt is z (Lmax is x y) :=
+  ∏ x y z : X, Lgt is z x → Lgt is z y → Lgt is z (Lmax is x y) :=
   pr2 (pr2 (pr2 (pr2 is))).
 
 End latticewithgt_pty.
@@ -481,7 +482,7 @@ End latticewithgt_pty.
 (** ** Lattice with a total order *)
 
 Definition latticedec (X : hSet) :=
-  Σ is : lattice X, istotal (Lle is) × (isdecrel (Lle is)).
+  ∑ is : lattice X, istotal (Lle is) × (isdecrel (Lle is)).
 Definition lattice_latticedec {X : hSet} (is : latticedec X) : lattice X :=
   pr1 is.
 Coercion lattice_latticedec : latticedec >-> lattice.
@@ -496,7 +497,7 @@ Context {X : hSet}
         (is : latticedec X).
 
 Lemma Lmin_case_strong :
-  Π (P : X → UU) (x y : X),
+  ∏ (P : X → UU) (x y : X),
   (Lle is x y → P x) → (Lle is y x → P y) → P (Lmin is x y).
 Proof.
   intros P x y Hx Hy.
@@ -515,7 +516,7 @@ Proof.
       exact H0.
 Qed.
 Lemma Lmin_case :
-  Π (P : X → UU) (x y : X),
+  ∏ (P : X → UU) (x y : X),
   P x → P y → P (Lmin is x y).
 Proof.
   intros P x y Hx Hy.
@@ -525,7 +526,7 @@ Proof.
 Qed.
 
 Lemma Lmax_case_strong :
-  Π (P : X → UU) (x y : X),
+  ∏ (P : X → UU) (x y : X),
   (Lle is y x → P x) → (Lle is x y → P y) → P (Lmax is x y).
 Proof.
   intros P x y Hx Hy.
@@ -544,7 +545,7 @@ Proof.
       exact H0.
 Qed.
 Lemma Lmax_case :
-  Π (P : X → UU) (x y : X),
+  ∏ (P : X → UU) (x y : X),
   P x → P y → P (Lmax is x y).
 Proof.
   intros P x y Hx Hy.
@@ -566,7 +567,7 @@ Definition latticedec_gt_rel : hrel X :=
   λ x y, hneg (Lle is x y).
 
 Lemma latticedec_gt_ge :
-  Π x y : X, latticedec_gt_rel x y → Lge is x y.
+  ∏ x y : X, latticedec_gt_rel x y → Lge is x y.
 Proof.
   intros x y Hxy.
   generalize (istotal_latticedec is x y).
@@ -613,7 +614,7 @@ Proof.
 Defined.
 
 Lemma latticedec_notgtle :
-  Π (x y : X), ¬ latticedec_gt_so x y → Lle is x y.
+  ∏ (x y : X), ¬ latticedec_gt_so x y → Lle is x y.
 Proof.
   intros x y H.
   induction (isdecrel_latticedec is x y) as [H0 | H0].
@@ -623,14 +624,14 @@ Proof.
 Qed.
 
 Lemma latticedec_lenotgt :
-  Π (x y : X), Lle is x y → ¬ latticedec_gt_so x y.
+  ∏ (x y : X), Lle is x y → ¬ latticedec_gt_so x y.
 Proof.
   intros x y H H0.
   apply H0, H.
 Qed.
 
 Lemma latticedec_gtmin :
-  Π (x y z : X),
+  ∏ (x y z : X),
   latticedec_gt_so x z
   → latticedec_gt_so y z → latticedec_gt_so (Lmin is x y) z.
 Proof.
@@ -641,7 +642,7 @@ Proof.
 Qed.
 
 Lemma latticedec_gtmax :
-  Π (x y z : X),
+  ∏ (x y z : X),
   latticedec_gt_so z x
   → latticedec_gt_so z y → latticedec_gt_so z (Lmax is x y).
 Proof.
@@ -676,14 +677,14 @@ Context {X : abmonoid}
         (is2 : isrdistr (Lmin is) op).
 
 Lemma op_le_r :
-  Π k x y : X, Lle is x y → Lle is (x + k) (y + k).
+  ∏ k x y : X, Lle is x y → Lle is (x + k) (y + k).
 Proof.
   intros k x y H.
   unfold Lle ; simpl.
   now rewrite <- is2, H.
 Qed.
 Lemma op_le_r' :
-  Π k x y : X, Lle is (x + k) (y + k) → Lle is x y.
+  ∏ k x y : X, Lle is (x + k) (y + k) → Lle is x y.
 Proof.
   intros k x y H.
   apply (pr2 is0 _ _ k).
@@ -695,7 +696,7 @@ End lattice_abmonoid.
 (** ** Truncated minus *)
 
 Definition istruncminus {X : abmonoid} (is : lattice X) (minus : binop X) :=
-  Π x y : X, minus x y + y = Lmax is x y.
+  ∏ x y : X, minus x y + y = Lmax is x y.
 Lemma isaprop_istruncminus {X : abmonoid} (is : lattice X) (minus : binop X) :
   isaprop (istruncminus is minus).
 Proof.
@@ -706,7 +707,7 @@ Proof.
 Qed.
 
 Definition extruncminus {X : abmonoid} (is : lattice X) :=
-  Σ minus : binop X, istruncminus is minus.
+  ∑ minus : binop X, istruncminus is minus.
 Lemma isaprop_extruncminus {X : abmonoid} (is : lattice X)
       (Hop : isinvbinophrel (λ x y, hProppair (x = y) (setproperty X _ _))) :
   isaprop (extruncminus is).
@@ -734,7 +735,7 @@ Definition truncminus {X : abmonoid} {is : lattice X} (ex : extruncminus is) : b
   pr1 ex.
 
 Lemma istruncminus_ex {X : abmonoid} {is : lattice X} (ex : extruncminus is) :
-  Π x y : X, truncminus ex x y + y = Lmax is x y.
+  ∏ x y : X, truncminus ex x y + y = Lmax is x y.
 Proof.
   intros X is ex.
   apply (pr2 ex).
@@ -752,7 +753,7 @@ Context {X : abmonoid}
         (is5 : isrdistr (Lmax is) (Lmin is)).
 
 Lemma truncminus_0_r :
-  Π x : X, truncminus ex x 0 = Lmax is x 0.
+  ∏ x : X, truncminus ex x 0 = Lmax is x 0.
 Proof.
   intros x.
   rewrite <- (runax _ (truncminus _ _ _)).
@@ -760,7 +761,7 @@ Proof.
 Qed.
 
 Lemma truncminus_eq_0 :
-  Π x y : X, Lle is x y → truncminus ex x y = 0.
+  ∏ x y : X, Lle is x y → truncminus ex x y = 0.
 Proof.
   intros x y H.
   apply (pr2 is1 _ _ y).
@@ -773,13 +774,13 @@ Proof.
 Qed.
 
 Lemma truncminus_0_l_ge0 :
-  Π x : X, Lle is 0 x → truncminus ex 0 x = 0.
+  ∏ x : X, Lle is 0 x → truncminus ex 0 x = 0.
 Proof.
   intros x Hx.
   apply truncminus_eq_0, Hx.
 Qed.
 Lemma truncminus_0_l_le0 :
-  Π x : X, Lle is x 0 → truncminus ex 0 x + x = 0.
+  ∏ x : X, Lle is x 0 → truncminus ex 0 x + x = 0.
 Proof.
   intros x Hx.
   rewrite istruncminus_ex.
@@ -787,7 +788,7 @@ Proof.
 Qed.
 
 Lemma truncminus_ge_0 :
-  Π x y : X, Lle is 0 (truncminus ex x y).
+  ∏ x y : X, Lle is 0 (truncminus ex x y).
 Proof.
   intros x y.
   apply (op_le_r' _ is1 is3 y).
@@ -796,7 +797,7 @@ Proof.
 Qed.
 
 Lemma truncminus_le :
-  Π x y : X,
+  ∏ x y : X,
           Lle is 0 x → Lle is 0 y
           → Lle is (truncminus ex x y) x.
 Proof.
@@ -817,7 +818,7 @@ Proof.
 Qed.
 
 Lemma truncminus_truncminus :
-  Π x y, Lle is 0 x → Lle is x y → truncminus ex y (truncminus ex y x) = x.
+  ∏ x y, Lle is 0 x → Lle is x y → truncminus ex y (truncminus ex y x) = x.
 Proof.
   intros x y Hx Hxy.
   apply (pr2 is1 _ _ (truncminus ex y x)).
@@ -836,7 +837,7 @@ Proof.
 Qed.
 
 Lemma truncminus_le_r :
-  Π k x y : X, Lle is x y → Lle is (truncminus ex x k) (truncminus ex y k).
+  ∏ k x y : X, Lle is x y → Lle is (truncminus ex x k) (truncminus ex y k).
 Proof.
   intros k x y <-.
   apply (pr2 is1 _ _ k).
@@ -847,7 +848,7 @@ Proof.
   apply pathsinv0, istruncminus_ex.
 Qed.
 Lemma truncminus_le_l :
-  Π k x y : X, Lle is y x → Lle is (truncminus ex k x) (truncminus ex k y).
+  ∏ k x y : X, Lle is y x → Lle is (truncminus ex k x) (truncminus ex k y).
 Proof.
   intros k x y H.
   apply (pr2 is1 _ _ y).
@@ -863,7 +864,7 @@ Proof.
 Qed.
 
 Lemma truncminus_Lmax_l :
-  Π (k x y : X),
+  ∏ (k x y : X),
   truncminus ex (Lmax is x y) k = Lmax is (truncminus ex x k) (truncminus ex y k).
 Proof.
   intros k x y.
@@ -875,7 +876,7 @@ Proof.
   reflexivity.
 Qed.
 Lemma truncminus_Lmax_r :
-  Π (k x y : X),
+  ∏ (k x y : X),
   Lle is (Lmin is (y + y) (x + x)) (x + y) →
   truncminus ex k (Lmax is x y) = Lmin is (truncminus ex k x) (truncminus ex k y).
 Proof.
@@ -929,7 +930,7 @@ Proof.
 Qed.
 
 Lemma truncminus_Lmin_l :
-  Π k x y : X, truncminus ex (Lmin is x y) k = Lmin is (truncminus ex x k) (truncminus ex y k).
+  ∏ k x y : X, truncminus ex (Lmin is x y) k = Lmin is (truncminus ex x k) (truncminus ex y k).
 Proof.
   intros k x y.
   apply (pr2 is1 _ _ k).
@@ -955,11 +956,11 @@ Section truncminus_gt.
 Context {X : abmonoid}
         (is : latticewithgt X)
         (ex : extruncminus is)
-        (is0 : Π x y z : X, Lgt is y z → Lgt is (y + x) (z + x))
-        (is1 : Π x y z : X, Lgt is (y + x) (z + x) → Lgt is y z).
+        (is0 : ∏ x y z : X, Lgt is y z → Lgt is (y + x) (z + x))
+        (is1 : ∏ x y z : X, Lgt is (y + x) (z + x) → Lgt is y z).
 
 Lemma truncminus_pos :
-  Π x y : X, Lgt is x y → Lgt is (truncminus ex x y) 0.
+  ∏ x y : X, Lgt is x y → Lgt is (truncminus ex x y) 0.
 Proof.
   intros x y.
   intros H.
@@ -971,7 +972,7 @@ Proof.
 Qed.
 
 Lemma truncminus_pos' :
-  Π x y : X, Lgt is (truncminus ex x y) 0 → Lgt is x y.
+  ∏ x y : X, Lgt is (truncminus ex x y) 0 → Lgt is x y.
 Proof.
   intros x y Hgt.
   apply (is0 y) in Hgt.
@@ -1188,7 +1189,7 @@ Defined.
 Open Scope multmonoid.
 
 Lemma abmonoidfrac_setquotpr_equiv {X : abmonoid} {Y : @submonoid X} :
-  Π (k : Y) (x : X) (y : Y),
+  ∏ (k : Y) (x : X) (y : Y),
   setquotpr (binopeqrelabmonoidfrac X Y) (x,,y) = setquotpr (binopeqrelabmonoidfrac X Y) (x * pr1 k,, @op Y y k).
 Proof.
   intros X Y k x y.
@@ -1201,7 +1202,7 @@ Proof.
 Qed.
 
 Definition ispartrdistr {X : abmonoid} (Y : @submonoid X) (opp1 opp2 : binop X) :=
-  Π (x y : X) (k : Y),
+  ∏ (x y : X) (k : Y),
   opp2 (opp1 x y) (pr1 k) = opp1 (opp2 x (pr1 k)) (opp2 y (pr1 k)).
 
 Section abmonoidfrac_lattice.
@@ -1225,7 +1226,7 @@ Local Definition abmonoidfrac_lattice_fun (f : binop X) : binop (X × Y) :=
   (f (pr1 x * pr1 (pr2 y))%multmonoid (pr1 y * pr1 (pr2 x))%multmonoid ,, @op Y (pr2 x) (pr2 y)).
 
 Local Lemma abmonoidfrac_lattice_def :
-  Π (f : X → X → X),
+  ∏ (f : X → X → X),
   ispartrdistr Y f op →
   iscomprelrelfun2 (binopeqrelabmonoidfrac X Y) (binopeqrelabmonoidfrac X Y)
                    (abmonoidfrac_lattice_fun f).
@@ -1267,7 +1268,7 @@ Proof.
 Qed.
 
 Local Lemma iscomm_abmonoidfrac_def :
-  Π (f : X → X → X) Hf,
+  ∏ (f : X → X → X) Hf,
   iscomm f →
   iscomm (X := abmonoidfrac X Y)
          (setquotfun2 (binopeqrelabmonoidfrac X Y) (binopeqrelabmonoidfrac X Y) _
@@ -1284,7 +1285,7 @@ Proof.
     reflexivity.
 Qed.
 Local Lemma isassoc_abmonoidfrac_def :
-  Π (f : X → X → X) Hf,
+  ∏ (f : X → X → X) Hf,
   isassoc f →
   isassoc (X := abmonoidfrac X Y)
          (setquotfun2 (binopeqrelabmonoidfrac X Y) (binopeqrelabmonoidfrac X Y) _
@@ -1311,7 +1312,7 @@ Proof.
 Qed.
 
 Local Lemma isabsorb_abmonoidfrac_def :
-  Π f g Hf Hg,
+  ∏ f g Hf Hg,
   isabsorb f g →
   isabsorb (X := abmonoidfrac X Y) (setquotfun2 (binopeqrelabmonoidfrac X Y) (binopeqrelabmonoidfrac X Y) _
                         (abmonoidfrac_lattice_def f Hf))
@@ -1393,7 +1394,7 @@ Qed.
 End abmonoidfrac_lattice.
 
 Lemma abmonoidfrac_islatticeop (X : abmonoid) (Y : @submonoid X) (is : lattice X) :
-  Π (Hmin : ispartrdistr Y (Lmin is) op) (Hmax : ispartrdistr Y (Lmax is) op),
+  ∏ (Hmin : ispartrdistr Y (Lmin is) op) (Hmax : ispartrdistr Y (Lmax is) op),
   islatticeop (abmonoidfrac_min X Y Hmin) (abmonoidfrac_max X Y Hmax).
 Proof.
   intros X Y is Hmin Hmax.
@@ -1434,7 +1435,7 @@ Qed.
 
 Lemma abmonoidfrac_Lle_1 (X : abmonoid) (Y : @submonoid X) (is : lattice X)
       (Hmin : ispartrdistr _ (Lmin is) op) :
-  Π (x y : abmonoiddirprod X _),
+  ∏ (x y : abmonoiddirprod X _),
   abmonoidfracrel X Y (ispartbinophrel_Lle X Y is Hmin)
                   (setquotpr (binopeqrelabmonoidfrac X Y) x)
                   (setquotpr (binopeqrelabmonoidfrac X Y) y) →
@@ -1465,7 +1466,7 @@ Proof.
 Timeout 10 Qed.
 Lemma abmonoidfrac_Lle_2 (X : abmonoid) (Y : @submonoid X) (is : lattice X)
       (Hmin : ispartrdistr _ (Lmin is) op) :
-  Π (x y : abmonoiddirprod X _),
+  ∏ (x y : abmonoiddirprod X _),
   abmonoidfrac_min X Y Hmin (setquotpr (binopeqrelabmonoidfrac X Y) x)
                    (setquotpr (binopeqrelabmonoidfrac X Y) y) =
   setquotpr (binopeqrelabmonoidfrac X Y) x
@@ -1498,7 +1499,7 @@ Qed.
 
 Lemma abmonoidfrac_Lle (X : abmonoid) (Y : @submonoid X) (is : lattice X)
       (Hmin : ispartrdistr Y (Lmin is) op) (Hmax : ispartrdistr Y (Lmax is) op) :
-  Π x y : abmonoidfrac X Y, abmonoidfracrel X Y (ispartbinophrel_Lle X Y is Hmin) x y <-> Lle (abmonoidfrac_lattice X Y is Hmin Hmax) x y.
+  ∏ x y : abmonoidfrac X Y, abmonoidfracrel X Y (ispartbinophrel_Lle X Y is Hmin) x y <-> Lle (abmonoidfrac_lattice X Y is Hmin Hmax) x y.
 Proof.
   intros X Y is Hmin Hmax.
   simple refine (setquotuniv2prop _ (λ x y, _ ,, _) _).
@@ -1518,18 +1519,18 @@ Context (X : abmonoid)
         (Y : @submonoid X)
         (is : lattice X)
         (gt : StrongOrder X)
-        (Hnotgtle : Π x y : X, ¬ gt x y → Lle is x y)
-        (Hlenotgt : Π x y : X, Lle is x y → ¬ gt x y)
-        (Hgtmin : Π x y z : X, gt x z → gt y z → gt (Lmin is x y) z)
-        (Hgtmax : Π x y z : X, gt z x → gt z y → gt z (Lmax is x y))
+        (Hnotgtle : ∏ x y : X, ¬ gt x y → Lle is x y)
+        (Hlenotgt : ∏ x y : X, Lle is x y → ¬ gt x y)
+        (Hgtmin : ∏ x y z : X, gt x z → gt y z → gt (Lmin is x y) z)
+        (Hgtmax : ∏ x y z : X, gt z x → gt z y → gt z (Lmax is x y))
 
         (Hgt : ispartbinophrel Y gt)
-        (Hop : Π (x : Y) (y z : X), y * pr1 x = z * pr1 x → y = z)
+        (Hop : ∏ (x : Y) (y z : X), y * pr1 x = z * pr1 x → y = z)
         (Hmin : ispartrdistr Y (Lmin is) op)
         (Hmax : ispartrdistr Y (Lmax is) op).
 
 Lemma abmonoidfrac_notgtle :
-  Π (x y : abmonoidfrac X Y),
+  ∏ (x y : abmonoidfrac X Y),
   ¬ (StrongOrder_abmonoidfrac Y gt Hgt) x y
   → Lle (abmonoidfrac_lattice X Y is Hmin Hmax) x y.
 Proof.
@@ -1554,7 +1555,7 @@ Proof.
 Qed.
 
 Lemma abmonoidfrac_lenotgt :
-  Π (x y : abmonoidfrac X Y),
+  ∏ (x y : abmonoidfrac X Y),
   Lle (abmonoidfrac_lattice X Y is Hmin Hmax) x y
   → ¬ (StrongOrder_abmonoidfrac Y gt Hgt) x y.
 Proof.
@@ -1581,7 +1582,7 @@ Proof.
 Qed.
 
 Lemma abmonoidfrac_gtmin :
-  Π (x y z : abmonoidfrac X Y),
+  ∏ (x y z : abmonoidfrac X Y),
   (StrongOrder_abmonoidfrac Y gt Hgt) x z
   → (StrongOrder_abmonoidfrac Y gt Hgt) y z
   → (StrongOrder_abmonoidfrac Y gt Hgt)
@@ -1631,7 +1632,7 @@ Proof.
 Qed.
 
 Lemma abmonoidfrac_gtmax :
-  Π (x y z : abmonoidfrac X Y),
+  ∏ (x y z : abmonoidfrac X Y),
   (StrongOrder_abmonoidfrac Y gt Hgt) z x
   → (StrongOrder_abmonoidfrac Y gt Hgt) z y
     → (StrongOrder_abmonoidfrac Y gt Hgt) z
@@ -1684,7 +1685,7 @@ End abmonoidfrac_latticewithgt.
 
 Definition abmonoidfrac_latticewithgt (X : abmonoid) (Y : @submonoid X) (is : latticewithgt X)
            (Hgt : ispartbinophrel Y (Lgt is))
-           (Hop : Π (x : Y) (y z : X), y * pr1 x = z * pr1 x → y = z)
+           (Hop : ∏ (x : Y) (y z : X), y * pr1 x = z * pr1 x → y = z)
            (Hmin : ispartrdistr Y (Lmin is) op) (Hmax : ispartrdistr Y (Lmax is) op) : latticewithgt (abmonoidfrac X Y).
 Proof.
   intros X Y is Hgt Hop Hmin Hmax.
@@ -1720,7 +1721,7 @@ Proof.
   - apply istotalabmonoidfracrel, is'.
 Qed.
 Lemma isdecrel_Lle_abmonoidfrac {X : abmonoid} (Y : @submonoid X) (is : lattice X) (is' : isdecrel (Lle is))
-           (Hop : Π (x : Y) (y z : X), y * pr1 x = z * pr1 x → y = z)
+           (Hop : ∏ (x : Y) (y z : X), y * pr1 x = z * pr1 x → y = z)
            (Hmin : ispartrdistr Y (Lmin is) op) (Hmax : ispartrdistr Y (Lmax is) op) :
   isdecrel (Lle (abmonoidfrac_lattice X Y is Hmin Hmax)).
 Proof.
@@ -1744,7 +1745,7 @@ Proof.
 Qed.
 
 Definition abmonoidfrac_latticedec {X : abmonoid} (Y : @submonoid X) (is : latticedec X)
-           (Hop : Π (x : Y) (y z : X), y * pr1 x = z * pr1 x → y = z)
+           (Hop : ∏ (x : Y) (y z : X), y * pr1 x = z * pr1 x → y = z)
            (Hmin : ispartrdistr Y (Lmin is) op) (Hmax : ispartrdistr Y (Lmax is) op) :
   latticedec (abmonoidfrac X Y).
 Proof.
