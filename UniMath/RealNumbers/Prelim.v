@@ -654,12 +654,12 @@ Lemma Llehq_correct :
   Π n m : hq, n <= m <-> Lle lattice_hq n m.
 Proof.
   intros n m ; simpl.
-  unfold weq_min, hqgth ; simpl.
+  unfold binop_weq_bck, hqgth ; simpl.
   unfold fldfracgt ; simpl.
-  set (n' := weqfldfracgt_f hzintdom isdeceqhz isplushrelhzgth isrngmulthzgth
-                             (ct (hzgth, isdecrelhzgth, 1%hz, 0%hz)) hzneqchoice n).
-  set (m' := weqfldfracgt_f hzintdom isdeceqhz isplushrelhzgth isrngmulthzgth
-                            (ct (hzgth, isdecrelhzgth, 1%hz, 0%hz)) hzneqchoice m).
+  set (n' := (weqfldfracgt_f hzintdom isdeceqhz isplushrelhzgth isrngmulthzgth
+         (ct (hzgth, isdecrelhzgth, 1%hz, 0%hz)) hzneqchoice n)).
+  set (m' := (weqfldfracgt_f hzintdom isdeceqhz isplushrelhzgth isrngmulthzgth
+         (ct (hzgth, isdecrelhzgth, 1%hz, 0%hz)) hzneqchoice m)).
   change (weqfldfracgt_f hzintdom isdeceqhz isplushrelhzgth isrngmulthzgth
                          (ct (hzgth, isdecrelhzgth, 1%hz, 0%hz))
                          (λ n0 m0 : pr1 hz, hzneqchoice n0 m0) n)

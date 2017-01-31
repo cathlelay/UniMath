@@ -3353,8 +3353,11 @@ Lemma Dcuts_minus_eq_zero:
 Proof.
   intros X Y Hxy.
   apply (truncminus_eq_0 extruncminus_Dcuts).
-  apply Dcuts_plus_eqcompat_l.
-  now apply Dcuts_le_lattice_compat.
+  - split ; intros x y z ; simpl.
+    + do 2 rewrite (iscomm_Dcuts_plus z).
+      apply Dcuts_plus_eqcompat_l.
+    + apply Dcuts_plus_eqcompat_l.
+  - apply Dcuts_le_lattice_compat, Hxy.
 Qed.
 
 Lemma Dcuts_minus_correct_l:
