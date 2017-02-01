@@ -3,3 +3,4 @@ Filters.v
 Topology.v
 UniformSpace.v
 MetricSpace.v
+NormedGroup.v
