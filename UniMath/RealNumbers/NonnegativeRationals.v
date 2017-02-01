@@ -287,7 +287,7 @@ Definition lattice_hnnq : lattice hnnq_set :=
   hnnq_min ,, hnnq_max ,, islatticeop_hnnq.
 
 Lemma Lle_hnnq_le :
-  Π x y : hnnq_set, hnnq_le x y <-> Lle lattice_hnnq x y.
+  ∏ x y : hnnq_set, hnnq_le x y <-> Lle lattice_hnnq x y.
 Proof.
   intros x y ; split.
   - intros H.
@@ -305,7 +305,7 @@ Definition NonnegativeRationals : CommDivRig := CommDivRig_hnnq.
 Definition NonnegativeRationals_to_Rationals : NonnegativeRationals → hq :=
   pr1.
 Lemma NonnegativeRationals_to_Rationals_ge0 :
-  Π x : NonnegativeRationals, (0 <= NonnegativeRationals_to_Rationals x)%hq.
+  ∏ x : NonnegativeRationals, (0 <= NonnegativeRationals_to_Rationals x)%hq.
 Proof.
   intros x.
   apply (pr2 x).
@@ -314,7 +314,7 @@ Definition Rationals_to_NonnegativeRationals (r : hq) : NonnegativeRationals :=
   hq_to_hnnq_set r.
 
 Lemma NonnegativeRationals_to_Rationals_correct :
-  Π x : NonnegativeRationals,
+  ∏ x : NonnegativeRationals,
         Rationals_to_NonnegativeRationals (NonnegativeRationals_to_Rationals x) = x.
 Proof.
   intros x.
@@ -323,7 +323,7 @@ Proof.
   apply (pr2 x).
 Qed.
 Lemma Rationals_to_NonnegativeRationals_correct :
-  Π (x : hq),
+  ∏ (x : hq),
   (0 <= x)%hq →
   NonnegativeRationals_to_Rationals (Rationals_to_NonnegativeRationals x) = x.
 Proof.
@@ -414,7 +414,7 @@ Proof.
   apply hq2_gt0.
 Qed.
 Lemma plusNonnegativeRationals_correct :
-  Π (x y : NonnegativeRationals),
+  ∏ (x y : NonnegativeRationals),
     x + y = Rationals_to_NonnegativeRationals (pr1 x + pr1 y)%hq.
 Proof.
   intros x y.
@@ -427,14 +427,14 @@ Proof.
   exact (pr2 y).
 Qed.
 Lemma minusNonnegativeRationals_correct :
-  Π (x y : NonnegativeRationals),
+  ∏ (x y : NonnegativeRationals),
     x - y = Rationals_to_NonnegativeRationals (pr1 x - pr1 y)%hq.
 Proof.
   intros x y.
   reflexivity.
 Qed.
 Lemma multNonnegativeRationals_correct :
-  Π (x y : NonnegativeRationals),
+  ∏ (x y : NonnegativeRationals),
     x * y = Rationals_to_NonnegativeRationals (pr1 x * pr1 y)%hq.
 Proof.
   intros x y.
@@ -447,7 +447,7 @@ Proof.
   exact (pr2 y).
 Qed.
 Lemma invNonnegativeRationals_correct :
-  Π (x : NonnegativeRationals) (Hx : 0 < x),
+  ∏ (x : NonnegativeRationals) (Hx : 0 < x),
     / x = Rationals_to_NonnegativeRationals (/ pr1 x)%hq.
 Proof.
   intros x Hx0.
@@ -832,7 +832,7 @@ Qed.
 (** Rewriting *)
 
 Lemma minusNonnegativeRationals_plus :
-  Π r q : NonnegativeRationals, (q - r) + r = maxNonnegativeRationals q r.
+  ∏ r q : NonnegativeRationals, (q - r) + r = maxNonnegativeRationals q r.
 Proof.
   intros r q.
   apply subtypeEquality_prop.
@@ -1569,12 +1569,12 @@ Qed.
 (** ** maxNonnegativeRationals *)
 
 Lemma maxNonnegativeRationals_eq_zero :
-  Π x y : NonnegativeRationals, maxNonnegativeRationals x y = 0 -> (x = 0) × (y = 0).
+  ∏ x y : NonnegativeRationals, maxNonnegativeRationals x y = 0 -> (x = 0) × (y = 0).
 Proof.
   intros x y.
   unfold maxNonnegativeRationals, hnnq_max.
   generalize (hnnq_max_subproof x y).
-  apply (hqmax_case_strong (λ x, Π n : ¬ (0 > x)%hq,
+  apply (hqmax_case_strong (λ x, ∏ n : ¬ (0 > x)%hq,
                                        x ,, n = 0 → _)).
   - intros H Hx Hx0.
     split.
@@ -1596,13 +1596,13 @@ Proof.
       apply (maponpaths pr1 Hy0).
 Qed.
 Lemma maxNonnegativeRationals_case_strong :
-  Π (P : NonnegativeRationals -> UU),
-  Π x y : NonnegativeRationals, (y <= x -> P x) -> (x <= y -> P y) -> P (maxNonnegativeRationals x y).
+  ∏ (P : NonnegativeRationals -> UU),
+  ∏ x y : NonnegativeRationals, (y <= x -> P x) -> (x <= y -> P y) -> P (maxNonnegativeRationals x y).
 Proof.
   intros P x y Hx Hy.
   unfold maxNonnegativeRationals, hnnq_max.
   generalize (hnnq_max_subproof x y).
-  apply (hqmax_case_strong (λ x, Π n : ¬ (0 > x)%hq, P (x ,, n))).
+  apply (hqmax_case_strong (λ x, ∏ n : ¬ (0 > x)%hq, P (x ,, n))).
   - intros H n.
     assert (H0 : x = (pr1 x,, n)).
     apply subtypeEquality_prop.
@@ -1619,14 +1619,14 @@ Proof.
     exact H.
 Qed.
 Lemma maxNonnegativeRationals_case :
-  Π (P : NonnegativeRationals -> UU),
-  Π x y : NonnegativeRationals, P x -> P y -> P (maxNonnegativeRationals x y).
+  ∏ (P : NonnegativeRationals -> UU),
+  ∏ x y : NonnegativeRationals, P x -> P y -> P (maxNonnegativeRationals x y).
 Proof.
   intros P x y Hx Hy.
   now apply maxNonnegativeRationals_case_strong.
 Qed.
 Lemma iscomm_maxNonnegativeRationals :
-  Π x y, maxNonnegativeRationals x y = maxNonnegativeRationals y x.
+  ∏ x y, maxNonnegativeRationals x y = maxNonnegativeRationals y x.
 Proof.
   intros x y.
   apply maxNonnegativeRationals_case_strong ; intro Hle ;
@@ -1637,7 +1637,7 @@ Proof.
   - now apply isantisymm_leNonnegativeRationals.
 Qed.
 Lemma maxNonnegativeRationals_le_l :
-  Π x y : NonnegativeRationals, x <= maxNonnegativeRationals x y.
+  ∏ x y : NonnegativeRationals, x <= maxNonnegativeRationals x y.
 Proof.
   intros x y.
   apply maxNonnegativeRationals_case_strong ; intro Hle.
@@ -1645,7 +1645,7 @@ Proof.
   - exact Hle.
 Qed.
 Lemma maxNonnegativeRationals_le_r :
-  Π x y : NonnegativeRationals, y <= maxNonnegativeRationals x y.
+  ∏ x y : NonnegativeRationals, y <= maxNonnegativeRationals x y.
 Proof.
   intros x y.
   rewrite iscomm_maxNonnegativeRationals.
@@ -1655,13 +1655,13 @@ Qed.
 (** ** minNonnegativeRationals *)
 
 Lemma minNonnegativeRationals_case_strong :
-  Π (P : NonnegativeRationals -> UU),
-  Π x y : NonnegativeRationals, (x <= y -> P x) -> (y <= x -> P y) -> P (minNonnegativeRationals x y).
+  ∏ (P : NonnegativeRationals -> UU),
+  ∏ x y : NonnegativeRationals, (x <= y -> P x) -> (y <= x -> P y) -> P (minNonnegativeRationals x y).
 Proof.
   intros P x y Hx Hy.
   unfold minNonnegativeRationals, hnnq_min.
   generalize (hqmin_case (λ p : hq, ¬ (0 > p)%hq) (pr1 x) (pr1 y) (pr2 x) (pr2 y)).
-  apply (hqmin_case_strong (λ z, Π H : (0 <= z)%hq, P (z ,, H))) ; intros H.
+  apply (hqmin_case_strong (λ z, ∏ H : (0 <= z)%hq, P (z ,, H))) ; intros H.
   - intros n.
     assert (H0 : x = (pr1 x,, n)).
     apply subtypeEquality_prop.
@@ -1678,14 +1678,14 @@ Proof.
     exact H.
 Qed.
 Lemma minNonnegativeRationals_case :
-  Π (P : NonnegativeRationals -> UU),
-  Π x y : NonnegativeRationals, P x -> P y -> P (minNonnegativeRationals x y).
+  ∏ (P : NonnegativeRationals -> UU),
+  ∏ x y : NonnegativeRationals, P x -> P y -> P (minNonnegativeRationals x y).
 Proof.
   intros P x y Hx Hy.
   now apply minNonnegativeRationals_case_strong.
 Qed.
 Lemma iscomm_minNonnegativeRationals :
-  Π x y, minNonnegativeRationals x y = minNonnegativeRationals y x.
+  ∏ x y, minNonnegativeRationals x y = minNonnegativeRationals y x.
 Proof.
   intros x y.
   apply minNonnegativeRationals_case_strong ; intro Hle ;
@@ -1696,7 +1696,7 @@ Proof.
   - now apply isantisymm_leNonnegativeRationals.
 Qed.
 Lemma minNonnegativeRationals_ge_l :
-  Π x y : NonnegativeRationals, minNonnegativeRationals x y <= x.
+  ∏ x y : NonnegativeRationals, minNonnegativeRationals x y <= x.
 Proof.
   intros x y.
   apply minNonnegativeRationals_case_strong ; intro Hle.
@@ -1704,7 +1704,7 @@ Proof.
   - exact Hle.
 Qed.
 Lemma minNonnegativeRationals_ge_r :
-  Π x y : NonnegativeRationals, minNonnegativeRationals x y <= y.
+  ∏ x y : NonnegativeRationals, minNonnegativeRationals x y <= y.
 Proof.
   intros x y.
   rewrite iscomm_minNonnegativeRationals.

@@ -81,7 +81,7 @@ Proof.
 Qed.
 
 Lemma isdiag_square {X : UU} (A : X → X → hProp) :
-  (Π x : X, A x x) -> Π x y, A x y -> subset_square A x y.
+  (∏ x : X, A x x) -> ∏ x y, A x y -> subset_square A x y.
 Proof.
   intros X A Hdiag x y Axy.
   apply hinhpr.
@@ -94,24 +94,24 @@ Qed.
 (** Def 1: Uniform Space *)
 
 Definition isUS_imply {X : UU} (F : (X → X → hProp) -> hProp) :=
-  Π P Q : X → X → hProp, (Π x y : X, P x y → Q x y) → F P → F Q.
+  ∏ P Q : X → X → hProp, (∏ x y : X, P x y → Q x y) → F P → F Q.
 Definition isUS_finite_intersection {X : UU} (F : (X → X → hProp) → hProp) :=
-  Π (L : seq (X → X → hProp)),
-  (Π n : stn (seq_len L), F (L n))
+  ∏ (L : seq (X → X → hProp)),
+  (∏ n : stn (seq_len L), F (L n))
   → F (λ x y : X, finite_intersection (X := X × X) (sequencePair (λ (n : stn (seq_len L)) (xy : X × X), L n (pr1 xy) (pr2 xy))) (x,,y)).
 Definition isUS_htrue {X : UU} (F : (X → X → hProp) → hProp) :=
   F (λ _ _ : X, htrue).
 Definition isUS_and {X : UU} (F : (X → X → hProp) → hProp) :=
-Π A B : X → X → hProp, F A → F B → F (λ x y : X, A x y ∧ B x y).
+∏ A B : X → X → hProp, F A → F B → F (λ x y : X, A x y ∧ B x y).
 Definition isUS_diag {X : UU} (F : (X → X → hProp) -> hProp) :=
-  Π P, F P -> Π x : X, P x x.
+  ∏ P, F P -> ∏ x : X, P x x.
 Definition isUS_symm {X : UU} (F : (X → X → hProp) -> hProp) :=
-  Π P, F P -> F (subset_inv P).
+  ∏ P, F P -> F (subset_inv P).
 Definition isUS_squareroot {X : UU} (F : (X → X → hProp) -> hProp) :=
-  Π P, F P -> ∃ Q, F Q × Π x y : X, subset_square Q x y -> P x y.
+  ∏ P, F P -> ∃ Q, F Q × ∏ x y : X, subset_square Q x y -> P x y.
 
 Definition isUS_prod_inv {X : UU} (F : (X → X → hProp) -> hProp) :=
-  Π P, F P -> ∃ Q, F Q × Π x y : X, subset_prod Q (subset_inv Q) x y -> P x y.
+  ∏ P, F P -> ∃ Q, F Q × ∏ x y : X, subset_prod Q (subset_inv Q) x y -> P x y.
 
 Lemma isUS_filter_imply {X : UU} (F : (X → X → hProp) -> hProp) :
   isUS_imply F
@@ -184,7 +184,7 @@ Proof.
   exact Qx.
 Qed.
 Lemma isUS_prod_inv_imply_squareroot {X : UU} (F : (X → X → hProp) -> hProp) :
-  (isUS_imply F) -> (Π A B : X → X → hProp, F A → F B → F (λ x y : X, A x y ∧ B x y))
+  (isUS_imply F) -> (∏ A B : X → X → hProp, F A → F B → F (λ x y : X, A x y ∧ B x y))
   -> (isUS_diag F) -> isUS_prod_inv F -> isUS_squareroot F.
 Proof.
   intros X F Himpl Hand Hdiag H.
@@ -212,7 +212,7 @@ Proof.
 Qed.
 
 Lemma isUS_symm_squareroot_imply_prod_inv {X : UU} (F : (X → X -> hProp) -> hProp) :
-  (isUS_imply F) -> (Π A B : X → X → hProp, F A → F B → F (λ x y : X, A x y ∧ B x y))
+  (isUS_imply F) -> (∏ A B : X → X → hProp, F A → F B → F (λ x y : X, A x y ∧ B x y))
   -> (isUS_diag F) -> isUS_symm F -> isUS_squareroot F -> isUS_prod_inv F.
 Proof.
   intros X F Himpl Hand Hdiag Hsymm Hsqr.
@@ -244,7 +244,7 @@ Definition isUniformStructure {X : UU} (F : (X → X → hProp) → hProp) :=
     × (isUS_squareroot F).
 
 Definition UniformStructure (X : UU) :=
-  Σ (F : (X → X -> hProp) -> hProp), isUniformStructure F.
+  ∑ (F : (X → X -> hProp) -> hProp), isUniformStructure F.
 Definition pr1UniformStructure (X : UU) : UniformStructure X -> ((X → X -> hProp) -> hProp) := pr1.
 Coercion pr1UniformStructure : UniformStructure >-> Funclass.
 
@@ -256,7 +256,7 @@ Definition mkUniformStructure {X : UU} (F : (X → X -> hProp) -> hProp)
   F,, Himpl,, isUS_finite_intersection_carac F Htrue Hand,, Hdiag,, Hsymm,, Hsquareroot.
 
 Lemma UniformStructure_imply {X : UU} (F : UniformStructure X) :
-  Π A B : X → X → hProp, (Π x y : X, A x y → B x y) → F A → F B.
+  ∏ A B : X → X → hProp, (∏ x y : X, A x y → B x y) → F A → F B.
 Proof.
   intros X F.
   apply (pr1 (pr2 F)).
@@ -277,7 +277,7 @@ Proof.
   apply UniformStructure_finite_intersection.
 Qed.
 Lemma UniformStructure_and {X : UU} (F : UniformStructure X) :
-   Π A B : X → X → hProp, F A → F B → F (λ x y : X, A x y ∧ B x y).
+   ∏ A B : X → X → hProp, F A → F B → F (λ x y : X, A x y ∧ B x y).
 Proof.
   intros X F.
   apply (pr2 (isUS_filter_and _)).
@@ -286,25 +286,25 @@ Proof.
   apply UniformStructure_finite_intersection.
 Qed.
 Lemma UniformStructure_diag {X : UU} (F : UniformStructure X) :
-  Π P, F P -> Π x : X, P x x.
+  ∏ P, F P -> ∏ x : X, P x x.
 Proof.
   intros X F.
   apply (pr1 (pr2 (pr2 (pr2 F)))).
 Qed.
 Lemma UniformStructure_symm {X : UU} (F : UniformStructure X) :
-  Π P, F P -> F (subset_inv P).
+  ∏ P, F P -> F (subset_inv P).
 Proof.
   intros X F.
   apply (pr1 (pr2 (pr2 (pr2 (pr2 F))))).
 Qed.
 Lemma UniformStructure_squareroot {X : UU} (F : UniformStructure X) :
-  Π P, F P -> ∃ Q, F Q × Π x y : X, subset_square Q x y -> P x y.
+  ∏ P, F P -> ∃ Q, F Q × ∏ x y : X, subset_square Q x y -> P x y.
 Proof.
   intros X F.
   apply (pr2 (pr2 (pr2 (pr2 (pr2 F))))).
 Qed.
 Lemma UniformStructure_prod_inv {X : UU} (F : UniformStructure X) :
-  Π P, F P -> ∃ Q, F Q × Π x y : X, subset_prod Q (subset_inv Q) x y -> P x y.
+  ∏ P, F P -> ∃ Q, F Q × ∏ x y : X, subset_prod Q (subset_inv Q) x y -> P x y.
 Proof.
   intros X F.
   apply isUS_symm_squareroot_imply_prod_inv.
@@ -344,7 +344,7 @@ Proof.
 Defined.
 
 Lemma UniformStructure_square {X : UU} (F : UniformStructure X) :
-  Π P, F P -> F (subset_square P).
+  ∏ P, F P -> F (subset_square P).
 Proof.
   intros X F P Fp.
   apply UniformStructure_imply with (2 := Fp).
@@ -356,15 +356,15 @@ Proof.
 Qed.
 
 Definition UniformSpace :=
-  Σ (X : UU), UniformStructure X.
+  ∑ (X : UU), UniformStructure X.
 Definition pr1UniformSpace : UniformSpace -> UU := pr1.
 Coercion pr1UniformSpace : UniformSpace >-> UU.
 
 (** Def 2: Foundamental System of Uniform Structure *)
 
 Definition isUSbase {X : UU} (F : UniformStructure X) (base : (X → X → hProp) → hProp) :=
-  (Π (P : X → X → hProp), base P -> F P)
-    × (Π (P : X → X → hProp), F P → ∃ Q : X → X → hProp, base Q × (Π x y : X, Q x y → P x y)).
+  (∏ (P : X → X → hProp), base P -> F P)
+    × (∏ (P : X → X → hProp), F P → ∃ Q : X → X → hProp, base Q × (∏ x y : X, Q x y → P x y)).
 
 
 Lemma isUSbase_pow {X : hSet} (F : UniformStructure X) (B : (X → X → hProp) → hProp) :
@@ -410,7 +410,7 @@ Proof.
 Qed.
 
 Definition issymmsubset {X : UU} (P : X → X -> hProp) :=
-  (Π x y, P x y <-> subset_inv P x y).
+  (∏ x y, P x y <-> subset_inv P x y).
 Lemma isaprop_issymmsubset {X : UU} (P : X → X -> hProp) :
   isaprop (issymmsubset P).
 Proof.
@@ -539,8 +539,8 @@ Proof.
 Qed.
 
 Lemma isUSbase_filterbase {X : UU} (F : UniformStructure X) (base : (X → X -> hProp) -> hProp) :
-  Π Hbase : isUSbase F base,
-  Π P, (F P <-> filterbase (λ A : X × X → hProp, base (λ x y, A (x,,y))) (λ xy : X × X, P (pr1 xy) (pr2 xy))).
+  ∏ Hbase : isUSbase F base,
+  ∏ P, (F P <-> filterbase (λ A : X × X → hProp, base (λ x y, A (x,,y))) (λ xy : X × X, P (pr1 xy) (pr2 xy))).
 Proof.
   intros X F base Hbase P.
   split.
@@ -561,16 +561,16 @@ Proof.
 Qed.
 
 Lemma isUSbase_PreFilterBase {X : UU} (F : UniformStructure X) (base : (X → X -> hProp) -> hProp) :
-  Π Hbase : isUSbase F base,
-  Π P, (F P <-> PreFilterBase ((λ A : X × X → hProp, base (λ x y : X, A (x,, y))) ,, isUSbase_isBaseOfPreFilter F base Hbase) (λ xy, P (pr1 xy) (pr2 xy))).
+  ∏ Hbase : isUSbase F base,
+  ∏ P, (F P <-> PreFilterBase ((λ A : X × X → hProp, base (λ x y : X, A (x,, y))) ,, isUSbase_isBaseOfPreFilter F base Hbase) (λ xy, P (pr1 xy) (pr2 xy))).
 Proof.
   intros X F base Hbase P.
   now apply isUSbase_filterbase.
 Qed.
 
 Lemma isUSbase_FilterBase {X : UU} (x0 : ∥ X ∥) (F : UniformStructure X) (base : (X → X -> hProp) -> hProp) :
-  Π Hbase : isUSbase F base,
-  Π P, (F P <-> FilterBase ((λ A : X × X → hProp, base (λ x y : X, A (x,, y))) ,, isUSbase_isBaseOfFilter x0 F base Hbase) (λ xy, P (pr1 xy) (pr2 xy))).
+  ∏ Hbase : isUSbase F base,
+  ∏ P, (F P <-> FilterBase ((λ A : X × X → hProp, base (λ x y : X, A (x,, y))) ,, isUSbase_isBaseOfFilter x0 F base Hbase) (λ xy, P (pr1 xy) (pr2 xy))).
 Proof.
   intros X x0 F base Hbase P.
   now apply isUSbase_filterbase.
@@ -578,9 +578,9 @@ Qed.
 
 Definition isBaseOfUniformStructure {X : UU} (base : (X → X -> hProp) -> hProp) :=
   (isBaseOfPreFilter (λ A : X × X → hProp, base (λ x y, A (x,,y))))
-    × (Π P, base P -> Π x : X, P x x)
-    × (Π P, base P -> ∃ P', base P' × Π x y, P' x y -> subset_inv P x y)
-    × (Π P, base P -> ∃ Q, base Q × Π x y, subset_square Q x y -> P x y).
+    × (∏ P, base P -> ∏ x : X, P x x)
+    × (∏ P, base P -> ∃ P', base P' × ∏ x y, P' x y -> subset_inv P x y)
+    × (∏ P, base P -> ∃ Q, base Q × ∏ x y, subset_square Q x y -> P x y).
 
 Lemma isUSbase_BaseOfUniformStructure {X : UU} (F : UniformStructure X) (base : (X → X -> hProp) -> hProp) :
   isUSbase F base -> isBaseOfUniformStructure base.
@@ -617,7 +617,7 @@ Proof.
 Qed.
 
 Lemma isBaseOfUniformStructure_USbase {X : UU} (base : (X → X -> hProp) -> hProp) :
-  Π Hbase : isBaseOfUniformStructure base,
+  ∏ Hbase : isBaseOfUniformStructure base,
     isUniformStructure (λ A : X → X → hProp, filterbase (λ A : X × X → hProp, base (λ x y, A (x,,y))) (λ xy, A (pr1 xy) (pr2 xy))).
 Proof.
   intros X base Hbase.
@@ -692,10 +692,10 @@ Context (F : UniformStructure X).
 
 Definition USneighborhood : X -> (X -> hProp) -> hProp :=
   (λ (x : X) (A : X → hProp),
-    ∃ U : X → X → hProp, F U × (Π y : X, U x y → A y)).
+    ∃ U : X → X → hProp, F U × (∏ y : X, U x y → A y)).
 
 Lemma USneighborhood_imply :
-  Π x : X, isfilter_imply (USneighborhood x).
+  ∏ x : X, isfilter_imply (USneighborhood x).
 Proof.
   intros x A B H.
   apply hinhfun.
@@ -706,7 +706,7 @@ Proof.
   now intros y H0 ; apply H, (pr2 (pr2 Ua)).
 Qed.
 Lemma USneighborhood_htrue :
-  Π x : X, isfilter_htrue (USneighborhood x).
+  ∏ x : X, isfilter_htrue (USneighborhood x).
 Proof.
   intros x.
   apply hinhpr.
@@ -716,7 +716,7 @@ Proof.
   easy.
 Qed.
 Lemma USneighborhood_and :
-  Π x : X, isfilter_and (USneighborhood x).
+  ∏ x : X, isfilter_and (USneighborhood x).
 Proof.
   intros x A B.
   apply hinhfun2.
@@ -731,7 +731,7 @@ Proof.
   now apply (pr2 (pr2 Ub)), (pr2 Hy).
 Qed.
 Lemma USneighborhood_point :
-  Π (x : X) (P : X → hProp), USneighborhood x P → P x.
+  ∏ (x : X) (P : X → hProp), USneighborhood x P → P x.
 Proof.
   intros x A.
   apply hinhuniv.
@@ -741,10 +741,10 @@ Proof.
   exact (pr1 (pr2 Ua)).
 Qed.
 Lemma USneighborhood_neighborhood :
-  Π (x : X) (P : X → hProp),
+  ∏ (x : X) (P : X → hProp),
     USneighborhood x P
     → ∃ Q : X → hProp,
-        USneighborhood x Q × (Π y : X, Q y → USneighborhood y P).
+        USneighborhood x Q × (∏ y : X, Q y → USneighborhood y P).
 Proof.
   intros x A.
   apply hinhuniv.
@@ -800,7 +800,7 @@ Proof.
   apply (isNeighborhood_USneighborhood (pr2 X)).
 Defined.
 Lemma USlocally_correct {X : UniformSpace} (x : X) :
-  Π P : X -> hProp,
+  ∏ P : X -> hProp,
     locally (T := Topology_UniformSpace (pr2 X)) x P <-> USlocally x P.
 Proof.
   intros X x P.
@@ -820,7 +820,7 @@ Proof.
   apply (USlocally y).
 Defined.
 Lemma USlocally2d_correct {X Y : UniformSpace} (x : X) (y : Y) :
-  Π P : X × Y -> hProp,
+  ∏ P : X × Y -> hProp,
     locally2d (T := Topology_UniformSpace (pr2 X)) (S := Topology_UniformSpace (pr2 Y)) x y P
     <-> USlocally2d x y P.
 Proof.
@@ -862,29 +862,29 @@ Qed.
 Definition UScontinuous_at {X Y : UniformSpace} (f : X → Y) (x : X) :=
   is_USlim f (USlocally x) (f x).
 Definition UScontinuous_on {X Y : UniformSpace}
-           (dom : X → hProp) (f : Π x : X, dom x → Y) :=
-  Π (x : X) (Hx : dom x),
-  ∃ H : Π P : X → hProp, (USlocally x) P → ∃ x0 : X, dom x0 ∧ P x0,
-    is_USlim (λ y : Σ x0 : X, dom x0, f (pr1 y) (pr2 y))
+           (dom : X → hProp) (f : ∏ x : X, dom x → Y) :=
+  ∏ (x : X) (Hx : dom x),
+  ∃ H : ∏ P : X → hProp, (USlocally x) P → ∃ x0 : X, dom x0 ∧ P x0,
+    is_USlim (λ y : ∑ x0 : X, dom x0, f (pr1 y) (pr2 y))
              (FilterSubtype (USlocally x) dom H) (f x Hx).
 Definition UScontinuous {X Y : UniformSpace} (f : X → Y)  :=
-  Π x, UScontinuous_at f x.
+  ∏ x, UScontinuous_at f x.
 
 Definition UScontinuous2d_at {X Y Z : UniformSpace} (f : X → Y → Z) (x : X) (y : Y) :=
   is_USlim (λ z : X × Y, f (pr1 z) (pr2 z)) (USlocally2d x y) (f x y).
 Definition UScontinuous2d_on {X Y Z : UniformSpace}
-           (dom : X → Y → hProp) (f : Π x y, dom x y → Z) :=
-  Π x y (Hxy : dom x y),
+           (dom : X → Y → hProp) (f : ∏ x y, dom x y → Z) :=
+  ∏ x y (Hxy : dom x y),
   ∃ H,
-    is_USlim (λ y : Σ z, dom (pr1 z) (pr2 z), f (pr1 (pr1 y)) (pr2 (pr1 y)) (pr2 y))
+    is_USlim (λ y : ∑ z, dom (pr1 z) (pr2 z), f (pr1 (pr1 y)) (pr2 (pr1 y)) (pr2 y))
              (FilterSubtype (USlocally2d x y) (λ z, dom (pr1 z) (pr2 z)) H) (f x y Hxy).
 Definition UScontinuous2d {X Y Z : UniformSpace} (f : X → Y → Z)  :=
-  Π x y, UScontinuous2d_at f x y.
+  ∏ x y, UScontinuous2d_at f x y.
 
 (** ** Uniform continuity *)
 
 Definition UniformlyContinuous {X Y : UniformSpace} (f : X → Y) :=
-  Π V, pr2 Y V → pr2 X (λ x y : X, V (f x) (f y)).
+  ∏ V, pr2 Y V → pr2 X (λ x y : X, V (f x) (f y)).
 
 Lemma UniformlyContinuous_UScontinuous {X Y : UniformSpace} (f : X → Y) :
   UniformlyContinuous f → UScontinuous f.
@@ -909,7 +909,7 @@ Proof.
     apply (∃ (Ux : X → X → hProp) (Uy : Y → Y → hProp),
              (pr2 X Ux)
                × (pr2 Y Uy)
-               × (Π x x' y y', Ux x x' → Uy y y' → U (x ,, y) (x' ,, y'))).
+               × (∏ x x' y y', Ux x x' → Uy y y' → U (x ,, y) (x' ,, y'))).
   - intros A B H.
     apply hinhfun.
     intros U.
@@ -1021,7 +1021,7 @@ Qed.
 (** *** Def 1 *)
 
 Definition USsmall {X : UU} (F : UniformStructure X) (V : X → X -> hProp) (FV : F V) (A : X -> hProp) :=
-  Π x y : X, A x -> A y -> V x y.
+  ∏ x y : X, A x -> A y -> V x y.
 
 Lemma USsmall_square {X : UU} (F : UniformStructure X) (V : X → X -> hProp) (Fv : F V) (A B : X -> hProp) :
   USsmall F V Fv A -> USsmall F V Fv B -> (∃ z, A z ∧ B z)
@@ -1060,7 +1060,7 @@ Proof.
 Qed.
 
 Definition isCauchy_filter {X : UU} (FX : UniformStructure X) (F : Filter X) :=
-  Π (V : X → X -> hProp) (Hv : FX V),
+  ∏ (V : X → X -> hProp) (Hv : FX V),
   ∃ A : X -> hProp, USsmall FX V Hv A × F A.
 
 Lemma exfilterlim_cauchy {X : UU} (FX : UniformStructure X) (F : Filter X) :

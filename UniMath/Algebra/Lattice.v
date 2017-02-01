@@ -997,7 +997,7 @@ Section abgrdiff_minus.
 Context {X : abmonoid}
         {is : lattice X}
         (ex : extruncminus is)
-        (is1 : Π x y z : X, y + x = z + x → y = z)
+        (is1 : ∏ x y z : X, y + x = z + x → y = z)
         (is2 : isrdistr (Lmax is) op)
         (is3 : isrdistr (Lmin is) op)
         (is4 : isrdistr (Lmax is) (Lmin is)).
@@ -1767,7 +1767,7 @@ Close Scope multmonoid.
 Open Scope addmonoid.
 
 Lemma abgrdiff_setquotpr_equiv {X : abmonoid} :
-  Π k x y : X,
+  ∏ k x y : X,
   setquotpr (eqrelabgrdiff X) (x,,y) = setquotpr (eqrelabgrdiff X) (x + k,,y + k).
 Proof.
   intros X k x y.
@@ -1806,7 +1806,7 @@ Qed.
 
 Lemma abgrdiff_Lle_1 (X : abmonoid) (is : lattice X)
       (Hmin : isrdistr (Lmin is) op) :
-  Π (x y : X × X),
+  ∏ (x y : X × X),
   abgrdiffrel X (isbinophrel_abgrdiff_Lle X is Hmin) (setquotpr (eqrelabgrdiff X) x) (setquotpr (eqrelabgrdiff X) y)
   → invmap (weqabgrdiff X)
     (abmonoidfrac_min X (totalsubmonoid X)
@@ -1830,7 +1830,7 @@ Proof.
 Qed.
 Lemma abgrdiff_Lle_2 (X : abmonoid) (is : lattice X)
       (Hmin : isrdistr (Lmin is) op) :
-  Π (x y : X × X),
+  ∏ (x y : X × X),
   invmap (weqabgrdiff X)
     (abmonoidfrac_min X (totalsubmonoid X)
        (λ x y k, Hmin x y (pr1 k))
@@ -1852,7 +1852,7 @@ Proof.
 Qed.
 Lemma abgrdiff_Lle (X : abmonoid) (is : lattice X)
       (Hmin : isrdistr (Lmin is) op) (Hmax : isrdistr (Lmax is) op) :
-  Π x y : abgrdiff X, abgrdiffrel X (isbinophrel_abgrdiff_Lle X is Hmin) x y <-> Lle (abgrdiff_lattice is Hmin Hmax) x y.
+  ∏ x y : abgrdiff X, abgrdiffrel X (isbinophrel_abgrdiff_Lle X is Hmin) x y <-> Lle (abgrdiff_lattice is Hmin Hmax) x y.
 Proof.
   intros X is Hmin Hmax.
   simple refine (setquotuniv2prop _ (λ _ _, hProppair _ _) _).
@@ -1865,7 +1865,7 @@ Proof.
 Qed.
 
 Definition abgrdiff_latticewithgt {X : abmonoid} (is : latticewithgt X) (Hgt : isbinophrel (Lgt is))
-           (Hop : Π x y z : X, y + x = z + x → y = z)
+           (Hop : ∏ x y z : X, y + x = z + x → y = z)
            (Hmin : isrdistr (Lmin is) op) (Hmax : isrdistr (Lmax is) op) :
   latticewithgt (abgrdiff X).
 Proof.
@@ -1885,7 +1885,7 @@ Proof.
 Defined.
 
 Definition abgrdiff_latticedec {X : abmonoid} (is : latticedec X)
-           (Hop : Π x y z : X, y + x = z + x → y = z)
+           (Hop : ∏ x y z : X, y + x = z + x → y = z)
            (Hmin : isrdistr (Lmin is) op) (Hmax : isrdistr (Lmax is) op) :
   latticedec (abgrdiff X).
 Proof.
@@ -1916,7 +1916,7 @@ Definition commrngfrac_lattice (X : commrng) (Y : @subabmonoid (rngmultabmonoid 
 Definition commrngfrac_latticewithgt (X : commrng) (Y : @subabmonoid (rngmultabmonoid X))
            (is : latticewithgt X)
            (Hgt : ispartbinophrel Y (Lgt is))
-           (Hop : Π (x : Y) (y z : rngmultabmonoid X),
+           (Hop : ∏ (x : Y) (y z : rngmultabmonoid X),
   (y * pr1 x = z * pr1 x)%rng → y = z)
            (Hmin : ispartrdistr Y (Lmin is) op2)
            (Hmax : ispartrdistr Y (Lmax is) op2) :
@@ -1932,7 +1932,7 @@ Defined.
 
 Definition commrngfrac_latticedec (X : commrng) (Y : @subabmonoid (rngmultabmonoid X))
            (is : latticedec X)
-           (Hop : Π (x : Y) (y z : rngmultabmonoid X),
+           (Hop : ∏ (x : Y) (y z : rngmultabmonoid X),
   (y * pr1 x = z * pr1 x)%rng → y = z)
            (Hmin : ispartrdistr Y (Lmin is) op2)
            (Hmax : ispartrdistr Y (Lmax is) op2) :
@@ -1956,7 +1956,7 @@ Definition fldfrac'_lattice {X : commrng} R is1 is2 (is : lattice X)
 Definition fldfrac'_latticewithgt {X : commrng} R is1 is2
            (is : latticewithgt X)
            (Hgt : ispartbinophrel (rngpossubmonoid X is1 is2) (Lgt is))
-           (Hop : Π (x : rngpossubmonoid X is1 is2) (y z : rngmultabmonoid X),
+           (Hop : ∏ (x : rngpossubmonoid X is1 is2) (y z : rngmultabmonoid X),
  (y * pr1 x = z * pr1 x)%rng → y = z)
            (Hmin : @ispartrdistr (rngmultabmonoid X) (rngpossubmonoid X is1 is2) (Lmin is) op2)
            (Hmax : @ispartrdistr (rngmultabmonoid X) (rngpossubmonoid X is1 is2) (Lmax is) op2) :
@@ -1972,7 +1972,7 @@ Defined.
 
 Definition fldfrac'_latticedec {X : commrng} R is1 is2
            (is : latticedec X)
-           (Hop : Π (x : rngpossubmonoid X is1 is2) (y z : rngmultabmonoid X),
+           (Hop : ∏ (x : rngpossubmonoid X is1 is2) (y z : rngmultabmonoid X),
  (y * pr1 x = z * pr1 x)%rng → y = z)
            (Hmin : @ispartrdistr (rngmultabmonoid X) (rngpossubmonoid X is1 is2) (Lmin is) op2)
            (Hmax : @ispartrdistr (rngmultabmonoid X) (rngpossubmonoid X is1 is2) (Lmax is) op2) :
@@ -2000,7 +2000,7 @@ Definition fldfrac_latticewithgt {X : intdom} (is' : isdeceq X) (R : hrel X) (is
            (is1 : isrngmultgt X R) (is2 : R 1%rng 0%rng) (is3 : isirrefl R) (nc : neqchoice R)
            (is : latticewithgt X)
            (Hgt : ispartbinophrel (rngpossubmonoid X is1 is2) (Lgt is))
-           (Hop : Π (x : rngpossubmonoid X is1 is2) (y z : rngmultabmonoid X),
+           (Hop : ∏ (x : rngpossubmonoid X is1 is2) (y z : rngmultabmonoid X),
  (y * pr1 x = z * pr1 x)%rng → y = z)
            (Hmin : @ispartrdistr (rngmultabmonoid X) (rngpossubmonoid X is1 is2) (Lmin is) op2)
            (Hmax : @ispartrdistr (rngmultabmonoid X) (rngpossubmonoid X is1 is2) (Lmax is) op2) :
@@ -2018,7 +2018,7 @@ Defined.
 Definition fldfrac_latticedec {X : intdom} (is' : isdeceq X) (R : hrel X) (is0 : isbinophrel (X := rigaddabmonoid X) R)
           (is1 : isrngmultgt X R) (is2 : R 1%rng 0%rng) (is3 : isirrefl R) (nc : neqchoice R)
           (is : latticedec X)
-          (Hop : Π (x : rngpossubmonoid X is1 is2) (y z : rngmultabmonoid X),
+          (Hop : ∏ (x : rngpossubmonoid X is1 is2) (y z : rngmultabmonoid X),
                  (y * pr1 x = z * pr1 x)%rng → y = z)
           (Hmin : @ispartrdistr (rngmultabmonoid X) (rngpossubmonoid X is1 is2) (Lmin is) op2)
           (Hmax : @ispartrdistr (rngmultabmonoid X) (rngpossubmonoid X is1 is2) (Lmax is) op2) :

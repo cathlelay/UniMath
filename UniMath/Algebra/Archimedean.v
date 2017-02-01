@@ -137,7 +137,7 @@ Qed.
 (** ** relation  *)
 
 Definition setquot_aux_acc {X : monoid} (R : hrel X) (x y : X) : UU :=
-  Σ c : X, R (x + c)%addmonoid (y + c)%addmonoid.
+  ∑ c : X, R (x + c)%addmonoid (y + c)%addmonoid.
 Definition mk_setquot_aux_acc {X : monoid} (R : hrel X) (x y : X)
            (c : X) (Hc : R (x + c)%addmonoid (y + c)%addmonoid) : setquot_aux_acc R x y :=
   c ,, Hc.
@@ -216,7 +216,7 @@ Qed.
 (** ** Archimedean property in a monoid *)
 
 Definition isarchmonoid_1_acc {X : abmonoid} (R : hrel X) (x y1 y2 : X) : UU :=
-  Σ n : nat, R (natmult n y1 + x)%addmonoid (natmult n y2).
+  ∑ n : nat, R (natmult n y1 + x)%addmonoid (natmult n y2).
 Definition mk_isarchmonoid_1_acc {X : abmonoid} (R : hrel X) (x y1 y2 : X)
            (n : nat) (Hn : R (natmult n y1 + x)%addmonoid (natmult n y2)) : isarchmonoid_1_acc R x y1 y2 :=
   n ,, Hn.
@@ -233,7 +233,7 @@ Proof.
 Qed.
 
 Definition isarchmonoid_2_acc {X : abmonoid} (R : hrel X) (x y1 y2 : X) : UU :=
-  Σ n : nat, R (natmult n y1) (natmult n y2 + x)%addmonoid.
+  ∑ n : nat, R (natmult n y1) (natmult n y2 + x)%addmonoid.
 Definition mk_isarchmonoid_2_acc {X : abmonoid} (R : hrel X) (x y1 y2 : X)
            (n : nat) (Hn : R (natmult n y1) (natmult n y2 + x)%addmonoid) : isarchmonoid_2_acc R x y1 y2 :=
   n ,, Hn.
@@ -249,14 +249,14 @@ Proof.
 Qed.
 
 Definition isarchmonoid {X : abmonoid} (R : hrel X) :=
-  Π (x y1 y2 : X),
+  ∏ (x y1 y2 : X),
   R y1 y2 ->
   ∥ isarchmonoid_1_acc R x y1 y2 ∥
     × ∥ isarchmonoid_2_acc R x y1 y2 ∥.
 
 Definition isarchmonoid_1 {X : abmonoid} (R : hrel X) :
   isarchmonoid R ->
-  Π (x y1 y2 : X),
+  ∏ (x y1 y2 : X),
   R y1 y2 ->
   ∥ isarchmonoid_1_acc R x y1 y2 ∥ :=
   λ H x y1 y2 Hy, (pr1 (H x y1 y2 Hy)).
@@ -270,7 +270,7 @@ Definition isarchmonoid_2 {X : abmonoid} (R : hrel X) :
 (** ** Archimedean property in a group *)
 
 Definition isarchgr_acc {X : abgr} (R : hrel X) (x y1 y2 : X) : UU :=
-  Σ n : nat, R (natmult n y1 + x)%addmonoid (natmult n y2).
+  ∑ n : nat, R (natmult n y1 + x)%addmonoid (natmult n y2).
 Definition mk_isarchgr_acc {X : abgr} (R : hrel X) (x y1 y2 : X)
            (n : nat) (Hn : R (natmult n y1 + x)%addmonoid (natmult n y2)) : isarchgr_acc R x y1 y2 :=
   n ,, Hn.
@@ -287,7 +287,7 @@ Proof.
 Qed.
 
 Definition isarchgr {X : abgr} (R : hrel X) :=
-  Π (x y1 y2 : X),
+  ∏ (x y1 y2 : X),
   R y1 y2 ->
   ∥ isarchgr_acc R x y1 y2 ∥.
 
@@ -445,7 +445,7 @@ Defined.
 (** ** Archimedean property in a rig *)
 
 Definition isarchrig_1_acc {X : rig} (R : hrel X) (y1 y2 : X) : UU :=
-  Σ n : nat, R (nattorig n * y1)%rig (1 + nattorig n * y2)%rig.
+  ∑ n : nat, R (nattorig n * y1)%rig (1 + nattorig n * y2)%rig.
 Definition mk_isarchrig_1_acc {X : rig} (R : hrel X) (y1 y2 : X)
            (n : nat) (Hn : R (nattorig n * y1)%rig (1 + nattorig n * y2)%rig) : isarchrig_1_acc R y1 y2 :=
   n ,, Hn.
@@ -462,7 +462,7 @@ Proof.
 Qed.
 
 Definition isarchrig_2_acc {X : rig} (R : hrel X) (x : X) : UU :=
-  Σ n : nat, R (nattorig n) x.
+  ∑ n : nat, R (nattorig n) x.
 Definition mk_isarchrig_2_acc {X : rig} (R : hrel X) (x : X)
            (n : nat) (Hn : R (nattorig n) x) : isarchrig_2_acc R x :=
   n ,, Hn.
@@ -479,7 +479,7 @@ Proof.
 Qed.
 
 Definition isarchrig_3_acc {X : rig} (R : hrel X) (x : X) : UU :=
-  Σ n : nat, R (nattorig n + x)%rig 0%rig.
+  ∑ n : nat, R (nattorig n + x)%rig 0%rig.
 Definition mk_isarchrig_3_acc {X : rig} (R : hrel X) (x : X)
            (n : nat) (Hn : R (nattorig n + x)%rig 0%rig) : isarchrig_3_acc R x :=
   n ,, Hn.
@@ -496,21 +496,21 @@ Proof.
 Qed.
 
 Definition isarchrig {X : rig} (R : hrel X) :=
-  (Π y1 y2 : X, R y1 y2 -> ∥ isarchrig_1_acc R y1 y2 ∥)
-    × (Π x : X, ∥ isarchrig_2_acc R x ∥)
-    × (Π x : X, ∥ isarchrig_3_acc R x ∥).
+  (∏ y1 y2 : X, R y1 y2 -> ∥ isarchrig_1_acc R y1 y2 ∥)
+    × (∏ x : X, ∥ isarchrig_2_acc R x ∥)
+    × (∏ x : X, ∥ isarchrig_3_acc R x ∥).
 
 Definition isarchrig_diff {X : rig} (R : hrel X) :
   isarchrig R ->
-  Π y1 y2 : X, R y1 y2 -> ∥ isarchrig_1_acc R y1 y2 ∥ :=
+  ∏ y1 y2 : X, R y1 y2 -> ∥ isarchrig_1_acc R y1 y2 ∥ :=
   pr1.
 Definition isarchrig_gt {X : rig} (R : hrel X) :
   isarchrig R ->
-  Π x : X, ∥ isarchrig_2_acc R x ∥ :=
+  ∏ x : X, ∥ isarchrig_2_acc R x ∥ :=
   λ H, (pr1 (pr2 H)).
 Definition isarchrig_pos {X : rig} (R : hrel X) :
   isarchrig R ->
-  Π x : X, ∥ isarchrig_3_acc R x ∥ :=
+  ∏ x : X, ∥ isarchrig_3_acc R x ∥ :=
 
   λ H, (pr2 (pr2 H)).
 
@@ -711,7 +711,7 @@ Defined.
 (** ** Archimedean property in a ring *)
 
 Definition isarchrng_1_acc {X : rng} (R : hrel X) (x : X) : UU :=
-  Σ n : nat, R (nattorng n * x)%rng 1%rng.
+  ∑ n : nat, R (nattorng n * x)%rng 1%rng.
 Definition mk_isarchrng_1_acc {X : rng} (R : hrel X) (x : X)
            (n : nat) (Hn : R (nattorng n * x)%rng 1%rng) : isarchrng_1_acc R x :=
   n ,, Hn.
@@ -728,7 +728,7 @@ Proof.
 Qed.
 
 Definition isarchrng_2_acc {X : rng} (R : hrel X) (x : X) : UU :=
-  Σ n : nat, R (nattorng n) x.
+  ∑ n : nat, R (nattorng n) x.
 Definition mk_isarchrng_2_acc {X : rng} (R : hrel X) (x : X)
            (n : nat) (Hn : R (nattorng n) x) : isarchrng_2_acc R x :=
   n ,, Hn.
@@ -745,15 +745,15 @@ Proof.
 Qed.
 
 Definition isarchrng {X : rng} (R : hrel X) :=
-  (Π x : X, R x 0%rng -> ∥ isarchrng_1_acc R x ∥)
-    × (Π x : X, ∥ isarchrng_2_acc R x ∥).
+  (∏ x : X, R x 0%rng -> ∥ isarchrng_1_acc R x ∥)
+    × (∏ x : X, ∥ isarchrng_2_acc R x ∥).
 
 Definition isarchrng_1 {X : rng} (R : hrel X) :
   isarchrng R ->
-  Π x : X, R x 0%rng -> ∥ isarchrng_1_acc R x ∥ := pr1.
+  ∏ x : X, R x 0%rng -> ∥ isarchrng_1_acc R x ∥ := pr1.
 Definition isarchrng_2 {X : rng} (R : hrel X) :
   isarchrng R ->
-  Π x : X, ∥ isarchrng_2_acc R x ∥ := pr2.
+  ∏ x : X, ∥ isarchrng_2_acc R x ∥ := pr2.
 
 Lemma isarchrng_isarchrig {X : rng} (R : hrel X) :
   isbinophrel (X := rigaddabmonoid X) R ->
@@ -1082,7 +1082,7 @@ Qed.
 (** ** Archimedean property in a field *)
 
 Definition isarchfld_acc {X : fld} (R : hrel X) (x : X) : UU :=
-  Σ n : nat, R (nattorng n) x.
+  ∑ n : nat, R (nattorng n) x.
 Definition mk_isarchfld_acc {X : fld} (R : hrel X) (x : X)
            (n : nat) (Hn : R (nattorng n) x) : isarchfld_acc R x :=
   n ,, Hn.
@@ -1099,7 +1099,7 @@ Proof.
 Qed.
 
 Definition isarchfld {X : fld} (R : hrel X) :=
-  Π x : X, ∥ isarchfld_acc R x ∥.
+  ∏ x : X, ∥ isarchfld_acc R x ∥.
 
 Lemma isarchfld_isarchrng {X : fld} (R : hrel X) :
   ∏ (Hadd : isbinophrel (X := rigaddabmonoid X) R) ( Hmult : isrngmultgt X R)
@@ -1192,7 +1192,7 @@ Defined.
 (** ** Archimedean property in a constructive field *)
 
 Definition isarchCF_acc {X : ConstructiveField} (R : hrel X) (x : X) : UU :=
-  Σ n : nat, R (nattorng n) x.
+  ∑ n : nat, R (nattorng n) x.
 Definition mk_isarchCF_acc {X : ConstructiveField} (R : hrel X) (x : X)
            (n : nat) (Hn : R (nattorng n) x) : isarchCF_acc R x :=
   n ,, Hn.
@@ -1209,7 +1209,7 @@ Proof.
 Qed.
 
 Definition isarchCF {X : ConstructiveField} (R : hrel X) :=
-  Π x : X, ∥ isarchCF_acc R x ∥.
+  ∏ x : X, ∥ isarchCF_acc R x ∥.
 
 Lemma isarchCF_isarchrng {X : ConstructiveField} (R : hrel X) :
   ∏ (Hadd : isbinophrel (X := rigaddabmonoid X) R) ( Hmult : isrngmultgt X R)

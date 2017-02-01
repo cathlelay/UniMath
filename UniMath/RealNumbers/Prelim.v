@@ -154,7 +154,7 @@ Proof.
 Qed.
 
 Lemma hqgth_opp :
-  Π x y : hq, x > y → - y > - x.
+  ∏ x y : hq, x > y → - y > - x.
 Proof.
   intros x y Hxy.
   apply hqgthandpluslinv with y.
@@ -165,7 +165,7 @@ Proof.
   exact Hxy.
 Qed.
 Lemma hqgth_opp' :
-  Π x y : hq, - x > - y → y > x.
+  ∏ x y : hq, - x > - y → y > x.
 Proof.
   intros x y Hxy.
   apply hqgth_opp in Hxy.
@@ -196,7 +196,7 @@ Qed.
 (** ** nat is a lattice *)
 
 Lemma min_id :
-  Π n : nat, min n n = n.
+  ∏ n : nat, min n n = n.
 Proof.
   intros n.
   induction n as [ | n IHn].
@@ -205,7 +205,7 @@ Proof.
     apply maponpaths, IHn.
 Qed.
 Lemma max_id :
-  Π n : nat, max n n = n.
+  ∏ n : nat, max n n = n.
 Proof.
   intros n.
   induction n as [ | n IHn].
@@ -280,7 +280,7 @@ Proof.
       apply maponpaths, IHn.
 Qed.
 Lemma isabsorb_min_max :
-  Π n m : nat, min n (max n m) = n.
+  ∏ n m : nat, min n (max n m) = n.
 Proof.
   intros n.
   induction n as [ | n IHn].
@@ -294,7 +294,7 @@ Proof.
       apply maponpaths, IHn.
 Qed.
 Lemma isabsorb_max_min :
-  Π n m : nat, max n (min n m) = n.
+  ∏ n m : nat, max n (min n m) = n.
 Proof.
   intros n.
   induction n as [ | n IHn].
@@ -366,7 +366,7 @@ Proof.
 Defined.
 
 Lemma Llenat_correct :
-  Π n m, n ≤ m <-> Lle lattice_nat n m.
+  ∏ n m, n ≤ m <-> Lle lattice_nat n m.
 Proof.
   intros n m.
   split.
@@ -451,7 +451,7 @@ Definition hzmin : binop hz := Lmin lattice_hz.
 Definition hzmax : binop hz := Lmax lattice_hz.
 
 Lemma Llehz_correct :
-  Π n m, hzleh n m <-> Lle lattice_hz n m.
+  ∏ n m, hzleh n m <-> Lle lattice_hz n m.
 Proof.
   simple refine (setquotuniv2prop _ (λ _ _, hProppair _ _) _).
   - apply isapropdirprod ;
@@ -486,7 +486,7 @@ Proof.
 Qed.
 
 Lemma hzmin_case_strong :
-  Π (P : hz → UU) (x y : hz),
+  ∏ (P : hz → UU) (x y : hz),
   (hzleh x y → P x) → (hzleh y x → P y) → P (hzmin x y).
 Proof.
   intros P x y Hx Hy.
@@ -500,7 +500,7 @@ Proof.
     apply H.
 Qed.
 Lemma hzmin_case :
-  Π (P : hz → UU) (x y : hz),
+  ∏ (P : hz → UU) (x y : hz),
   P x → P y → P (hzmin x y).
 Proof.
   intros P x y Hx Hy.
@@ -508,7 +508,7 @@ Proof.
 Qed.
 
 Lemma hzmax_case_strong :
-  Π (P : hz → UU) (x y : hz),
+  ∏ (P : hz → UU) (x y : hz),
   (hzleh y x → P x) → (hzleh x y → P y) → P (hzmax x y).
 Proof.
   intros P x y Hx Hy.
@@ -522,7 +522,7 @@ Proof.
     apply H.
 Qed.
 Lemma hzmax_case :
-  Π (P : hz → UU) (x y : hz),
+  ∏ (P : hz → UU) (x y : hz),
   P x → P y → P (hzmax x y).
 Proof.
   intros P x y Hx Hy.
@@ -530,7 +530,7 @@ Proof.
 Qed.
 
 Lemma hzlehopp :
-  Π x y : hz, hzleh y x → (hzleh (- x) (- y))%hz.
+  ∏ x y : hz, hzleh y x → (hzleh (- x) (- y))%hz.
 Proof.
   intros x y H.
   apply hzlehandplusrinv with y.
@@ -542,7 +542,7 @@ Proof.
 Qed.
 
 Lemma hzminopp_opphzmax :
-  Π x y : hz, hzmin (- x)%hz (- y)%hz = (- hzmax x y)%hz.
+  ∏ x y : hz, hzmin (- x)%hz (- y)%hz = (- hzmax x y)%hz.
 Proof.
   intros x y.
   apply hzmin_case_strong ; intros Hmin ;
@@ -560,13 +560,13 @@ Proof.
 Qed.
 
 Lemma hzoppopp :
-  Π x : hz, (- (- x))%hz = x.
+  ∏ x : hz, (- (- x))%hz = x.
 Proof.
   apply (grinvinv hz).
 Qed.
 
 Lemma ispartrdistr_hzmin_hzmult :
-  Π (x y k : hz),
+  ∏ (x y k : hz),
   hzgth k 0%hz →
   (hzmin x y * k)%hz =
   hzmin (x * k)%hz (y * k)%hz.
@@ -588,7 +588,7 @@ Proof.
   + reflexivity.
 Qed.
 Lemma ispartrdistr_hzmax_hzmult :
-  Π (x y k : hz),
+  ∏ (x y k : hz),
   hzgth k 0%hz →
   (hzmax x y * k)%hz =
   hzmax (x * k)%hz (y * k)%hz.
@@ -651,7 +651,7 @@ Definition hqmax : binop hq :=
   Lmax lattice_hq.
 
 Lemma Llehq_correct :
-  Π n m : hq, n <= m <-> Lle lattice_hq n m.
+  ∏ n m : hq, n <= m <-> Lle lattice_hq n m.
 Proof.
   intros n m ; simpl.
   unfold binop_weq_bck, hqgth ; simpl.
@@ -730,7 +730,7 @@ Proof.
 Qed.
 
 Lemma Lgthq_correct :
-  Π n m : hq, n > m <-> Lgt (latticedec_gt lattice_hq) n m.
+  ∏ n m : hq, n > m <-> Lgt (latticedec_gt lattice_hq) n m.
 Proof.
   intros n m.
   split.
@@ -746,7 +746,7 @@ Proof.
 Qed.
 
 Lemma hqmin_case_strong :
-  Π (P : hq → UU) (x y : hq),
+  ∏ (P : hq → UU) (x y : hq),
   (hqleh x y → P x) → (hqleh y x → P y) → P (hqmin x y).
 Proof.
   intros P x y Hx Hy.
@@ -760,7 +760,7 @@ Proof.
     apply H.
 Qed.
 Lemma hqmin_case :
-  Π (P : hq → UU) (x y : hq),
+  ∏ (P : hq → UU) (x y : hq),
   P x → P y → P (hqmin x y).
 Proof.
   intros P x y Hx Hy.
@@ -768,7 +768,7 @@ Proof.
 Qed.
 
 Lemma hqmax_case_strong :
-  Π (P : hq → UU) (x y : hq),
+  ∏ (P : hq → UU) (x y : hq),
   (hqleh y x → P x) → (hqleh x y → P y) → P (hqmax x y).
 Proof.
   intros P x y Hx Hy.
@@ -782,7 +782,7 @@ Proof.
     apply H.
 Qed.
 Lemma hqmax_case :
-  Π (P : hq → UU) (x y : hq),
+  ∏ (P : hq → UU) (x y : hq),
   P x → P y → P (hqmax x y).
 Proof.
   intros P x y Hx Hy.
@@ -790,7 +790,7 @@ Proof.
 Qed.
 
 Lemma hqlehopp :
-  Π x y : hq, hqleh y x → (hqleh (- x) (- y))%hq.
+  ∏ x y : hq, hqleh y x → (hqleh (- x) (- y))%hq.
 Proof.
   intros x y H.
   apply hqlehandplusrinv with y.
@@ -802,7 +802,7 @@ Proof.
 Qed.
 
 Lemma hqminopp_opphqmax :
-  Π x y : hq, hqmin (- x)%hq (- y)%hq = (- hqmax x y)%hq.
+  ∏ x y : hq, hqmin (- x)%hq (- y)%hq = (- hqmax x y)%hq.
 Proof.
   intros x y.
   apply hqmin_case_strong ; intros Hmin ;
@@ -820,13 +820,13 @@ Proof.
 Qed.
 
 Lemma hqoppopp :
-  Π x : hq, (- (- x))%hq = x.
+  ∏ x : hq, (- (- x))%hq = x.
 Proof.
   apply (grinvinv hq).
 Qed.
 
 Lemma issubrdistr_hqmin_hqmult :
-  Π (x y k : hq),
+  ∏ (x y k : hq),
   hqgth k 0%hq →
   (hqmin x y * k)%hq =
   hqmin (x * k)%hq (y * k)%hq.
@@ -848,7 +848,7 @@ Proof.
   + reflexivity.
 Qed.
 Lemma issubrdistr_hqmax_hqmult :
-  Π (x y k : hq),
+  ∏ (x y k : hq),
   hqgth k 0%hq →
   (hqmax x y * k)%hq =
   hqmax (x * k)%hq (y * k)%hq.
@@ -886,37 +886,37 @@ Definition iscomm_hqmax :
   iscomm_Lmax lattice_hq.
 
 Definition isabsorb_hqmin_hqmax :
-  Π x y : hq, hqmin x (hqmax x y) = x
+  ∏ x y : hq, hqmin x (hqmax x y) = x
  :=
   Lmin_absorb lattice_hq.
 Definition isabsorb_hqmax_hqmin :
-  Π x y : hq, hqmax x (hqmin x y) = x
+  ∏ x y : hq, hqmax x (hqmin x y) = x
  :=
   Lmax_absorb lattice_hq.
 
 Definition hqmin_id :
-  Π x : hq, hqmin x x = x :=
+  ∏ x : hq, hqmin x x = x :=
   Lmin_id lattice_hq.
 Definition hqmax_id :
-  Π x : hq, hqmax x x = x :=
+  ∏ x : hq, hqmax x x = x :=
   Lmax_id lattice_hq.
 
 Lemma hqmax_ge_l :
-  Π (x y : hq), x <= hqmax x y.
+  ∏ (x y : hq), x <= hqmax x y.
 Proof.
   intros x y.
   apply_pr2 Llehq_correct.
   apply (Lmax_ge_l lattice_hq).
 Qed.
 Lemma hqmax_ge_r :
-  Π (x y : hq), y <= hqmax x y.
+  ∏ (x y : hq), y <= hqmax x y.
 Proof.
   intros x y.
   apply_pr2 Llehq_correct.
   apply (Lmax_ge_r lattice_hq).
 Qed.
 Lemma hqmax_eq_l :
-  Π (x y : hq), y <= x → hqmax x y = x.
+  ∏ (x y : hq), y <= x → hqmax x y = x.
 Proof.
   intros x y H.
   apply (Lmax_le_eq_l lattice_hq).
@@ -924,7 +924,7 @@ Proof.
   exact H.
 Qed.
 Lemma hqmax_eq_r :
-  Π (x y : hq), x <= y → hqmax x y = y.
+  ∏ (x y : hq), x <= y → hqmax x y = y.
 Proof.
   intros x y H.
   apply (Lmax_le_eq_r lattice_hq).
@@ -932,7 +932,7 @@ Proof.
   exact H.
 Qed.
 Lemma hqmax_gth_l :
-  Π x y : hq, y > x <-> hqmax x y > x.
+  ∏ x y : hq, y > x <-> hqmax x y > x.
 Proof.
   intros x y.
   apply hqmax_case_strong.
@@ -977,7 +977,7 @@ Definition extruncminus_hq : extruncminus (X := rngaddabgr hq) lattice_hq :=
   hqtruncminus,, istruncminus_hq.
 
 Lemma hqtruncminus_pos :
-  Π x y : hq, x > y <-> hqtruncminus x y > 0.
+  ∏ x y : hq, x > y <-> hqtruncminus x y > 0.
 Proof.
   change hqtruncminus with (truncminus extruncminus_hq).
   intros x y ; split ; intros Hlt.
