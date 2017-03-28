@@ -44,10 +44,14 @@ Set Default Timeout 5.
 (** ** Strong Order *)
 (* todo : move it into UniMath.Foundations.Sets *)
 
-Definition isStrongOrder {X : UU} (R : hrel X) := istrans R × iscotrans R × isirrefl R.
+Definition isStrongOrder {X : UU} (R : hrel X) : UU :=
+  istrans R × iscotrans R × isirrefl R.
+Definition mkStrongOrder {X : UU} (R : hrel X)
+           (Htrans : istrans R) (Hcotrans : iscotrans R) (Hirrefl : isirrefl R) :
+  isStrongOrder R := Htrans,,Hcotrans,,Hirrefl.
 Definition StrongOrder (X : UU) := ∑ R : hrel X, isStrongOrder R.
 Definition pairStrongOrder {X : UU} (R : hrel X) (is : isStrongOrder R) : StrongOrder X :=
-  tpair (fun R : hrel X => isStrongOrder R ) R is.
+  R,,is.
 Definition pr1StrongOrder {X : UU} : StrongOrder X → hrel X := pr1.
 Coercion  pr1StrongOrder : StrongOrder >-> hrel.
 
@@ -73,13 +77,13 @@ Lemma isStrongOrder_bck {X Y : UU} (f : Y → X) (gt : hrel X) :
   isStrongOrder gt → isStrongOrder (fun_hrel_comp f gt).
 Proof.
   intros X Y H gt is.
-  split ; [ | split].
+  apply mkStrongOrder.
   - intros x y z.
-    apply (pr1 is).
+    apply (istrans_StrongOrder (_,,is)).
   - intros x y z.
-    apply (pr1 (pr2 is)).
+    apply (iscotrans_StrongOrder (_,,is)).
   - intros x.
-    apply (pr2 (pr2 is)).
+    apply (isirrefl_StrongOrder (_,,is)).
 Qed.
 Definition StrongOrder_bck {X Y : UU} (f : Y → X) (gt : StrongOrder X) : StrongOrder Y :=
   (fun_hrel_comp f gt) ,, isStrongOrder_bck f _ (pr2 gt).
@@ -88,7 +92,7 @@ Lemma isStrongOrder_setquot {X : UU} {R : eqrel X} {L : hrel X} (is : iscomprelr
   isStrongOrder L → isStrongOrder (quotrel is).
 Proof.
   intros X R L is H.
-  split ; [ | split].
+  apply mkStrongOrder.
   - apply istransquotrel, (istrans_StrongOrder (_,,H)).
   - apply iscotransquotrel, (iscotrans_StrongOrder (_,,H)).
   - apply isirreflquotrel, (isirrefl_StrongOrder (_,,H)).
@@ -101,10 +105,10 @@ Lemma isStrongOrder_abmonoidfrac {X : abmonoid} (Y : @submonoid X) (gt : hrel X)
   isStrongOrder gt → isStrongOrder (abmonoidfracrel X Y Hgt).
 Proof.
   intros X Y gt Hgt H.
-  split ; [ | split].
-  - apply istransabmonoidfracrel, (pr1 H).
-  - apply iscotransabmonoidfracrel, (pr1 (pr2 H)).
-  - apply isirreflabmonoidfracrel, (pr2 (pr2 H)).
+  apply mkStrongOrder.
+  - apply istransabmonoidfracrel, (istrans_StrongOrder (_,,H)).
+  - apply iscotransabmonoidfracrel, (iscotrans_StrongOrder (_,,H)).
+  - apply isirreflabmonoidfracrel, (isirrefl_StrongOrder (_,,H)).
 Qed.
 Definition StrongOrder_abmonoidfrac {X : abmonoid} (Y : @submonoid X) (gt : StrongOrder X)
            (Hgt : ispartbinophrel Y gt) : StrongOrder (abmonoidfrac X Y) :=
@@ -115,10 +119,10 @@ Lemma isStrongOrder_abgrdiff {X : abmonoid} (gt : hrel X)
   isStrongOrder gt → isStrongOrder (abgrdiffrel X Hgt).
 Proof.
   intros X gt Hgt H.
-  split ; [ | split].
-  - apply istransabgrdiffrel, (pr1 H).
-  - apply iscotransabgrdiffrel, (pr1 (pr2 H)).
-  - apply isirreflabgrdiffrel, (pr2 (pr2 H)).
+  apply mkStrongOrder.
+  - apply istransabgrdiffrel, (istrans_StrongOrder (_,,H)).
+  - apply iscotransabgrdiffrel, (iscotrans_StrongOrder (_,,H)).
+  - apply isirreflabgrdiffrel, (isirrefl_StrongOrder (_,,H)).
 Qed.
 Definition StrongOrder_abgrdiff {X : abmonoid} (gt : StrongOrder X)
            (Hgt : isbinophrel gt) : StrongOrder (abgrdiff X) :=
@@ -604,13 +608,14 @@ Qed.
 
 Definition latticedec_gt_so : StrongOrder X.
 Proof.
-  exists latticedec_gt_rel.
-  split ; [ | split].
-  - apply istrans_latticedec_gt_rel.
-  - apply iscotrans_latticedec_gt_rel.
-  - intros x Hx.
-    apply Hx.
-    apply isrefl_Lle.
+  simple refine (pairStrongOrder _ _).
+  - apply latticedec_gt_rel.
+  - apply mkStrongOrder.
+    + apply istrans_latticedec_gt_rel.
+    + apply iscotrans_latticedec_gt_rel.
+    + intros x Hx.
+      apply Hx.
+      apply isrefl_Lle.
 Defined.
 
 Lemma latticedec_notgtle :

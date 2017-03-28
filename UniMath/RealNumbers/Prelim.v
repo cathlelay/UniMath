@@ -7,7 +7,6 @@ Unset Automatic Introduction. (* This line has to be removed for the file to com
 (** ** for RationalNumbers.v *)
 
 Require Export UniMath.NumberSystems.RationalNumbers.
-Require Export UniMath.Algebra.Archimedean.
 Require Export UniMath.Algebra.Lattice.
 
 Open Scope hq_scope.

@@ -23,7 +23,9 @@ Definition Dcuts_def_open (X : hsubtype NonnegativeRationals) : UU :=
 Definition Dcuts_def_finite (X : hsubtype NonnegativeRationals) : hProp :=
   ∃ ub : NonnegativeRationals, ¬ (X ub).
 Definition Dcuts_def_corr (X : hsubtype NonnegativeRationals) : UU :=
-  ∏ r : NonnegativeRationals, 0 < r -> (¬ (X r)) ∨ ∑ q : NonnegativeRationals, (X q) × (¬ (X (q + r))).
+  ∏ r : NonnegativeRationals,
+        0 < r ->
+        (¬ (X r)) ∨ ∑ q : NonnegativeRationals, (X q) × (¬ (X (q + r))).
 
 Lemma Dcuts_def_corr_finite (X : hsubtype NonnegativeRationals) :
   Dcuts_def_corr X → Dcuts_def_finite X.
@@ -246,7 +248,7 @@ Qed.
 
 Lemma isstpo_Dcuts_lt_rel : isStrongOrder Dcuts_lt_rel.
 Proof.
-  repeat split.
+  apply mkStrongOrder.
   exact istrans_Dcuts_lt_rel.
   exact iscotrans_Dcuts_lt_rel.
   exact isirrefl_Dcuts_lt_rel.
