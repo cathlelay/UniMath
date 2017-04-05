@@ -1,6 +1,7 @@
 (** * Additionals theorems *)
 
 Require Export UniMath.Foundations.Sets.
+Require Import UniMath.MoreFoundations.Tactics.
 Require Export UniMath.Combinatorics.FiniteSequences.
 Require Export UniMath.Foundations.NaturalNumbers.
 Require Import UniMath.Ktheory.Utilities.
@@ -254,7 +255,7 @@ Proof.
     induction n as [ | n _] ; simpl.
     + intros _ n.
       apply fromempty.
-      now generalize (pr2 n).
+      induction (negnatlthn0 _ (pr2 n)).
     + intros Hx m.
       rewrite (tppr m) ;
         generalize (pr1 m) (pr2 m) ;
@@ -266,7 +267,7 @@ Proof.
       assert (H : Hm = natlthtolths m n Hm' ).
       { apply (pr2 (natlth m (S n))). }
       now rewrite H.
-      assert (H : (lastelement n) = (n,, Hm)).
+      assert (H : lastelement = (n,, Hm)).
       { now apply subtypeEquality_prop. }
       rewrite <- H.
       exact (pr1 Hx).
@@ -282,11 +283,13 @@ Proof.
   apply funextfun ; intro x.
   apply maponpaths.
   apply map_on_two_paths.
-  induction L as [n L] ; simpl.
-  apply maponpaths.
-  apply funextfun ; intro m.
-  apply append_fun_compute_1.
-  reflexivity.
+  - induction L as [n L] ; simpl.
+    apply maponpaths.
+    apply funextfun ; intro m.
+    unfold funcomp.
+    rewrite <- replace_dni_last.
+    apply append_fun_compute_1.
+  - reflexivity.
 Qed.
 
 Lemma finite_intersection_hProp {X : UU} :
@@ -300,7 +303,7 @@ Proof.
     + rewrite <- finite_intersection_htrue.
       apply X0.
       intros n.
-      now generalize (pr2 n).
+            induction (negnatlthn0 _ (pr2 n)).
     + intros A B Pa Pb.
       rewrite <- finite_intersection_and.
       apply X0.

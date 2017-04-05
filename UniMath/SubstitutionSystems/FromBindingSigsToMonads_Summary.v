@@ -22,7 +22,7 @@ Require Import UniMath.Combinatorics.Lists.
 Require Import UniMath.CategoryTheory.total2_paths.
 Require Import UniMath.CategoryTheory.precategories.
 Require Import UniMath.CategoryTheory.functor_categories.
-Require Import UniMath.CategoryTheory.UnicodeNotations.
+Local Open Scope cat.
 Require Import UniMath.CategoryTheory.limits.graphs.colimits.
 Require Import UniMath.CategoryTheory.category_hset.
 Require Import UniMath.CategoryTheory.category_hset_structures.
@@ -37,7 +37,6 @@ Require Import UniMath.CategoryTheory.limits.graphs.limits.
 Require Import UniMath.CategoryTheory.PrecategoryBinProduct.
 Require Import UniMath.CategoryTheory.equivalences.
 Require Import UniMath.CategoryTheory.EquivalencesExamples.
-Require Import UniMath.CategoryTheory.AdjunctionHomTypesWeq.
 Require Import UniMath.CategoryTheory.CocontFunctors.
 Require Import UniMath.CategoryTheory.ProductPrecategory.
 Require Import UniMath.CategoryTheory.exponentials.
@@ -58,30 +57,37 @@ Definition BindingSig : UU :=
   @UniMath.SubstitutionSystems.BindingSigToMonad.BindingSig.
 
 (** Definition 4: Signatures with strength *)
-Definition Signature : ∏ C : precategory, has_homsets C → UU :=
+Definition Signature : ∏ C : precategory, has_homsets C → ∏ D : precategory, has_homsets D →UU :=
   @UniMath.SubstitutionSystems.Signatures.Signature.
 
 (** Definition 5: Morphism of signatures with strength *)
 Definition SignatureMor :
-  ∏ C : Precategory, Signature C (homset_property C) → Signature C (homset_property C) → UU :=
+  ∏ C D : Precategory,
+       Signatures.Signature C (homset_property C) D (homset_property D)
+       → Signatures.Signature C (homset_property C) D (homset_property D) → UU :=
   @UniMath.SubstitutionSystems.SignatureCategory.SignatureMor.
 
 (** Definition 6: Coproduct of signatures with strength *)
 Definition Sum_of_Signatures :
-  ∏ (I : UU) (C : precategory) (hsC : has_homsets C), Coproducts I C
-  → (I → Signature C hsC) → Signature C hsC :=
+  ∏ (I : UU) (C : precategory) (hsC : has_homsets C)
+       (D : precategory) (hsD : has_homsets D),
+       Coproducts I D
+       → (I → Signature C hsC D hsD) → Signature C hsC D hsD :=
     @UniMath.SubstitutionSystems.SumOfSignatures.Sum_of_Signatures.
 
 (** Definition 7: Binary product of signatures with strength *)
 Definition BinProduct_of_Signatures :
-  ∏ (C : precategory) (hsC : has_homsets C), BinProducts C
-  → Signature C hsC → Signature C hsC → Signature C hsC :=
+  ∏ (C : precategory) (hsC : has_homsets C) (D : precategory)
+       (hs : has_homsets D),
+       BinProducts D
+       → Signature C hsC D hs
+         → Signature C hsC D hs → Signature C hsC D hs :=
     @UniMath.SubstitutionSystems.BinProductOfSignatures.BinProduct_of_Signatures.
 
 (** Problem 8: Signatures with strength from binding signatures *)
 Definition BindingSigToSignature :
   ∏ {C : precategory} (hsC : has_homsets C), BinProducts C → BinCoproducts C → Terminal C
-  → ∏ sig : BindingSig, Coproducts (BindingSigIndex sig) C → Signature C hsC :=
+  → ∏ sig : BindingSig, Coproducts (BindingSigIndex sig) C → Signature C hsC C hsC :=
     @UniMath.SubstitutionSystems.BindingSigToMonad.BindingSigToSignature.
 
 (** Definition 10 and Lemma 11 and 12: see UniMath/SubstitutionSystems/SignatureExamples.v *)
@@ -165,7 +171,7 @@ Defined.
 
 (** Lemma 32: Left adjoints preserve colimits *)
 Lemma left_adjoint_cocont :
-  ∏ (C D : precategory) (F : functor C D), is_left_adjoint F
+  ∏ (C D : precategory) (F : functor C D), Adjunctions.is_left_adjoint F
   → has_homsets C → has_homsets D → is_cocont F.
 Proof.
 exact @UniMath.CategoryTheory.CocontFunctors.left_adjoint_cocont.
@@ -340,9 +346,9 @@ Defined.
 
 (** Construction 46: Datatypes specified by binding signatures (initial algebra of Id_H + H) *)
 Definition SignatureInitialAlgebra :
-  ∏ {C : precategory} (hsC : has_homsets C) (BPC : BinProducts C) (BCC : BinCoproducts C),
+  ∏ {C : precategory} (hsC : has_homsets C) (BCC : BinCoproducts C),
   Initial C → Colims_of_shape nat_graph C
-  → ∏ s : Signature C hsC, is_omega_cocont (Signature_Functor C hsC s)
+  → ∏ s : Signature C hsC C hsC, is_omega_cocont (Signature_Functor C hsC C hsC s)
   → Initial (FunctorAlg (Id_H C hsC BCC s) (BindingSigToMonad.has_homsets_C2 hsC)).
 Proof.
 exact @UniMath.SubstitutionSystems.BindingSigToMonad.SignatureInitialAlgebra.
@@ -351,18 +357,17 @@ Defined.
 (** Theorem 48: Construction of a substitution operation on an initial algebra *)
 Definition InitHSS :
   ∏ (C : precategory) (hsC : has_homsets C) (CP : BinCoproducts C),
-  BinProducts C → Initial C → Colims_of_shape nat_graph C →
-  ∏ H : Signature C hsC, is_omega_cocont (pr1 H) → hss_precategory CP H.
+  Initial C → Colims_of_shape nat_graph C →
+  ∏ H : Signature C hsC C hsC, is_omega_cocont (pr1 H) → hss_precategory CP H.
 Proof.
 exact @UniMath.SubstitutionSystems.LiftingInitial_alt.InitHSS.
 Defined.
 
 Lemma isInitial_InitHSS :
   ∏ (C : precategory) (hsC : has_homsets C) (CP : BinCoproducts C)
-  (BPC : BinProducts C) (IC : Initial C)
-  (CC : Colims_of_shape nat_graph C) (H : Signature C hsC)
+  (IC : Initial C) (CC : Colims_of_shape nat_graph C) (H : Signature C hsC C hsC)
   (HH : is_omega_cocont (pr1 H)),
-  isInitial (hss_precategory CP H) (InitHSS C hsC CP BPC IC CC H HH).
+  isInitial (hss_precategory CP H) (InitHSS C hsC CP IC CC H HH).
 Proof.
 exact @UniMath.SubstitutionSystems.LiftingInitial_alt.isInitial_InitHSS.
 Defined.

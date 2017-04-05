@@ -27,7 +27,7 @@ Require Import UniMath.Foundations.PartD.
 
 Require Import UniMath.CategoryTheory.precategories.
 Require Import UniMath.CategoryTheory.functor_categories.
-Require Import UniMath.CategoryTheory.UnicodeNotations.
+Local Open Scope cat.
 Require Import UniMath.CategoryTheory.limits.binproducts.
 Require Import UniMath.CategoryTheory.limits.bincoproducts.
 Require Import UniMath.CategoryTheory.limits.terminal.
@@ -42,10 +42,6 @@ Require Import UniMath.CategoryTheory.exponentials.
 Require Import UniMath.CategoryTheory.whiskering.
 Require Import UniMath.CategoryTheory.limits.graphs.colimits.
 
-Arguments θ_source {_ _} _ .
-Arguments θ_target {_ _} _ .
-Arguments θ_Strength1 {_ _ _} _ .
-Arguments θ_Strength2 {_ _ _} _ .
 
 Section Preparations.
 
@@ -340,7 +336,7 @@ Proof.
 *)
   simpl.
   apply BinCoproductArrow.
-  + exact (BinCoproductIn1 _ _ ;;
+  + exact (BinCoproductIn1 _ _ ·
            nat_trans_data (pr2 (pr2 XZ)) (BinCoproductObject C (CC (TerminalObject terminal) A))).
   + exact (# (pr1 (pr2 XZ)) (BinCoproductIn2 _ (CC (TerminalObject terminal) A))).
 Defined.
@@ -370,8 +366,8 @@ Focus 2.
   apply BinCoproductArrow_eq.
   + assert (NN :=  nat_trans_ax (pr2 (pr2 XZ)) _ _ (BinCoproductOfArrows C (CC (TerminalObject terminal) c) (CC (TerminalObject terminal) c')
          (identity (TerminalObject terminal)) f)).
-    match goal with |[ H1: _ = ?f;;?g |- _ = ?h ;; _ ] =>
-         pathvia (h;;(f;;g)) end.
+    match goal with |[ H1: _ = ?f·?g |- _ = ?h · _ ] =>
+         pathvia (h·(f·g)) end.
     * rewrite <- NN.
       clear NN.
       unfold functor_identity.
@@ -411,8 +407,8 @@ Focus 2.
   apply BinCoproductArrow_eq.
   + assert (NN :=  nat_trans_ax e _ _ (BinCoproductOfArrows C (CC (TerminalObject terminal) c) (CC (TerminalObject terminal) c')
          (identity (TerminalObject terminal)) f)).
-    match goal with |[ H1: _ = ?f;;?g |- _ = ?h ;; _ ] =>
-         pathvia (h;;(f;;g)) end.
+    match goal with |[ H1: _ = ?f·?g |- _ = ?h · _ ] =>
+         pathvia (h·(f·g)) end.
     * rewrite <- NN.
       clear NN.
       unfold functor_identity.
@@ -528,18 +524,18 @@ Focus 2.
   + rewrite <- assoc.
     assert (NN := nat_trans_ax e' _ _ (e (BinCoproductObject C (CC (TerminalObject terminal) c)))).
     simpl in NN. (* is important for success of the trick *)
-    match goal with |[ H1: _ = ?f;;?g |- ?h ;; _ = _ ] =>
-         pathvia (h;;(f;;g)) end.
+    match goal with |[ H1: _ = ?f·?g |- ?h · _ = _ ] =>
+         pathvia (h·(f·g)) end.
     * apply idpath.
     * simpl. rewrite <- NN.
       clear NN.
       assert (NNN := nat_trans_ax e' _ _ (BinCoproductArrow C (CC (TerminalObject terminal) (Z c))
-         (BinCoproductIn1 C (CC (TerminalObject terminal) c);;
+         (BinCoproductIn1 C (CC (TerminalObject terminal) c)·
           e (BinCoproductObject C (CC (TerminalObject terminal) c)))
          (# Z (BinCoproductIn2 C (CC (TerminalObject terminal) c))))).
       simpl in NNN.
-      match goal with |[ H1: _ = ?f;;?g |- _ = ?h ;; _] =>
-         pathvia (h;;(f;;g)) end.
+      match goal with |[ H1: _ = ?f·?g |- _ = ?h · _] =>
+         pathvia (h·(f·g)) end.
       - simpl. rewrite <- NNN.
         clear NNN.
         do 2 rewrite assoc.
@@ -637,7 +633,7 @@ Qed.
 
 (** finally, constitute the 3 signatures *)
 
-Definition App_Sig: Signature C hs.
+Definition App_Sig: Signature C hs C hs.
 Proof.
   exists App_H.
   exists App_θ.
@@ -646,7 +642,7 @@ Proof.
   + exact App_θ_strength2_int.
 Defined.
 
-Definition Abs_Sig: Signature C hs.
+Definition Abs_Sig: Signature C hs C hs.
 Proof.
   exists Abs_H.
   exists Abs_θ.
@@ -655,7 +651,7 @@ Proof.
   + exact Abs_θ_strength2_int.
 Defined.
 
-Definition Flat_Sig: Signature C hs.
+Definition Flat_Sig: Signature C hs C hs.
 Proof.
   exists Flat_H.
   exists Flat_θ.
@@ -664,22 +660,20 @@ Proof.
   + exact Flat_θ_strength2_int.
 Defined.
 
-Definition Lam_Sig: Signature C hs :=
-  BinSum_of_Signatures C hs CC App_Sig Abs_Sig.
+Definition Lam_Sig: Signature C hs C hs :=
+  BinSum_of_Signatures C hs C hs CC App_Sig Abs_Sig.
 
 Lemma is_omega_cocont_Lam
   (hE : ∏ x, is_omega_cocont (constprod_functor1 (BinProducts_functor_precat C C CP hs) x))
-  (LC : Colims_of_shape nat_graph C) : is_omega_cocont (Signature_Functor _ _ Lam_Sig).
+  (LC : Colims_of_shape nat_graph C) : is_omega_cocont (Signature_Functor _ _ _ _ Lam_Sig).
 Proof.
 apply is_omega_cocont_BinCoproduct_of_functors.
-- apply (BinProducts_functor_precat _ _ CP).
-- apply functor_category_has_homsets.
 - apply functor_category_has_homsets.
 - apply (is_omega_cocont_App_H hE).
 - apply (is_omega_cocont_Abs_H LC).
 Defined.
 
-Definition LamE_Sig: Signature C hs :=
-  BinSum_of_Signatures C hs CC Lam_Sig Flat_Sig.
+Definition LamE_Sig: Signature C hs C hs :=
+  BinSum_of_Signatures C hs C hs CC Lam_Sig Flat_Sig.
 
 End Lambda.

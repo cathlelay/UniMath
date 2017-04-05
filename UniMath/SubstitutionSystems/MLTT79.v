@@ -13,7 +13,8 @@ Require Import UniMath.Combinatorics.StandardFiniteSets.
 Require Import UniMath.Combinatorics.Lists.
 
 Require Import UniMath.CategoryTheory.precategories.
-Require Import UniMath.CategoryTheory.UnicodeNotations.
+Require Import UniMath.CategoryTheory.functor_categories.
+Local Open Scope cat.
 Require Import UniMath.CategoryTheory.category_hset.
 Require Import UniMath.CategoryTheory.category_hset_structures.
 Require Import UniMath.CategoryTheory.CocontFunctors.
@@ -185,7 +186,7 @@ Definition WSig : BindingSig :=
 
 Definition USig : BindingSig := mkBindingSig isasetnat (fun _ => []).
 
-Let SigHSET := Signature HSET has_homsets_HSET.
+Let SigHSET := Signature HSET has_homsets_HSET HSET has_homsets_HSET.
 
 (** The binding signature of MLTT79 *)
 Definition MLTT79Sig := PiSig ++ SigmaSig ++ SumSig ++ IdSig ++
@@ -217,7 +218,7 @@ Let MLTT79_alg : algebra_ob MLTT79Functor :=
   InitialObject MLTT79Functor_Initial.
 
 Definition var_map : HSET2⟦functor_identity HSET,MLTT79⟧ :=
-  BinCoproductIn1 HSET2 (BinCoproducts_functor_precat _ _ _ _ _ _) ;; MLTT79_mor.
+  BinCoproductIn1 HSET2 (BinCoproducts_functor_precat _ _ _ _ _ _) · MLTT79_mor.
 
 (* TODO: define the rest of the constructors and computation rules? *)
 

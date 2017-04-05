@@ -2,6 +2,7 @@
 (** Author: Catherine LELAY. Jan 2016 - *)
 (** Based on Bourbaky *)
 
+Require Import UniMath.MoreFoundations.Tactics.
 Require Export UniMath.Topology.Filters.
 Require Import UniMath.Algebra.DivisionRig.
 Require Import UniMath.Algebra.ConstructiveStructures.
@@ -61,8 +62,9 @@ Proof.
   rewrite <- finite_intersection_htrue.
   apply H0.
   intros m.
-  now generalize (pr2 m).
+  induction (nopathsfalsetotrue (pr2 m)).
 Qed.
+
 Lemma isSetOfOpen_finite_intersection_and :
   isSetOfOpen_finite_intersection
   → isSetOfOpen_and.
@@ -142,7 +144,7 @@ Proof.
   rewrite <- finite_intersection_htrue.
   apply isOpen_finite_intersection.
   intros m.
-  now generalize (pr2 m).
+  induction (nopathsfalsetotrue (pr2 m)).
 Qed.
 Lemma isOpen_and :
   ∏ A B : T → hProp,
@@ -565,11 +567,7 @@ Proof.
   intros x.
   apply hinhpr.
   exists nil.
-  repeat split.
-  intros n.
-  now generalize (pr2 n).
-  intros n.
-  now generalize (pr2 n).
+  repeat split; intros n; induction (nopathsfalsetotrue (pr2 n)).
 Qed.
 
 Lemma topologygenerated_and :
@@ -596,11 +594,13 @@ Proof.
   - apply (pr2 (pr2 (pr2 La))).
     intros n.
     simpl in X0.
+    unfold concatenate' in X0.
     specialize (X0 (weqfromcoprodofstn_map (length (pr1 La)) (length (pr1 Lb)) (ii1 n))).
     now rewrite (weqfromcoprodofstn_eq1 _ _) , coprod_rect_compute_1 in X0.
   - apply (pr2 (pr2 (pr2 Lb))).
     intros n.
     simpl in X0.
+    unfold concatenate' in X0.
     specialize (X0 (weqfromcoprodofstn_map (length (pr1 La)) (length (pr1 Lb)) (ii2 n))).
     now rewrite (weqfromcoprodofstn_eq1 _ _), coprod_rect_compute_2 in X0.
 Qed.

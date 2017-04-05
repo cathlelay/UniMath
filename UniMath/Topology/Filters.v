@@ -4,6 +4,8 @@
 
 Require Export UniMath.Topology.Prelim.
 
+Require Import UniMath.MoreFoundations.Tactics.
+
 Unset Automatic Introduction. (* This line has to be removed for the file to compile with Coq8.2 *)
 
 (** ** Definition of a Filter *)
@@ -203,7 +205,7 @@ End Filter_pty.
 Lemma isasetPreFilter (X : UU) : isaset (PreFilter X).
 Proof.
   intros X.
-  simple refine (isaset_total2_subset (hSetpair _ _) (λ _, hProppair _ _)).
+  simple refine (isaset_carrier_subset (hSetpair _ _) (λ _, hProppair _ _)).
   apply impred_isaset ; intros _.
   apply isasethProp.
   apply isapropdirprod.
@@ -214,7 +216,7 @@ Qed.
 Lemma isasetFilter (X : UU) : isaset (Filter X).
 Proof.
   intros X.
-  simple refine (isaset_total2_subset (hSetpair _ _) (λ _, hProppair _ _)).
+  simple refine (isaset_carrier_subset (hSetpair _ _) (λ _, hProppair _ _)).
   apply impred_isaset ; intros _.
   apply isasethProp.
   apply isapropdirprod.
@@ -1008,10 +1010,11 @@ Proof.
   apply hinhpr.
   exists nil.
   split.
-  intros m.
-  now generalize (pr2 m).
-  easy.
+  + intros m.
+    induction (nopathsfalsetotrue (pr2 m)).
+  + unimath_easy.
 Qed.
+
 Lemma filtergenerated_and :
   isfilter_and filtergenerated.
 Proof.
@@ -1021,6 +1024,7 @@ Proof.
   exists (concatenate (pr1 Ha) (pr1 Hb)).
   split.
   + simpl ; intros m.
+    unfold concatenate'.
     set (Hm := (weqfromcoprodofstn_invmap (length (pr1 Ha)) (length (pr1 Hb))) m).
     change ((weqfromcoprodofstn_invmap (length (pr1 Ha)) (length (pr1 Hb))) m) with Hm.
     induction Hm as [Hm | Hm].
@@ -1028,7 +1032,9 @@ Proof.
       apply (pr1 (pr2 Ha)).
     * rewrite coprod_rect_compute_2.
       apply (pr1 (pr2 Hb)).
-  + intros x Hx ; simpl in Hx.
+  + intros x Hx.
+    simpl in Hx.
+    unfold concatenate' in Hx.
     split.
     * apply (pr2 (pr2 Ha)).
       intros m.
@@ -1185,7 +1191,7 @@ Proof.
           simple refine (hinhuniv _ _).
           3: apply IHl.
           intros C.
-          generalize (Hl (lastelement _)) ; simpl.
+          generalize (Hl lastelement) ; simpl.
           rewrite append_fun_compute_2.
           apply hinhfun.
           apply sumofmaps ; [intros Fl | intros ->].
@@ -1210,6 +1216,7 @@ Proof.
               exact H0.
           + intros.
             generalize (Hl (dni_lastelement m)) ; simpl.
+            rewrite <- replace_dni_last.
             now rewrite append_fun_compute_1. }
       revert B.
       apply hinhuniv.

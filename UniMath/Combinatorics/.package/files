@@ -1,7 +1,7 @@
 StandardFiniteSets.v
+Lists.v
 FiniteSets.v
 OrderedSets.v
+WellOrderedSets.v
 FiniteSequences.v
-Lists.v
 Tests.v
-# SimplicialSets.v
