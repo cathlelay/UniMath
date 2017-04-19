@@ -1129,13 +1129,23 @@ Definition continuous2d_base_at {U V W : TopologicalSet} (f : U → V → W)
 
 (** *** Continuity of basic functions *)
 
-Lemma continuous_comp {X : UU} {U V : TopologicalSet} (f : X → U) (g : U → V) (F : Filter X) (l : U) :
+Lemma is_lim_comp {X : UU} {U V : TopologicalSet} (f : X → U) (g : U → V) (F : Filter X) (l : U) :
   is_lim f F l → continuous_at g l →
   is_lim (funcomp f g) F (g l).
 Proof.
   intros X U V f g F l.
   apply filterlim_comp.
 Qed.
+Lemma continuous_comp {X Y Z : TopologicalSet} (f : X → Y) (g : Y → Z) :
+  continuous f → continuous g →
+  continuous (funcomp f g).
+Proof.
+  intros X Y Z f g Hf Hg x.
+  refine (is_lim_comp _ _ _ _ _ _).
+  apply Hf.
+  apply Hg.
+Qed.
+
 Lemma continuous2d_comp {X : UU} {U V W : TopologicalSet} (f : X → U) (g : X → V) (h : U → V → W) (F : Filter X) (lf : U) (lg : V) :
   is_lim f F lf → is_lim g F lg → continuous2d_at h lf lg →
   is_lim (λ x, h (f x) (g x)) F (h lf lg).
