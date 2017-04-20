@@ -781,11 +781,10 @@ Qed.
 End UStopology.
 
 Definition Topology_UniformSpace {X : UU} (F : UniformStructure X) :
-  TopologicalSet.
+  Topology X.
 Proof.
   intros X F.
   simple refine (TopologyFromNeighborhood _ _).
-  - apply X.
   - apply USneighborhood, F.
   - apply isNeighborhood_USneighborhood.
 Defined.
@@ -801,7 +800,7 @@ Proof.
 Defined.
 Lemma USlocally_correct {X : UniformSpace} (x : X) :
   ∏ P : X -> hProp,
-    locally (T := Topology_UniformSpace (pr2 X)) x P <-> USlocally x P.
+    locally (Topology_UniformSpace (pr2 X)) x P <-> USlocally x P.
 Proof.
   intros X x P.
   split ; intros H.
@@ -821,7 +820,7 @@ Proof.
 Defined.
 Lemma USlocally2d_correct {X Y : UniformSpace} (x : X) (y : Y) :
   ∏ P : X × Y -> hProp,
-    locally2d (T := Topology_UniformSpace (pr2 X)) (S := Topology_UniformSpace (pr2 Y)) x y P
+    locally2d (Topology_UniformSpace (pr2 X)) (Topology_UniformSpace (pr2 Y)) x y P
     <-> USlocally2d x y P.
 Proof.
   split ; apply hinhfun ;
@@ -840,7 +839,7 @@ Definition is_filter_USlim {X : UniformSpace} (F : Filter X) (x : X) :=
 Definition ex_filter_USlim {X : UniformSpace} (F : Filter X) :=
   ∃ x : X, is_filter_USlim F x.
 Lemma is_filter_USlim_correct {X : UniformSpace} (F : Filter X) (x : X) :
-  is_filter_lim (T := Topology_UniformSpace (pr2 X)) F x <-> is_filter_USlim F x.
+  is_filter_lim (Topology_UniformSpace (pr2 X)) F x <-> is_filter_USlim F x.
 Proof.
   split ; intros H P Hp ; apply H.
   - apply (pr2 (USlocally_correct _ _)), Hp.
@@ -852,7 +851,7 @@ Definition is_USlim {X : UU} {Y : UniformSpace} (f : X → Y) (F : Filter X) (x 
 Definition ex_USlim {X : UU} {Y : UniformSpace} (f : X → Y) (F : Filter X) :=
   ∃ x : Y, is_USlim f F x.
 Lemma isUS_lim_correct {X : UU} {Y : UniformSpace} (f : X → Y) (F : Filter X) (x : Y) :
-  is_lim (T := Topology_UniformSpace (pr2 Y)) f F x <-> is_USlim f F x.
+  is_lim (Topology_UniformSpace (pr2 Y)) f F x <-> is_USlim f F x.
 Proof.
   split ; intros H P Hp ; apply H.
   - apply (pr2 (USlocally_correct _ _)), Hp.
