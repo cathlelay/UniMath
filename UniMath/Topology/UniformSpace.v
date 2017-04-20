@@ -96,9 +96,9 @@ Qed.
 Definition isUS_imply {X : UU} (F : (X → X → hProp) -> hProp) :=
   ∏ P Q : X → X → hProp, (∏ x y : X, P x y → Q x y) → F P → F Q.
 Definition isUS_finite_intersection {X : UU} (F : (X → X → hProp) → hProp) :=
-  ∏ (L : seq (X → X → hProp)),
-  (∏ n : stn (seq_len L), F (L n))
-  → F (λ x y : X, finite_intersection (X := X × X) (sequencePair (λ (n : stn (seq_len L)) (xy : X × X), L n (pr1 xy) (pr2 xy))) (x,,y)).
+  ∏ (L : Sequence (X → X → hProp)),
+  (∏ n : stn (length L), F (L n))
+  → F (λ x y : X, finite_intersection (X := X × X) (functionToSequence (λ (n : stn (length L)) (xy : X × X), L n (pr1 xy) (pr2 xy))) (x,,y)).
 Definition isUS_htrue {X : UU} (F : (X → X → hProp) → hProp) :=
   F (λ _ _ : X, htrue).
 Definition isUS_and {X : UU} (F : (X → X → hProp) → hProp) :=
@@ -133,7 +133,7 @@ Proof.
   intros X F.
   split.
   - intros Hf L Hl.
-    apply (Hf (sequencePair (λ (n : stn (seq_len L)) (x y : X), L n (x,,y)))).
+    apply (Hf (functionToSequence (λ (n : stn (length L)) (x y : X), L n (x,,y)))).
     intros n ; apply Hl.
   - intros Hf L Hl.
     apply Hf.

@@ -250,7 +250,7 @@ Qed.
 
 Lemma isstpo_Dcuts_lt_rel : isStrongOrder Dcuts_lt_rel.
 Proof.
-  apply mkStrongOrder.
+  mkStrongOrder.
   exact istrans_Dcuts_lt_rel.
   exact iscotrans_Dcuts_lt_rel.
   exact isirrefl_Dcuts_lt_rel.
@@ -885,7 +885,8 @@ Proof.
     intros Hr ; apply (pr1 Hr).
     intros Hr ; split.
     exact Hr.
-    apply H, Hr.
+    refine (H _ _).
+    exact Hr.
   - intros <- r Hr.
     exact (pr2 Hr).
 Qed.
@@ -2794,9 +2795,10 @@ Lemma Dcuts_plus_eqcompat_l :
   ∏ x y z: Dcuts, Dcuts_plus y x = Dcuts_plus z x → y = z.
 Proof.
   intros x y z H.
-  now apply Dcuts_le_ge_eq ;
+  apply Dcuts_le_ge_eq ;
     apply_pr2 (Dcuts_plus_lecompat_l x) ;
-    rewrite H.
+    rewrite H ;
+  apply isrefl_Dcuts_le_rel.
 Qed.
 Lemma Dcuts_plus_ltcompat_r :
   ∏ x y z: Dcuts, (y < z) <-> (Dcuts_plus x y < Dcuts_plus x z).
@@ -3349,7 +3351,7 @@ Proof.
     + now apply hinhpr ; left ; right.
 Qed.
 
-Definition extruncminus_Dcuts : extruncminus (X := (_,,_),,isabmonoidop_Dcuts_plus) lattice_Dcuts :=
+Definition extruncminus_Dcuts : extruncminus (X := (pr1 Dcuts,,Dcuts_plus),,isabmonoidop_Dcuts_plus) lattice_Dcuts :=
   Dcuts_minus ,, Dcuts_minus_plus_max.
 
 Lemma Dcuts_minus_eq_zero:
@@ -3762,7 +3764,8 @@ Lemma Dcuts_half_le :
 Proof.
   intros x.
   intros r Hr.
-  apply is_Dcuts_bot with (1 := Hr).
+  refine (is_Dcuts_bot _ _ _ _ _).
+  exact Hr.
   now apply plusNonnegativeRationals_le_l.
 Qed.
 

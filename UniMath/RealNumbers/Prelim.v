@@ -464,7 +464,7 @@ Proof.
       rewrite setquotuniv2comm.
       apply hinhpr ; exists O.
       apply Llenat_correct.
-      apply negnatgthtoleh ; intro H0 ; apply H.
+      apply negnatgthtoleh ; intro H0 ; refine (H _).
       unfold hzgth, rigtorngrel, abgrdiffrel, quotrel.
       rewrite setquotuniv2comm.
       apply hinhpr ; exists O.
@@ -741,7 +741,7 @@ Proof.
     exact Hgt.
   - intros Hgt.
     apply neghqlehtogth ; intros Hle.
-    apply Hgt.
+    refine (Hgt _).
     apply (pr1 (Llehq_correct n m)).
     exact Hle.
 Qed.

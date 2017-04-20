@@ -8,6 +8,8 @@ Require Import UniMath.Topology.Topology.
 Require Import UniMath.Topology.UniformSpace.
 Require Import UniMath.Algebra.Apartness.
 
+Unset Automatic Introduction.
+
 Set Default Timeout 5.
 
 (** ** Lattice *)
@@ -399,19 +401,19 @@ Lemma issymm_dist :
   ∏ x y : X, dist x y = dist y x.
 Proof.
   intros.
-  now apply (pr1 (pr2 is)).
+  now apply (pr1 (pr2 is) x y).
 Qed.
 Lemma issepp_dist :
   ∏ x y : X, (x ≠ y)%tap <-> (dist x y > 0).
 Proof.
   intros.
-  now apply (pr1 (pr2 (pr2 is))).
+  now apply (pr1 (pr2 (pr2 is)) x y).
 Qed.
 Lemma istriangle_dist :
   ∏ x y z : X, (dist x z) <= (dist x y + dist y z).
 Proof.
   intros.
-  now apply (pr2 (pr2 (pr2 is))).
+  now apply (pr2 (pr2 (pr2 is)) x y z).
 Qed.
 
 Lemma dist_0 :

@@ -9,6 +9,8 @@ Require Import UniMath.Topology.UniformSpace.
 Require Import UniMath.Algebra.Apartness.
 Require Import UniMath.Topology.MetricSpace.
 
+Unset Automatic Introduction.
+
 Set Default Timeout 5.
 
 (** * Normed Group *)

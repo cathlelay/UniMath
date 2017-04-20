@@ -86,7 +86,7 @@ Qed.
 Local Definition hnnq_lt : hrel hnnq_set := resrel hqlth (hqleh 0).
 Local Lemma isStrongOrder_hnnq_lt : isStrongOrder hnnq_lt.
 Proof.
-  apply mkStrongOrder.
+  mkStrongOrder.
   - intros x y z.
     now apply istranshqlth.
   - intros x y z Hxz.
@@ -104,7 +104,14 @@ Qed.
 Local Definition hnnq_gt : hrel hnnq_set := resrel hqgth (hqleh 0).
 Local Lemma isStrongOrder_hnnq_gt : isStrongOrder hnnq_gt.
 Proof.
-  apply (isStrongOrder_reverse _ isStrongOrder_hnnq_lt).
+  set (H := isStrongOrder_reverse _ isStrongOrder_hnnq_lt).
+  mkStrongOrder.
+  - intros x y z.
+    apply (istrans_isStrongOrder H).
+  - intros x y z.
+    apply (iscotrans_isStrongOrder H).
+  - intros x.
+    apply (isirrefl_isStrongOrder H).
 Qed.
 
 Local Lemma isEffectiveOrder_hnnq : isEffectiveOrder hnnq_le hnnq_lt.
@@ -1584,14 +1591,14 @@ Proof.
       apply (maponpaths pr1 Hx0).
     + apply subtypeEquality_prop.
       apply isantisymmhqleh.
-      rewrite <- (maponpaths pr1 Hx0).
+      rewrite <- Hx0.
       exact H.
       exact (pr2 y).
   - intros H Hy Hy0.
     split.
     + apply subtypeEquality_prop.
       apply isantisymmhqleh.
-      rewrite <- (maponpaths pr1 Hy0).
+      rewrite <- Hy0.
       exact H.
       exact (pr2 x).
     + apply subtypeEquality_prop.
