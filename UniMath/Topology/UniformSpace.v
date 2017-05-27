@@ -46,8 +46,7 @@ Proof.
 Qed.
 
 Lemma isassoc_subset_prod {X : hSet} :
-  isassoc (X := tpair _ _ (impredfun 2 (X × X) hProp isasethProp))
-          (λ A B xy, subset_prod (λ x y : X, A (x,,y)) (λ x y : X, B (x,,y)) (pr1 xy) (pr2 xy)).
+  isassoc (λ A B xy, subset_prod (λ x y : X, A (x,,y)) (λ x y : X, B (x,,y)) (pr1 xy) (pr2 xy)).
 Proof.
   intros X.
   intros A B C.
