@@ -42,30 +42,83 @@ Require Import UniMath.MoreFoundations.Tactics.
 
 Unset Automatic Introduction.
 
+(** To move *)
+
+Lemma isofhlevel_binop {n : nat} {X : UU} (is : isofhlevel n X) :
+  isofhlevel n (binop X).
+Proof.
+  intros n X is.
+  apply impred ; intros x ;
+  apply impred ; intros y.
+  exact is.
+Defined.
+Lemma isaset_hrel {X : UU} :
+  isaset (hrel X).
+Proof.
+  intros X.
+  apply impred_isaset ; intros x ;
+  apply impred_isaset ; intros y.
+  exact isasethProp.
+Defined.
+
+Lemma isofhlevelisassoc {n : nat} {X : UU} (is : isofhlevel (S n) X) (op : binop X) :
+  isofhlevel n (isassoc op).
+Proof.
+  intros n X is op.
+  apply impred ; intros x ;
+  apply impred ; intros y ;
+  apply impred ; intros z.
+  exact (is (op (op x y) z) (op x (op y z))).
+Defined.
+Lemma isofhleveliscomm {n : nat} {X : UU} (is : isofhlevel (S n) X) (op : binop X) :
+  isofhlevel n (iscomm op).
+Proof.
+  intros n X is op.
+  apply impred ; intros x ;
+  apply impred ; intros y.
+  exact (is (op x y) (op y x)).
+Defined.
+Lemma isofhlevelisabsorb {n : nat} {X : UU} (is : isofhlevel (S n) X) (op1 op2 : binop X) :
+  isofhlevel n (isabsorb op1 op2).
+Proof.
+  intros n X is op1 op2.
+  apply impred ; intros x ;
+  apply impred ; intros y.
+  exact (is (op1 x (op2 x y)) x).
+Defined.
+
 (** ** Definition *)
 
-Definition islatticeop {X : hSet} (min max : binop X) : UU :=
+Definition islatticeop {X : UU} (min max : binop X) : UU :=
   ((isassoc min) × (iscomm min))
     × ((isassoc max) × (iscomm max))
     × (isabsorb min max)
     × (isabsorb max min).
+Lemma isofhlevel_islatticeop {n : nat} {X : UU} (is : isofhlevel (S n) X) (min max : binop X) :
+  isofhlevel n (islatticeop min max).
+Proof.
+  intros n X is min max.
+  apply isofhleveldirprod ;
+    [ | apply isofhleveldirprod] ;
+    apply isofhleveldirprod.
+  apply isofhlevelisassoc, is.
+  apply isofhleveliscomm, is.
+  apply isofhlevelisassoc, is.
+  apply isofhleveliscomm, is.
+  apply isofhlevelisabsorb, is.
+  apply isofhlevelisabsorb, is.
+Defined.
 Lemma isaprop_islatticeop {X : hSet} (min max : binop X) :
   isaprop (islatticeop min max).
 Proof.
   intros X min max.
-  apply isapropdirprod ;
-    [ | apply isapropdirprod] ;
-    apply isapropdirprod.
-  apply isapropisassoc.
-  apply isapropiscomm.
-  apply isapropisassoc.
-  apply isapropiscomm.
-  apply isapropisabsorb.
-  apply isapropisabsorb.
-Qed.
+  apply isofhlevel_islatticeop.
+  apply setproperty.
+Defined.
 
 Definition lattice (X : hSet) :=
   ∑ min max : binop X, islatticeop min max.
+Search isofhlevel binop.
 
 Definition mklattice {X : hSet} {min max : binop X} : islatticeop min max → lattice X :=
   λ (is : islatticeop min max), min,, max ,, is.
