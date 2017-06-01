@@ -632,7 +632,7 @@ Defined.
 
 (** the relations on a set form a set *)
 
-Definition isaset_hrel (X : hSet) : isaset (hrel X).
+Definition isaset_hrel (X : UU) : isaset (hrel X).
   intros. unfold hrel.
   apply impred_isaset; intro x.
   apply impred_isaset; intro y.

@@ -44,32 +44,6 @@ Unset Automatic Introduction.
 
 (** To move *)
 
-Lemma isofhlevel_binop {n : nat} {X : UU} (is : isofhlevel n X) :
-  isofhlevel n (binop X).
-Proof.
-  intros n X is.
-  apply impred ; intros x ;
-  apply impred ; intros y.
-  exact is.
-Defined.
-Lemma isaset_hrel {X : UU} :
-  isaset (hrel X).
-Proof.
-  intros X.
-  apply impred_isaset ; intros x ;
-  apply impred_isaset ; intros y.
-  exact isasethProp.
-Defined.
-
-Lemma isofhlevelisassoc {n : nat} {X : UU} (is : isofhlevel (S n) X) (op : binop X) :
-  isofhlevel n (isassoc op).
-Proof.
-  intros n X is op.
-  apply impred ; intros x ;
-  apply impred ; intros y ;
-  apply impred ; intros z.
-  exact (is (op (op x y) z) (op x (op y z))).
-Defined.
 Lemma isofhleveliscomm {n : nat} {X : UU} (is : isofhlevel (S n) X) (op : binop X) :
   isofhlevel n (iscomm op).
 Proof.
@@ -116,15 +90,27 @@ Proof.
   apply setproperty.
 Defined.
 
-Definition lattice (X : hSet) :=
+Definition lattice (X : UU) :=
   ∑ min max : binop X, islatticeop min max.
-Search isofhlevel binop.
+Lemma isofhlevel_lattice {n : nat} {X : UU} (is : isofhlevel n X)  :
+  isofhlevel n (lattice X).
+Proof.
+  intros n X is.
+  apply isofhleveltotal2.
+  apply isofhlevel_binop, is.
+  intros min.
+  apply isofhleveltotal2.
+  apply isofhlevel_binop, is.
+  intros max.
+  apply isofhlevel_islatticeop.
+  apply hlevelntosn, is.
+Defined.
 
-Definition mklattice {X : hSet} {min max : binop X} : islatticeop min max → lattice X :=
+Definition mklattice {X : UU} {min max : binop X} : islatticeop min max → lattice X :=
   λ (is : islatticeop min max), min,, max ,, is.
 
-Definition Lmin {X : hSet} (lat : lattice X) : binop X := pr1 lat.
-Definition Lmax {X : hSet} (lat : lattice X) : binop X := pr1 (pr2 lat).
+Definition Lmin {X : UU} (lat : lattice X) : binop X := pr1 lat.
+Definition Lmax {X : UU} (lat : lattice X) : binop X := pr1 (pr2 lat).
 
 (** Bounded lattices *)
 

@@ -84,33 +84,54 @@ Definition binop_weq_bck {X Y : UU} (H : weq X Y) :
 Definition isassoc {X : UU} (opp : binop X) : UU :=
   ∏ x x' x'', paths (opp (opp x x') x'') (opp x (opp x' x'')).
 
+Lemma isofhlevelisassoc {n : nat} {X : UU} (is : isofhlevel (S n) X) (op : binop X) :
+  isofhlevel n (isassoc op).
+Proof.
+  intros n X is op.
+  apply impred ; intros x ;
+  apply impred ; intros y ;
+  apply impred ; intros z.
+  exact (is (op (op x y) z) (op x (op y z))).
+Defined.
 Lemma isapropisassoc {X : hSet} (opp : binop X) : isaprop (isassoc opp).
 Proof.
   intros.
-  apply impred. intro x.
-  apply impred. intro x'.
-  apply impred. intro x''.
-  simpl. apply (setproperty X).
+  apply isofhlevelisassoc.
+  apply setproperty.
 Defined.
 
 (** *)
 
 Definition islunit {X : UU} (opp : binop X) (un0 : X) : UU := ∏ x : X, paths (opp un0 x) x.
 
-Lemma isapropislunit {X : hSet} (opp : binop X) (un0 : X) : isaprop (islunit opp un0).
+Lemma isofhlevelislunit {n : nat} {X : UU} (is : isofhlevel (S n) X) (opp : binop X) (un0 : X) :
+  isofhlevel n (islunit opp un0).
 Proof.
   intros.
   apply impred. intro x.
-  simpl. apply (setproperty X).
+  exact (is (opp un0 x) x).
+Defined.
+Lemma isapropislunit {X : hSet} (opp : binop X) (un0 : X) : isaprop (islunit opp un0).
+Proof.
+  intros.
+  apply isofhlevelislunit.
+  apply (setproperty X).
 Defined.
 
 Definition isrunit {X : UU} (opp : binop X) (un0 : X) : UU := ∏ x : X, paths (opp x un0) x.
 
-Lemma isapropisrunit {X : hSet} (opp : binop X) (un0 : X) : isaprop (isrunit opp un0).
+Lemma isofhlevelisrunit {n : nat} {X : UU} (is : isofhlevel (S n) X) (opp : binop X) (un0 : X) :
+  isofhlevel n (isrunit opp un0).
 Proof.
   intros.
   apply impred. intro x.
-  simpl. apply (setproperty X).
+  exact (is (opp x un0) x).
+Defined.
+Lemma isapropisrunit {X : hSet} (opp : binop X) (un0 : X) : isaprop (isrunit opp un0).
+Proof.
+  intros.
+  apply isofhlevelisrunit.
+  exact (setproperty X).
 Defined.
 
 Definition isunit {X : UU} (opp : binop X) (un0 : X) : UU :=
@@ -123,6 +144,45 @@ Definition isunital {X : UU} (opp : binop X) : UU := total2 (fun un0 : X => isun
 
 Definition isunitalpair {X : UU} {opp : binop X} (un0 : X) (is : isunit opp un0) :
   isunital opp := tpair _ un0 is.
+
+Lemma isofhlevelisunital {n : nat} {X : UU} (is : isofhlevel (S (S n)) X) (opp : binop X) :
+  isofhlevel (S n) (isunital opp).
+Proof.
+  intros.
+  intros un un'.
+  induction un as [un Hun].
+  induction un' as [un' Hun'].
+
+
+  assert (is' : ∏ x', isofhlevel (S n) (un = x'))
+    by (exact (is un)) ; clear is.
+
+  Check (isofhlevelffib _ _ _).
+  generalize (is un).
+  Search isofhlevel.
+  simpl.
+  enough (H : ∏ x : X, isofhlevel n (isunit opp x)).
+  - set (H0 := isofhlevelfpr1 n (isunit opp) H) ; clearbody H0.
+    clear -H0 is.
+    induction n ; simpl in H0 |- *.
+    + specialize (H0 un).
+      induction H0 as [H0 H1].
+      unfold hfiber in H1, H0.
+      revert Hun.
+      rewrite <- (pr2 H0).
+      enough (H2 : (λ x : ∑ y, isunit opp y, pr1 x = un) un').
+      rewrite <- (H1 (un',,H2)).
+      simpl.
+      intros Hun.
+
+      Search (iscontr (_ = _)).
+
+
+  apply (@isapropsubtype X (fun un0 : _ => hconj (hProppair _ (isapropislunit opp un0))
+                                              (hProppair _ (isapropisrunit opp un0)))).
+  intros u1 u2. intros ua1 ua2.
+  apply (pathscomp0 (pathsinv0 (pr2 ua2 u1)) (pr1 ua1 u2)).
+Defined.
 
 Lemma isapropisunital {X : hSet} (opp : binop X) : isaprop (isunital opp).
 Proof.
@@ -1366,11 +1426,19 @@ Coercion pr1setwithbinop : setwithbinop >-> hSet.
 
 Definition op {X : setwithbinop} : binop X := pr2 X.
 
+Definition isofhlevel_binop {n : nat} {X : UU} (is : isofhlevel n X) :
+  isofhlevel n (binop X).
+Proof.
+  intros n X is.
+  apply impred ; intros x ;
+  apply impred ; intros y.
+  exact is.
+Defined.
+Opaque isofhlevel_binop.
 Definition isasetbinoponhSet {X : hSet} : isaset (@binop X).
 Proof.
   intros X.
-  use impred_isaset. intros t1.
-  use impred_isaset. intros t2.
+  apply (isofhlevel_binop (n := 2)).
   use setproperty.
 Defined.
 Opaque isasetbinoponhSet.
@@ -1387,6 +1455,14 @@ Definition isbinopfun {X Y : setwithbinop} (f : X -> Y) : UU :=
 Definition mk_isbinopfun {X Y : setwithbinop} {f : X -> Y}
            (H : ∏ x x' : X, f (op x x') = op (f x) (f x')) : isbinopfun f := H.
 
+Lemma isofhlevelisbinopfun {n : nat} {X Y : UU} (isY : isofhlevel n Y) (f : X -> Y) :
+  isofhlevel n (isbinopfun f).
+Proof.
+  intros.
+  apply impred. intro x.
+  apply impred. intro x'.
+  apply (setproperty Y).
+Defined.
 Lemma isapropisbinopfun {X Y : setwithbinop} (f : X -> Y) : isaprop (isbinopfun f).
 Proof.
   intros.
