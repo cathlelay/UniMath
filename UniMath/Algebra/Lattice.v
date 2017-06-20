@@ -1700,7 +1700,7 @@ Close Scope multmonoid.
 
 Section hProp_lattice.
 
-Definition hProp_lattice : lattice (hProp,,isasethProp).
+Definition hProp_lattice : lattice hProp.
 Proof.
 use mklattice.
 - intros P Q; exact (P ∧ Q).
