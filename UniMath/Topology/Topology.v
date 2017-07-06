@@ -1113,13 +1113,13 @@ Defined.
 
 Definition is_filter_lim {T : UU} (topo : Topology T)
            (F : Filter T) (x : T) :=
-  filter_le F (locally topo x).
+  filterlim (λ x : T, x) F (locally topo x).
 Definition ex_filter_lim  {T : UU} (topo : Topology T) (F : Filter T) :=
   ∃ (x : T), is_filter_lim topo F x.
 
 Definition is_filter_lim_base {T : UU} (topo : Topology T)
            (F : Filter T) (x : T) base :=
-  filter_le F (locally_base topo x base).
+  filterlim (λ x : T, x) F (locally_base topo x base).
 Definition ex_filter_lim_base  {T : UU} (topo : Topology T) (F : Filter T) :=
   ∃ (x : T) base, is_filter_lim_base topo F x base.
 

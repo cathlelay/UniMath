@@ -746,6 +746,21 @@ Proof.
   apply Lmax_le_eq_l, Hx.
 Qed.
 
+Lemma op_truncminus :
+  ∏ (x y : X), Lle lat 0 x →
+               truncminus ex (x + y) y = x.
+Proof.
+  intros x y Hx.
+  apply (pr2 is1 _ _ y).
+  rewrite istruncminus_ex.
+  apply Lmax_ge_eq_l.
+  set (_xy_ := x + y).
+  rewrite <- (lunax _ y).
+  apply op_le_r.
+  exact is3.
+  exact Hx.
+Qed.
+
 Lemma truncminus_ge_0 :
   ∏ x y : X, Lle lat 0 (truncminus ex x y).
 Proof.
