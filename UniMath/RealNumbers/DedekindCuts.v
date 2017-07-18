@@ -214,19 +214,14 @@ Proof.
   { apply istranshqleh with (pr1 r).
     exact (pr2 r).
     apply hqlthtoleh, (pr2 (pr2 q)). }
-  exists (Rationals_to_NonnegativeRationals (pr1 q)).
+  exists (pr1 q,,Hq).
   split.
   - change (D (NonnegativeRationals_to_Rationals
-                 (Rationals_to_NonnegativeRationals (pr1 q)))).
-    rewrite (Rationals_to_NonnegativeRationals_correct (pr1 q)).
+                 (pr1 q,,Hq))).
     exact (pr1 (pr2 q)).
-    exact Hq.
   - rewrite ltNonnegativeRationals_correct.
-    change (pr1 r < (NonnegativeRationals_to_Rationals
-                 (Rationals_to_NonnegativeRationals (pr1 q)))).
-    rewrite Rationals_to_NonnegativeRationals_correct.
+    change (pr1 r < (NonnegativeRationals_to_Rationals (pr1 q,,Hq))).
     exact (pr2 (pr2 q)).
-    exact Hq.
 Qed.
 
 Lemma is1side_translation :
