@@ -1,4 +1,12 @@
-(** * Proofs of article *)
+(** * Usual constructive Dedekind cuts *)
+(** Catherine LELAY. July 2017 *)
+(** This file formalizes the usual definitions of constructive Dedekind cuts.
+- The two-sided definition come from the HoTT-book
+- The one-sided definition come from Robert S Lubarsky and Michael Rathjen. On the constructive
+Dedekind reals. Logic and Analysis.
+
+I first prove the equivalence between these two definitions, then I prove the equivalence between
+the non-negative numbers of the one-sided definition and the set Dcuts *)
 
 Require Export UniMath.NumberSystems.RationalNumbers.
 Require Import UniMath.RealNumbers.Prelim.
@@ -11,20 +19,22 @@ Unset Kernel Term Sharing.
 
 Open Scope hq_scope.
 
-Definition is2sides (L U : hq → hProp) : UU :=
+Definition is2sided (L U : hq → hProp) : UU :=
   ((∏ q : hq, L q <-> ∃ r : hq, L r ∧ hqlth q r)
      × (∏ q : hq, U q <-> ∃ r : hq, U r ∧ hqlth r q))
     × ((∃ q : hq, L q) × (∃ q : hq, U q))
     × (∏ q : hq, ¬ (U q ∧ L q))
     × (∏ q r : hq, hqlth q r → L q ∨ U r).
 
-Definition is1side (S : hq → hProp) : UU :=
+Definition is1sided (S : hq → hProp) : UU :=
   ((∃ r : hq, S r) ∧ (∃ r : hq, ¬ S r))
     × (∏ r : hq, S r → ∃ q : hq, S q ∧ hqlth r q)
     × (∏ r s : hq, hqlth r s → S r ∨ ¬ S s).
 
-Lemma is2sides_1side :
-  ∏ (L U : hq → hProp), is2sides L U → is1side L.
+(** ** Equivalence between these two definitions *)
+
+Lemma is2sided_1sided :
+  ∏ (L U : hq → hProp), is2sided L U → is1sided L.
 Proof.
   intros L U H.
   split ; split.
@@ -55,9 +65,9 @@ Proof.
       exact Ls.
 Qed.
 
-Lemma is1side_2sides :
+Lemma is1sided_2sided :
   ∏ (S : hq → hProp),
-  is1side S → is2sides S (λ s : hq, ∃ r : hq, hqlth r s × ¬ S r).
+  is1sided S → is2sided S (λ s : hq, ∃ r : hq, hqlth r s × ¬ S r).
 Proof.
   intros S H.
   split ; split ; [ | | split | split].
@@ -126,16 +136,16 @@ Proof.
       * exact Sr.
 Qed.
 
-Lemma weq2sides1side :
-  weq (∑ L U : hq → hProp, is2sides L U) (∑ S : hq → hProp, is1side S).
+Lemma weq2sided1sided :
+  weq (∑ L U : hq → hProp, is2sided L U) (∑ S : hq → hProp, is1sided S).
 Proof.
-  set (f := (λ (LU : ∑ L U : hq → hProp, is2sides L U),
-            pr1 LU,, is2sides_1side (pr1 LU) (pr1 (pr2 LU)) (pr2 (pr2 LU)))
-            : (∑ L U : hq → hProp, is2sides L U) → ∑ S, is1side S).
-  set (g := (λ S : (∑ S : hq → hProp, is1side S),
+  set (f := (λ (LU : ∑ L U : hq → hProp, is2sided L U),
+            pr1 LU,, is2sided_1sided (pr1 LU) (pr1 (pr2 LU)) (pr2 (pr2 LU)))
+            : (∑ L U : hq → hProp, is2sided L U) → ∑ S, is1sided S).
+  set (g := (λ S : (∑ S : hq → hProp, is1sided S),
                    pr1 S ,, (λ s : hq, ∃ r : hq, r < s × ¬ pr1 S r)
-                       ,, is1side_2sides (pr1 S) (pr2 S))
-            : (∑ S, is1side S) → ∑ L U : hq → hProp, is2sides L U).
+                       ,, is1sided_2sided (pr1 S) (pr2 S))
+            : (∑ S, is1sided S) → ∑ L U : hq → hProp, is2sided L U).
   apply (weqgradth f g).
   - intros LU.
     rewrite (tppr (g (f LU))).
@@ -187,10 +197,10 @@ Proof.
     + reflexivity.
 Qed.
 
-(** ** Equivalence with usual definitions *)
+(** ** Equivalence of Dcuts with usual definitions *)
 
-Lemma is1side_Dcuts_bot :
-  ∏ D, is1side D → Dcuts_def_bot (λ r, D (pr1 r)).
+Lemma is1sided_Dcuts_bot :
+  ∏ D, is1sided D → Dcuts_def_bot (λ r, D (pr1 r)).
 Proof.
   intros D H r Dr q Hq.
   generalize (le_eqorltNonnegativeRationals _ _ Hq) ; clear Hq.
@@ -203,8 +213,8 @@ Proof.
     + exact Dq.
     + apply fromempty, Dq, Dr.
 Qed.
-Lemma is1side_Dcuts_open :
-  ∏ D, is1side D → Dcuts_def_open (λ r, D (pr1 r)).
+Lemma is1sided_Dcuts_open :
+  ∏ D, is1sided D → Dcuts_def_open (λ r, D (pr1 r)).
 Proof.
   intros D H r Dr.
   generalize ((pr1 (pr2 H)) (pr1 r) Dr).
@@ -224,9 +234,9 @@ Proof.
     exact (pr2 (pr2 q)).
 Qed.
 
-Lemma is1side_translation :
+Lemma is1sided_translation :
   ∏ (D : hq → hProp) (c : hq),
-  is1side D → is1side (λ q, D (q + c)).
+  is1sided D → is1sided (λ q, D (q + c)).
 Proof.
   intros D c Hd.
   split ; split.
@@ -261,8 +271,8 @@ Proof.
     apply (pr2 (pr2 Hd)).
     apply hqlthandplusr, Hrs.
 Qed.
-Lemma is1side_Dcuts_corr :
-  ∏ D, is1side D → Dcuts_def_corr (λ r, D (pr1 r)).
+Lemma is1sided_Dcuts_corr :
+  ∏ D, is1sided D → Dcuts_def_corr (λ r, D (pr1 r)).
 Proof.
   intros D H c Hc.
   rewrite ltNonnegativeRationals_correct in Hc.
@@ -271,8 +281,8 @@ Proof.
   apply coprodcomm in H0.
   revert H0 ; apply sumofmaps ; intros H0.
   apply hinhpr, ii1, H0.
-  enough (∃ q : NonnegativeRationals, D (pr1 q) × ¬ D (pr1 (q + c)%NRat)).
-  { revert X.
+  enough (Hq : ∃ q : NonnegativeRationals, D (pr1 q) × ¬ D (pr1 (q + c)%NRat)).
+  { revert Hq.
     apply hinhfun, ii2. }
 
   generalize (pr2 (pr1 H)).
@@ -403,10 +413,10 @@ Proof.
       apply hqlthnsn.
 Qed.
 
-Lemma isDcuts_1side :
+Lemma isDcuts_1sided :
   ∏ (D : NonnegativeRationals → hProp),
   Dcuts_def_bot D → Dcuts_def_open D → Dcuts_def_corr D
-  → is1side (λ q : hq, sumofmaps (λ _ : 0 > q, htrue) (λ Hq : 0 <= q, D (q,, Hq)) (hqgthorleh 0 q)).
+  → is1sided (λ q : hq, sumofmaps (λ _ : 0 > q, htrue) (λ Hq : 0 <= q, D (q,, Hq)) (hqgthorleh 0 q)).
 Proof.
   intros D Hbot Hopen Hcorr.
   split ; split.
@@ -428,9 +438,9 @@ Proof.
         refine (hqgthtoneghqleh _ _ _ _).
         exact H0.
         exact hq1ge0.
-      * assert (1%NRat = (1 ,, H0))
+      * assert (H1 : 1%NRat = (1 ,, H0))
           by (apply subtypeEquality_prop ; reflexivity).
-        rewrite X in H.
+        rewrite H1 in H.
         exact H.
     + rename H into q.
       exists (pr1 (pr1 q) + 1).
@@ -441,10 +451,10 @@ Proof.
         apply hq0lehandplus.
         exact (pr2 (pr1 q)).
         exact hq1ge0.
-      * assert ((pr1 q + 1)%NRat = (pr1 (pr1 q) + 1 ,, H0))
+      * assert (Hq1 : (pr1 q + 1)%NRat = (pr1 (pr1 q) + 1 ,, H0))
           by (apply subtypeEquality_prop ; reflexivity).
         generalize (pr2 (pr2 q)) ; intro Hq.
-        rewrite X in Hq.
+        rewrite Hq1 in Hq.
         exact Hq.
   - intros r Dr.
     induction (hqgthorleh 0 r) as [Hr | Hr].
@@ -470,10 +480,10 @@ Proof.
         apply Hq.
         exact (pr2 (pr1 q)).
       * split.
-        assert (pr1 q = (pr1 (pr1 q) ,, Hq))
+        assert (Hq1 : pr1 q = (pr1 (pr1 q) ,, Hq))
           by (apply subtypeEquality_prop ; reflexivity).
         generalize (pr1 (pr2 q)) ; intro Hq'.
-        rewrite X in Hq'.
+        rewrite Hq1 in Hq'.
         exact Hq'.
         generalize (pr2 (pr2 q)) ; intro Hq'.
         rewrite ltNonnegativeRationals_correct in Hq'.
@@ -494,15 +504,15 @@ Proof.
       exact Hrq.
 Qed.
 
-Lemma weq1sideDcuts :
-  weq (∑ S : hq → hProp, is1side S × ∏ q : hq, q < 0 → S q) Dcuts.
+Lemma weq1sidedDcuts :
+  weq (∑ S : hq → hProp, is1sided S × ∏ q : hq, q < 0 → S q) Dcuts.
 Proof.
-  set (f := (λ (D : ∑ S : hq → hProp, is1side S × (∏ q : hq, q < 0 → S q)),
+  set (f := (λ (D : ∑ S : hq → hProp, is1sided S × (∏ q : hq, q < 0 → S q)),
              mk_Dcuts (λ r : NonnegativeRationals, pr1 D (pr1 r))
-                     (is1side_Dcuts_bot (pr1 D) (pr1 (pr2 D)))
-                     (is1side_Dcuts_open (pr1 D) (pr1 (pr2 D)))
-                     (is1side_Dcuts_corr (pr1 D) (pr1 (pr2 D))))
-            : (∑ S : hq → hProp, is1side S × (∏ q : hq, q < 0 → S q)) → Dcuts).
+                     (is1sided_Dcuts_bot (pr1 D) (pr1 (pr2 D)))
+                     (is1sided_Dcuts_open (pr1 D) (pr1 (pr2 D)))
+                     (is1sided_Dcuts_corr (pr1 D) (pr1 (pr2 D))))
+            : (∑ S : hq → hProp, is1sided S × (∏ q : hq, q < 0 → S q)) → Dcuts).
   assert (Hg : ∏ (D : Dcuts) (q : hq),
                q < 0
                → sumofmaps (λ _ : 0 > q, htrue) (λ Hq : 0 <= q, pr1 D (q,, Hq)) (hqgthorleh 0 q)).
@@ -518,9 +528,9 @@ set (g := (λ D : Dcuts,
     (λ q : hq,
      sumofmaps (λ _ : 0 > q, htrue) (λ Hq : 0 <= q, pr1 D (q,, Hq))
        (hqgthorleh 0 q)),,
-    isDcuts_1side (pr1 D) (is_Dcuts_bot D) (is_Dcuts_open D)
+    isDcuts_1sided (pr1 D) (is_Dcuts_bot D) (is_Dcuts_open D)
     (is_Dcuts_corr D),, Hg D)
-          : Dcuts → ∑ S : hq → hProp, is1side S × (∏ q : hq, q < 0 → S q)).
+          : Dcuts → ∑ S : hq → hProp, is1sided S × (∏ q : hq, q < 0 → S q)).
   apply (weqgradth f g).
   - intros D.
     simple refine (subtypeEquality_prop (B := λ _, hProppair _ _) _).
@@ -561,9 +571,9 @@ set (g := (λ D : Dcuts,
       exact (pr2 q).
       exact Hq.
       intros H.
-      assert (q = (pr1 q,, Hq))
+      assert (Hq1 : q = (pr1 q,, Hq))
         by (apply subtypeEquality_prop ; reflexivity).
-      rewrite X ; exact H.
+      rewrite Hq1 ; exact H.
     + change (pr1 D q
   → sumofmaps (λ _ : 0 > pr1 q, htrue)
               (λ Hq : ¬ (0 > pr1 q), pr1 D (pr1 q,, Hq)) (hqgthorleh 0 (pr1 q))).
@@ -573,7 +583,7 @@ set (g := (λ D : Dcuts,
       refine (hqlehtoneghqgth _ _ _ _).
       exact (pr2 q).
       exact Hq.
-      assert (q = (pr1 q,, Hq))
+      assert (Hq1 : q = (pr1 q,, Hq))
         by (apply subtypeEquality_prop ; reflexivity).
-      rewrite X in Dq ; exact Dq.
+      rewrite Hq1 in Dq ; exact Dq.
 Qed.
