@@ -14,6 +14,8 @@ Local Open Scope NRat_scope.
 Local Open Scope Dcuts_scope.
 Local Open Scope tap_scope.
 
+Unset Automatic Introduction.
+
 (** ** Definition of Dedekind cuts *)
 
 Definition Dcuts_def_bot (X : hsubtype NonnegativeRationals) : UU :=
@@ -182,7 +184,7 @@ Qed.
 (** Strict partial order on [Dcuts] *)
 
 Definition Dcuts_lt_rel : hrel Dcuts_set :=
-  fun (X Y : Dcuts_set) =>
+  λ (X Y : Dcuts_set),
     ∃ x : NonnegativeRationals, dirprod (neg (x ∈ X)) (x ∈ Y).
 
 Lemma istrans_Dcuts_lt_rel : istrans Dcuts_lt_rel.
@@ -296,9 +298,7 @@ Proof.
       exists (pr1 x + (pr1 y' - y)) ; split.
       * exact (pr2 (pr2 x)).
       * apply is_Dcuts_bot with (1 := pr1 (pr2 y')).
-        tryif primitive_projections
-        then pattern (pr1 y') at 2
-        else pattern (pr1 y') at 3 ;
+        pattern (pr1 y') at 2;
           rewrite <- (minusNonnegativeRationals_plus_r y (pr1 y')).
         rewrite iscomm_plusNonnegativeRationals.
         apply plusNonnegativeRationals_lecompat_l.
@@ -3340,9 +3340,7 @@ Proof.
         apply hinhpr ; exists ((pr1 x + pr1 y) - r) ; split.
         exact nYy.
         apply is_Dcuts_bot with (1 := pr1 (pr2 x)).
-        tryif primitive_projections
-        then pattern (pr1 x) at 2
-        else pattern (pr1 x) at 3;
+        pattern (pr1 x) at 2;
           rewrite <- (plusNonnegativeRationals_minus_r r (pr1 x)).
         apply minusNonnegativeRationals_lecompat_l.
         apply plusNonnegativeRationals_lecompat_l.
@@ -3976,13 +3974,9 @@ Proof.
       * apply (U_bot (pr1 N)) with (1 := pr1 (pr2 (pr2 xy))).
         apply_pr2 (plusNonnegativeRationals_lecompat_r (pr2 (pr1 xy))).
         rewrite <- (pr1 (pr2 xy)).
-        tryif primitive_projections
-        then pattern c at 2
-        else pattern c at 7;
+        pattern c at 2;
           rewrite (NQhalf_double c), isassoc_plusNonnegativeRationals.
-        tryif primitive_projections
-        then pattern (c / 2)%NRat at 2
-        else pattern (c / 2)%NRat at 5;
+        pattern (c / 2)%NRat at 2;
           rewrite (NQhalf_double (c / 2)%NRat), isassoc_plusNonnegativeRationals.
         apply plusNonnegativeRationals_lecompat_l.
         apply istrans_leNonnegativeRationals with (c / 2 / 2)%NRat.
@@ -4071,9 +4065,7 @@ Proof.
         { apply (U_bot n) with (1 := pr1 (pr2 (pr2 xy))).
           apply_pr2 (plusNonnegativeRationals_lecompat_r (pr2 (pr1 xy))).
           rewrite <- (pr1 (pr2 xy)).
-          tryif primitive_projections
-          then pattern (pr1 q) at 2
-          else pattern (pr1 q) at 3;
+          pattern (pr1 q) at 2;
             rewrite <- (minusNonnegativeRationals_plus_r (c / 2)%NRat (pr1 q)), isassoc_plusNonnegativeRationals.
           apply plusNonnegativeRationals_lecompat_l.
           set (_c_ := (c / 2)%NRat).
@@ -4123,9 +4115,7 @@ Proof.
             rewrite <- (pr1 (pr2 xy)).
             pattern (pr1 q) at 1 ;
               rewrite <- (minusNonnegativeRationals_plus_r (c / 2)%NRat (pr1 q)), !isassoc_plusNonnegativeRationals.
-            tryif primitive_projections
-            then pattern (pr1 q - c / 2 + c + pr1 eps)%NRat at 0
-            else pattern (pr1 q - c / 2 + c + pr1 eps)%NRat at 2;
+            pattern (pr1 q - c / 2 + c + pr1 eps)%NRat at 0;
               rewrite (isassoc_plusNonnegativeRationals (pr1 q - c / 2)%NRat c (pr1 eps)).
             apply plusNonnegativeRationals_lecompat_l.
             set (_c_ := c).
@@ -4163,7 +4153,7 @@ Definition is_Dcuts_lim_seq (u : nat -> Dcuts) (l : Dcuts) : hProp
 Definition Dcuts_lim_cauchy_seq (u : nat → Dcuts) (Hu : Dcuts_Cauchy_seq u) : Dcuts.
 Proof.
   intros U HU.
-  exists (Dcuts_lim_cauchy_val (fun n => pr1 (U n))).
+  exists (Dcuts_lim_cauchy_val (λ n, pr1 (U n))).
   repeat split.
   - apply Dcuts_lim_cauchy_bot.
     intro ; now apply is_Dcuts_bot.
@@ -4201,9 +4191,7 @@ Proof.
   split.
   - eapply istrans_Dcuts_lt_le_rel.
     now apply (Hu n Hn).
-    tryif primitive_projections
-    then pattern eps at 1
-    else pattern eps at 7;
+    pattern eps at 1;
       rewrite (Dcuts_half_double eps), <- isassoc_Dcuts_plus.
     eapply istrans_Dcuts_le_rel, Dcuts_plus_lecompat_l.
     + apply Dcuts_plus_lecompat_r.
@@ -4296,9 +4284,7 @@ Proof.
         unfold Dcuts_half_val.
         rewrite <- NQhalf_double.
         exact (pr1 (pr2 c)).
-    + tryif primitive_projections
-      then pattern eps at 2
-      else pattern eps at 6;
+    + pattern eps at 2;
       rewrite (Dcuts_half_double eps), <- isassoc_Dcuts_plus.
       apply Dcuts_plus_ltcompat_l.
       apply istrans_Dcuts_lt_le_rel with (Dcuts_plus (U n) (NonnegativeRationals_to_Dcuts (pr1 c / 2)%NRat)).
@@ -4403,9 +4389,7 @@ Proof.
         apply is_Dcuts_bot with (1 := pr1 (pr2 (pr2 xy))).
         apply_pr2 (plusNonnegativeRationals_lecompat_r (pr2 (pr1 xy))).
         rewrite <- (pr1 (pr2 xy)).
-        tryif primitive_projections
-        then pattern c at 2
-        else pattern c at 5; rewrite (NQhalf_double c).
+        pattern c at 2; rewrite (NQhalf_double c).
         apply plusNonnegativeRationals_lecompat_l.
         apply lt_leNonnegativeRationals.
         exact (pr2 (pr2 (pr2 xy))).
@@ -4493,7 +4477,7 @@ Qed.
 Lemma Dcuts_of_Dcuts'_open :
   ∏ (x : Dcuts),
     Dcuts_of_Dcuts'_val x ->
-    hexists (fun y : Dcuts => dirprod (Dcuts_of_Dcuts'_val y) (x < y)).
+    hexists (λ y : Dcuts, (Dcuts_of_Dcuts'_val y) × (x < y)).
 Proof.
   intros r.
   apply hinhuniv.
@@ -4757,7 +4741,7 @@ Definition hsubtypeNonnegativeRationals_to_NonnegativeReals
             X x -> ∏ y : NonnegativeRationals, (y <= x)%NRat -> X y)
   (Xopen : ∏ x : NonnegativeRationals,
              X x ->
-             hexists (fun y : NonnegativeRationals => dirprod (X y) (x < y)%NRat))
+             hexists (λ y : NonnegativeRationals, (X y) × (x < y)%NRat))
   (Xtop : Dcuts_def_corr X) : NonnegativeReals :=
   mk_Dcuts X Xbot Xopen Xtop.
 
@@ -5587,9 +5571,7 @@ Proof.
     exact (pr2 Hm).
     now apply Dcuts_lt_le_rel.
     reflexivity.
-  - tryif primitive_projections
-    then pattern l' at 1
-    else pattern l' at 7;
+  - pattern l' at 1;
     rewrite (minusNonnegativeReals_plus_r (l' - l) l' l), (iscomm_plusNonnegativeReals _ l), <- isassoc_plusNonnegativeReals, !isdistr_Dcuts_half_plus, <- Dcuts_half_double.
     exact (pr1 Hn).
     now apply Dcuts_lt_le_rel.

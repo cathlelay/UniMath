@@ -830,7 +830,6 @@ Proof.
   intros xy A.
   apply hinhuniv.
   intros A'.
-  rewrite (tppr xy).
   apply (pr2 (pr2 (pr2 (pr2 A')))).
   exact (pr1 (pr1 (pr2 (pr2 A')))).
   exact (pr1 (pr1 (pr2 (pr2 (pr2 A'))))).

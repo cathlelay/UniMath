@@ -881,6 +881,7 @@ Proof.
   apply hqmax_eq_r.
   apply (pr2 r).
 Qed.
+
 Lemma plusNonnegativeRationals_minus_l :
   ∏ q r : NonnegativeRationals, (q + r) - q = r.
 Proof.
@@ -1544,7 +1545,8 @@ Qed.
 Lemma NQhalf_double : ∏ x, x = x / 2 + x / 2.
 Proof.
   intros x.
-  rewrite (tppr x) ; generalize (pr1 x) (pr2 x) ; clear x ; intros x Hx.
+  change x with (pr1 x,,pr2 x).
+  generalize (pr1 x) (pr2 x) ; clear x ; intros x Hx.
   unfold divNonnegativeRationals, invNonnegativeRationals, hnnq_inv, twoNonnegativeRationals, Rationals_to_NonnegativeRationals ; simpl pr1 ; simpl pr2.
   generalize (hqlehchoice 0%hq 2%hq (hqlthtoleh 0%hq 2%hq hq2_gt0)) ;
   apply coprod_rect ; intros H2.

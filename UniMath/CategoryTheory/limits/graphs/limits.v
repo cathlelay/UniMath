@@ -327,9 +327,9 @@ End lim_def.
 
 Section Lims.
 
-Definition Lims (C : precategory) : UU := ∏ {g : graph} (d : diagram g C), LimCone d.
+Definition Lims (C : precategory) : UU := ∏ (g : graph) (d : diagram g C), LimCone d.
 Definition hasLims (C : precategory) : UU  :=
-  ∏ {g : graph} (d : diagram g C), ishinh (LimCone d).
+  ∏ (g : graph) (d : diagram g C), ishinh (LimCone d).
 
 (** Limits of a specific shape *)
 Definition Lims_of_shape (g : graph) (C : precategory) : UU :=
@@ -421,7 +421,7 @@ Lemma LimFunctor_unique (F : [A, C, hsC]) (cc : cone D F) :
 Proof.
 mkpair.
 - mkpair.
-  + apply (tpair _ (fun a => limArrow (HCg a) _ (cone_pointwise F cc a))).
+  + apply (tpair _ (λ a, limArrow (HCg a) _ (cone_pointwise F cc a))).
     abstract (intros a a' f; simpl; apply pathsinv0; eapply pathscomp0;
     [ apply (postCompWithLimOfArrows _ _ (HCg a))
     | apply pathsinv0; eapply pathscomp0;
@@ -601,9 +601,9 @@ simple refine (mk_ColimCocone _ _ _ _  ).
 - apply isCC.
 Defined.
 
-Definition Lims : UU := ∏ {g : graph} (d : diagram g C^op), LimCone d.
+Definition Lims : UU := ∏ (g : graph) (d : diagram g C^op), LimCone d.
 Definition hasLims : UU  :=
-  ∏ {g : graph} (d : diagram g C^op), ishinh (LimCone d).
+  ∏ (g : graph) (d : diagram g C^op), ishinh (LimCone d).
 
 (* lim is the tip of the lim cone *)
 Definition lim {g : graph} {d : diagram g C^op} (CC : LimCone d) : C
@@ -867,7 +867,7 @@ Definition get_diagram (A C : precategory) (hsC : has_homsets C)
   (g : graph) (D : diagram g [A, C, hsC]^op) :
     diagram g [A^op, C^op, has_homsets_opp hsC].
 Proof.
-apply (tpair _ (fun u => from_opp_to_opp_opp _ _ _ (pr1 D u))).
+apply (tpair _ (λ u, from_opp_to_opp_opp _ _ _ (pr1 D u))).
 intros u v e; simpl.
 simple refine (tpair _ _ _); simpl.
   + apply (pr2 D _ _ e).
@@ -956,7 +956,7 @@ Variable D : diagram g [A, C, hsC].
 
 Definition diagram_pointwise (a : A) : diagram g C.
 Proof.
-exists (fun v => pr1 (dob D v) a); intros u v e.
+exists (λ v, pr1 (dob D v) a); intros u v e.
 now apply (pr1 (dmor D e) a).
 Defined.
 
@@ -1015,7 +1015,7 @@ Lemma ColimFunctor_unique (F : [A, C, hsC]) (cc : cocone D F) :
 Proof.
 refine (tpair _ _ _).
 - refine (tpair _ _ _).
-  + apply (tpair _ (fun a => colimArrow (HCg a) _ (cocone_pointwise F cc a))).
+  + apply (tpair _ (λ a, colimArrow (HCg a) _ (cocone_pointwise F cc a))).
     abstract (intros a a' f; simpl;
               eapply pathscomp0;
                 [ now apply precompWithColimOfArrows
