@@ -1399,29 +1399,26 @@ Proof.
     + unfold neg ; apply (hinhuniv (P := hProppair _ isapropempty)) ; apply sumofmaps.
       apply sumofmaps ; [ intros Xq' | intros Yq'].
       * apply (pr2 (pr2 qx)), X_bot with (1 := Xq').
-        tryif primitive_projections
-        then pattern c at 2
-        else pattern c at 5 ;
-          rewrite (NQhalf_double c).
+        set (_c_ := (c / 2)%NRat).
+        rewrite (NQhalf_double c).
         rewrite <- isassoc_plusNonnegativeRationals.
         apply plusNonnegativeRationals_lecompat_r.
         rewrite isassoc_plusNonnegativeRationals.
         apply plusNonnegativeRationals_le_r.
       * apply (pr2 (pr2 qy)), Y_bot with (1 := Yq').
-        tryif primitive_projections
-        then pattern c at 2
-        else pattern c at 5;
-          rewrite (NQhalf_double c).
+        set (_c_ := (c / 2)%NRat).
+        rewrite (NQhalf_double c).
         rewrite <- isassoc_plusNonnegativeRationals.
         apply plusNonnegativeRationals_lecompat_r.
         eapply istrans_leNonnegativeRationals, plusNonnegativeRationals_le_r.
         apply plusNonnegativeRationals_le_l.
       * intros xy.
         apply (isirrefl_StrongOrder ltNonnegativeRationals (pr1 qx + pr1 qy + c)).
-        tryif primitive_projections
-        then pattern c at 2
-        else pattern c at 6; rewrite (NQhalf_double c).
-        pattern (pr1 qx + pr1 qy + c) at 1 ; rewrite (pr1 (pr2 xy)).
+        set (_c_ := c).
+        change (ltNonnegativeRationals (pr1 qx + pr1 qy + _c_) (pr1 qx + pr1 qy + c)).
+        rewrite (NQhalf_double c).
+        unfold _c_.
+        rewrite (pr1 (pr2 xy)).
         rewrite <- isassoc_plusNonnegativeRationals.
         rewrite (isassoc_plusNonnegativeRationals (pr1 qx) (pr1 qy) (c / 2)%NRat).
         rewrite (iscomm_plusNonnegativeRationals (pr1 qy)).
@@ -1997,9 +1994,8 @@ Proof.
   right.
   exists (/ (maxNonnegativeRationals 1%NRat (pr1 r) + c))%NRat ; split.
   - apply Dcuts_inv_out with (1 := pr2 (pr2 r)).
-    tryif primitive_projections
-    then pattern c at 2
-    else pattern c at 4; rewrite (NQhalf_double c), <- isassoc_plusNonnegativeRationals.
+    set (_c_ := (c / 2)%NRat).
+    rewrite (NQhalf_double c), <- isassoc_plusNonnegativeRationals.
     eapply istrans_le_lt_ltNonnegativeRationals, plusNonnegativeRationals_lt_r.
     apply plusNonnegativeRationals_lecompat_r ; apply maxNonnegativeRationals_le_r.
     exact Hc0.

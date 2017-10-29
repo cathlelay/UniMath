@@ -494,7 +494,6 @@ Proof.
     split.
     + apply (pr1 (pr2 C)).
     + intros x Hx.
-      rewrite (tppr x).
       apply (pr2 (pr2 C)).
       apply Hx.
   - generalize (pr2 Hbase _ (UniformStructure_true F)).
@@ -520,7 +519,6 @@ Proof.
     split.
     exact (pr1 (pr2 C)).
     intros x.
-    rewrite (tppr x).
     apply (pr2 (pr2 C)).
   - generalize (pr2 Hbase _ (UniformStructure_true F)).
     apply hinhfun.
@@ -943,7 +941,6 @@ Proof.
     revert Hp.
     apply hinhuniv.
     intros U.
-    rewrite (tppr xy).
     apply (pr2 (pr2 (pr2 (pr2 U))) (pr1 xy) (pr1 xy) (pr2 xy) (pr2 xy)).
     now apply (UniformStructure_diag (pr2 X)), (pr1 (pr2 (pr2 U))).
     now apply (UniformStructure_diag (pr2 Y)), (pr1 (pr2 (pr2 (pr2 U)))).
@@ -976,7 +973,6 @@ Proof.
     + intros x y.
       apply hinhuniv.
       intros z.
-      rewrite  (tppr x), (tppr y).
       apply (pr2 (pr2 (pr2 (pr2 U))) (pr1 x) (pr1 y) (pr2 x) (pr2 y)).
       apply (pr2 (pr2 Qx)).
       apply hinhpr.
