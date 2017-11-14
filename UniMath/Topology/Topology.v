@@ -1303,8 +1303,8 @@ Proof.
   - exact (pr1 (pr1 O)).
   - exact (pr2 (pr2 O)).
   - apply hinhpr.
-    mkpair.
-    mkpair.
+    use tpair.
+    use tpair.
     + apply (λ xy : U × V, pr1 O (pr1 xy)).
     + intros xy' Oxy.
       apply hinhpr.
@@ -1328,8 +1328,8 @@ Proof.
   - exact (pr1 (pr1 O)).
   - exact (pr2 (pr2 O)).
   - apply hinhpr.
-    mkpair.
-    mkpair.
+    use tpair.
+    use tpair.
     + apply (λ xy : U × V, pr1 O (pr2 xy)).
     + intros xy' Oxy.
       apply hinhpr.
