@@ -24,8 +24,7 @@ Local Definition hnnq_set_to_hq (r : hnnq_set) : hq := pr1 r.
 Local Definition hq_to_hnnq_set (r : hq) : hnnq_set.
 Proof.
   intros x.
-  mkpair.
-  apply (hqmax 0 x).
+  exists (hqmax 0 x).
   apply hqmax_ge_l.
 Defined.
 
@@ -49,16 +48,14 @@ Local Definition hnnq_div : binop hnnq_set := λ x y : hnnq_set, hnnq_mult x (hn
 Local Definition hnnq_min : binop hnnq_set.
 Proof.
   intros x y.
-  mkpair.
-  apply (hqmin (pr1 x) (pr1 y)).
+  exists (hqmin (pr1 x) (pr1 y)).
   apply hqmin_case ;
     [ exact (pr2 x) | exact (pr2 y) ].
 Defined.
 Local Definition hnnq_max : binop hnnq_set.
 Proof.
   intros x y.
-  mkpair.
-  apply (hqmax (pr1 x) (pr1 y)).
+  exists (hqmax (pr1 x) (pr1 y)).
   abstract (apply istranshqleh with (pr1 x) ;
             [ apply (pr2 x)
             | apply hqmax_ge_l ]).
@@ -1670,8 +1667,8 @@ Lemma minNonnegativeRationals_case_strong :
 Proof.
   intros P x y Hx Hy.
   unfold minNonnegativeRationals, hnnq_min.
-  generalize (hqmin_case (λ p : hq, ¬ (0 > p)%hq) (pr1 x) (pr1 y) (pr2 x) (pr2 y)).
-  apply (hqmin_case_strong (λ z, ∏ H : (0 <= z)%hq, P (z ,, H))) ; intros H.
+  generalize (hqmin_case (λ p : hq, (0 <= p)%hq) (pr1 x) (pr1 y) (pr2 x) (pr2 y)).
+  apply (hqmin_case_strong (λ z, ∏ H : ¬ (0 > z)%hq, P (z ,, H))) ; intros H.
   - intros n.
     assert (H0 : x = (pr1 x,, n)).
     apply subtypeEquality_prop.

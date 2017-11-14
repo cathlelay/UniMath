@@ -152,8 +152,7 @@ Context {NR : NonnegativeMonoid}
 
 Definition normgr_MetricSpace : MetricSet NR (pr1 (pr1 X),,ap).
 Proof.
-  mkpair.
-  - apply (λ x y : X, norm  (x + (grinv X y))).
+  exists (λ x y : X, norm  (x + (grinv X y))).
   - split ; [ | split].
     + intros x y.
       rewrite <- normgr_opp.

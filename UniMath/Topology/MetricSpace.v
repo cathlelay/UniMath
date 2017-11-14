@@ -17,7 +17,7 @@ Set Default Timeout 5.
 Definition apfromgt {X : hSet} (gt : StrongOrder X) : aprel X.
 Proof.
   intros X gt.
-  mkpair.
+  simple refine (tpair _ _ _).
   - intros x y.
     simple refine (hProppair _ _).
     apply (coprod (gt x y) (gt y x)).
@@ -83,18 +83,16 @@ Definition NnMgt : StrongOrder X :=
   Lgt latticewithgt_NonnegativeMonoid.
 Definition NnMle : PartialOrder X.
 Proof.
-  mkpair.
-  apply (Lle latticewithgt_NonnegativeMonoid).
-  repeat split.
+  exists (Lle latticewithgt_NonnegativeMonoid).
+  split ; [ split | ].
   - apply istrans_Lle.
   - apply isrefl_Lle.
   - apply isantisymm_Lle.
 Defined.
 Definition NnMge : PartialOrder X.
 Proof.
-  mkpair.
-  apply (Lge latticewithgt_NonnegativeMonoid).
-  repeat split.
+  exists (Lge latticewithgt_NonnegativeMonoid).
+  split ; [split | ].
   - apply istrans_Lge.
   - apply isrefl_Lge.
   - apply isantisymm_Lge.
